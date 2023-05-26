@@ -1,15 +1,15 @@
 <template>
   <BasicTable @register="registerTable">
     <template #tableTitle>
-      <a-button type="primary" preIcon="ant-design:plus-outlined" @click="handleCreate"> 新增</a-button>
-      <a-button type="primary" preIcon="ant-design:export-outlined" @click="onExportXls"> 导出</a-button>
-      <j-upload-button type="primary" preIcon="ant-design:import-outlined" @click="onImportXls">导入</j-upload-button>
+      <a-button type="primary" preIcon="ant-design:plus-outlined" @click="handleCreate"> {{ t("common.operation.addNew") }}</a-button>
+      <a-button type="primary" preIcon="ant-design:export-outlined" @click="onExportXls"> {{ t("common.operation.export") }}</a-button>
+      <j-upload-button type="primary" preIcon="ant-design:import-outlined" @click="onImportXls">{{ t("common.operation.import") }}</j-upload-button>
       <a-dropdown v-if="selectedRowKeys.length > 0">
         <template #overlay>
           <a-menu>
             <a-menu-item key="1" @click="batchHandleDelete">
               <Icon icon="ant-design:delete-outlined"></Icon>
-              删除
+              {{ t("common.operation.delete") }}
             </a-menu-item>
           </a-menu>
         </template>
@@ -36,6 +36,7 @@
 </template>
 <script lang="ts" name="system-role" setup>
   import { ref } from 'vue';
+  import {useI18n} from "/@/hooks/web/useI18n";
   import { BasicTable, TableAction } from '/@/components/Table';
   import { useDrawer } from '/@/components/Drawer';
   import { useModal } from '/@/components/Modal';
@@ -84,7 +85,7 @@
     },
   });
   const [registerTable, { reload }, { rowSelection, selectedRowKeys }] = tableContext;
-
+  const { t } = useI18n();
   /**
    * 新增
    */

@@ -15,7 +15,7 @@
       <a-date-picker
         :showTime="false"
         valueFormat="YYYY-MM-DD"
-        placeholder="开始日期"
+        :placeholder=t('component.time.startDate')
         v-model:value="queryParam[item.field + '_begin']"
         style="width: calc(50% - 15px)"
       ></a-date-picker>
@@ -211,11 +211,17 @@
 <script lang="ts">
   //import JOnlineSearchSelect from '@/components/online/autoform/comp/JOnlineSearchSelect'
   import { defineComponent, ref } from 'vue';
-  import { DateTypeEnum } from '/@/enums/DateTypeEnum.ts';
-  import { CompTypeEnum } from '/@/enums/CompTypeEnum.ts';
+  import { DateTypeEnum } from '/@/enums/DateTypeEnum';
+  import { CompTypeEnum } from '/@/enums/CompTypeEnum';
   import { JDictSelectTag, JTreeSelect, JCategorySelect, JSelectUserByDept, JSelectDept, JPopup, JAreaLinkage,JInput,JSearchSelect } from '/@/components/Form';
+  import { useI18n } from "/@/hooks/web/useI18n";
+
+  const { t } = useI18n();
   export default defineComponent({
     name: 'JPopupOnlReport',
+    methods: {
+      t,
+    },
     components: {
       //JOnlineSearchSelect
       JDictSelectTag,

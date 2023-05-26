@@ -2,14 +2,22 @@
 <template>
   <a-select
     :value="arrayValue"
-    @change="onChange"
+    @change="onChange($event, $el)"
     mode="multiple"
     :filter-option="filterOption"
     :disabled="disabled"
     :placeholder="placeholder"
     allowClear
     :getPopupContainer="getParentContainer"
+    :maxTagCount="1"
   >
+    <template #dropdownRender="{menuNode: menu}">
+      <v-nodes :vnodes='menu' />
+      <a-divider style='margin: 4px 0;' />
+      <a-checkbox class="checkAll" @change="selectAll($event, $el)" style="width: 100%; padding: 4px 8px;">
+        {{t('component.table.selectAll')}}
+      </a-checkbox>
+    </template>
     <a-select-option v-for="(item, index) in dictOptions" :key="index" :getPopupContainer="getParentContainer" :value="item.value">
       {{ item.text || item.label }}
     </a-select-option>
@@ -22,11 +30,20 @@
   import { useAttrs } from '/@/hooks/core/useAttrs';
   import { getDictItems } from '/@/api/common/api';
   import { useMessage } from '/@/hooks/web/useMessage';
+  import { useI18n } from '/@/hooks/web/useI18n'
+  const { t } = useI18n();
 
   const { createMessage, createErrorModal } = useMessage();
   export default defineComponent({
     name: 'JSelectMultiple',
-    components: {},
+    methods: {
+      t,
+    },
+    components: {
+      VNodes: (_, { attrs }) => {
+        return attrs.vnodes;
+      },
+    },
     inheritAttrs: false,
     props: {
       value: propTypes.oneOfType([propTypes.string, propTypes.array]),
@@ -106,13 +123,24 @@
         }
       });
 
-      function onChange(selectedValue) {
+      function onChange(selectedValue, el) {
+        console.log("selected values : " + selectedValue);
         if (props.triggerChange) {
           emit('change', selectedValue.join(props.spliter));
           emit('update:value', selectedValue.join(props.spliter));
         } else {
           emit('input', selectedValue.join(props.spliter));
           emit('update:value', selectedValue.join(props.spliter));
+        }
+        /**
+         *  if we cleared the input, but previously selected all option with the checkbox
+         * we make sure to clear the values and uncheck the checkbox
+        **/
+        if(selectedValue.length === 0) {
+          arrayValue.value = [];
+          const checkbox = el.getElementsByClassName('ant-checkbox-input')[0];
+          checkbox.checked = false;
+          checkbox.parentElement?.classList.remove("ant-checkbox-checked");
         }
       }
 
@@ -149,7 +177,22 @@
         return option.children()[0].children.toLowerCase().indexOf(input.toLowerCase()) >= 0;
       }
       //update-end-author:taoyan date:2022-5-31 for: VUEN-1145 下拉多选，搜索时，查不到数据
-
+      function selectAll(e, el) {
+        let checked = e.target.checked;
+        if (checked) {
+          let data = []
+          dictOptions.value.map(item => {
+            data.push(item.value)
+          });
+          const checkbox = el.getElementsByClassName('ant-checkbox-input')[0];
+          checkbox.parentElement?.classList.add("ant-checkbox-checked");
+          arrayValue.value = data;
+          onChange(data, el);
+        }
+        else {
+          onChange([], el);
+        }
+      }
       return {
         state,
         attrs,
@@ -158,6 +201,7 @@
         arrayValue,
         getParentContainer,
         filterOption,
+        selectAll,
       };
     },
   });

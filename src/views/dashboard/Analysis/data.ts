@@ -1,3 +1,5 @@
+import { useI18n } from '/@/hooks/web/useI18n';
+const { t } = useI18n();
 export interface GrowCardItem {
   icon: string;
   title: string;
@@ -10,36 +12,36 @@ export interface GrowCardItem {
 
 export const growCardList: GrowCardItem[] = [
   {
-    title: '访问数',
+    title: 'common.data.visits',
     icon: 'visit-count|svg',
     value: 2000,
     total: 120000,
     color: 'green',
-    action: '月',
+    action: 'common.period.monthly',
   },
   {
-    title: '成交额',
+    title: 'common.data.sales',
     icon: 'total-sales|svg',
     value: 20000,
     total: 500000,
     color: 'blue',
-    action: '月',
+    action: 'common.period.monthly',
   },
   {
-    title: '下载数',
+    title: 'common.data.downloads',
     icon: 'download-count|svg',
     value: 8000,
     total: 120000,
     color: 'orange',
-    action: '周',
+    action: 'common.period.weekly',
   },
   {
-    title: '成交数',
+    title: 'common.data.transaction',
     icon: 'transaction|svg',
     value: 5000,
     total: 50000,
     color: 'purple',
-    action: '年',
+    action: 'common.period.yearly',
   },
 ];
 

@@ -80,7 +80,7 @@
         </ScrollContainer>
         <div :class="`${prefixCls}__popover-footer`">
           <a-button size="small" @click="reset">
-            {{ t('common.resetText') }}
+            {{ t('common.operation.reset') }}
           </a-button>
           <a-button size="small" type="primary" @click="saveSetting"> 保存 </a-button>
         </div>

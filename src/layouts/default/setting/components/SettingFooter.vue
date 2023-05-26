@@ -7,7 +7,7 @@
 
     <a-button color="warning" block @click="handleResetSetting" class="my-3">
       <RedoOutlined class="mr-2" />
-      {{ t('common.resetText') }}
+      {{ t('common.operation.reset') }}
     </a-button>
 
     <a-button color="error" block @click="handleClearAndRedo">

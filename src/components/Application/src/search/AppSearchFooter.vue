@@ -6,7 +6,7 @@
     <AppSearchKeyItem :class="`${prefixCls}-item`" icon="ion:arrow-down-outline" />
     <span>{{ t('component.app.toNavigate') }}</span>
     <AppSearchKeyItem :class="`${prefixCls}-item`" icon="mdi:keyboard-esc" />
-    <span>{{ t('common.closeText') }}</span>
+    <span>{{ t('common.operation.close') }}</span>
   </div>
 </template>
 

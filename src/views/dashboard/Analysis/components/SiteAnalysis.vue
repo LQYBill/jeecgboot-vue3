@@ -13,17 +13,19 @@
   import { Card } from 'ant-design-vue';
   import VisitAnalysis from './VisitAnalysis.vue';
   import VisitAnalysisBar from './VisitAnalysisBar.vue';
+  import { useI18n } from '/@/hooks/web/useI18n';
 
+  const { t } = useI18n();
   const activeKey = ref('tab1');
 
   const tabListTitle = [
     {
       key: 'tab1',
-      tab: '流量趋势',
+      tab: t('common.data.traffic'),
     },
     {
       key: 'tab2',
-      tab: '访问量',
+      tab: t('common.data.visits'),
     },
   ];
 

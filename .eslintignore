@@ -1,4 +1,5 @@
-
+*.vue
+*.ts
 *.sh
 node_modules
 *.md

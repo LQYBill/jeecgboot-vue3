@@ -33,7 +33,7 @@
         return Object.assign(
           {
             okText: t('common.okText'),
-            cancelText: t('common.cancelText'),
+            cancelText: t('common.operation.cancel'),
           },
           { ...props, ...unref(attrs) }
         );

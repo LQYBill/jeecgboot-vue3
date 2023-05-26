@@ -228,7 +228,7 @@ export class VAxios {
               //zhangyafei---添加回调方法
               resolve(ret);
             } catch (err) {
-              reject(err || new Error('request error!'));
+              reject(""+err || new Error('request error!'));
             }
             return;
           }

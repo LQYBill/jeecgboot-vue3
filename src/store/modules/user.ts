@@ -5,9 +5,9 @@ import { store } from '/@/store';
 import { RoleEnum } from '/@/enums/roleEnum';
 import { PageEnum } from '/@/enums/pageEnum';
 import { ROLES_KEY, TOKEN_KEY, USER_INFO_KEY, LOGIN_INFO_KEY, DB_DICT_DATA_KEY, TENANT_ID } from '/@/enums/cacheEnum';
-import { getAuthCache, setAuthCache, removeAuthCache } from '/@/utils/auth';
-import { GetUserInfoModel, LoginParams, ThirdLoginParams } from '/@/api/sys/model/userModel';
-import { doLogout, getUserInfo, loginApi, phoneLoginApi, thirdLogin } from '/@/api/sys/user';
+import { getAuthCache, setAuthCache } from '/@/utils/auth';
+import { GetUserInfoModel, LoginParams } from '/@/api/sys/model/userModel';
+import { doLogout, getUserInfo, loginApi } from '/@/api/sys/user';
 import { useI18n } from '/@/hooks/web/useI18n';
 import { useMessage } from '/@/hooks/web/useMessage';
 import { router } from '/@/router';
@@ -133,18 +133,6 @@ export const useUserStore = defineStore({
       }
     },
     /**
-     * 扫码登录事件
-     */
-    async qrCodeLogin(token): Promise<GetUserInfoModel | null> {
-      try {
-        // save token
-        this.setToken(token);
-        return this.afterLoginAction(true, {});
-      } catch (error) {
-        return Promise.reject(error);
-      }
-    },
-    /**
      * 登录完成处理
      * @param goHome
      */
@@ -172,27 +160,6 @@ export const useUserStore = defineStore({
         goHome && (await router.replace((userInfo && userInfo.homePath) || PageEnum.BASE_HOME));
       }
       return data;
-    },
-    /**
-     * 手机号登录
-     * @param params
-     */
-    async phoneLogin(
-      params: LoginParams & {
-        goHome?: boolean;
-        mode?: ErrorMessageMode;
-      }
-    ): Promise<GetUserInfoModel | null> {
-      try {
-        const { goHome = true, mode, ...loginParams } = params;
-        const data = await phoneLoginApi(loginParams, mode);
-        const { token } = data;
-        // save token
-        this.setToken(token);
-        return this.afterLoginAction(goHome, data);
-      } catch (error) {
-        return Promise.reject(error);
-      }
     },
     /**
      * 获取用户信息
@@ -259,26 +226,6 @@ export const useUserStore = defineStore({
       }
 
       goLogin && (await router.push(PageEnum.BASE_LOGIN));
-    },
-    /**
-     * 登录事件
-     */
-    async ThirdLogin(
-      params: ThirdLoginParams & {
-        goHome?: boolean;
-        mode?: ErrorMessageMode;
-      }
-    ): Promise<any | null> {
-      try {
-        const { goHome = true, mode, ...ThirdLoginParams } = params;
-        const data = await thirdLogin(ThirdLoginParams, mode);
-        const { token } = data;
-        // save token
-        this.setToken(token);
-        return this.afterLoginAction(goHome, data);
-      } catch (error) {
-        return Promise.reject(error);
-      }
     },
     /**
      * 退出询问

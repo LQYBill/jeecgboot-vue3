@@ -52,18 +52,5 @@ export const Oauth2LoginRoute: AppRouteRecordRaw = {
 };
 //update-end---author:wangshuai ---date:20220629  for：auth2登录页面路由------------
 
-/**
- * 【通过token直接静默登录】流程办理登录页面 中转跳转
- */
-export const TokenLoginRoute: AppRouteRecordRaw = {
-  path: '/tokenLogin',
-  name: 'TokenLoginRoute',
-  component: () => import('/@/views/sys/login/TokenLoginPage.vue'),
-  meta: {
-    title: '带token登录页面',
-    ignoreAuth: true,
-  },
-};
-
 // Basic routing without permission
-export const basicRoutes = [LoginRoute, RootRoute, ...mainOutRoutes, REDIRECT_ROUTE, PAGE_NOT_FOUND_ROUTE, TokenLoginRoute, Oauth2LoginRoute];
+export const basicRoutes = [LoginRoute, RootRoute, ...mainOutRoutes, REDIRECT_ROUTE, PAGE_NOT_FOUND_ROUTE, Oauth2LoginRoute];

@@ -10,7 +10,7 @@ export default {
   },
   cropper: {
     selectImage: 'Select Image',
-    uploadSuccess: 'Uploaded success!',
+    uploadSuccess: 'Upload success!',
     modalTitle: 'Avatar upload',
     okText: 'Confirm and upload',
     btn_reset: 'Reset',
@@ -26,6 +26,9 @@ export default {
     loadingText: 'Loading...',
     cancelText: 'Close',
     okText: 'Confirm',
+  },
+  email: {
+    emailSent: 'Email Sent.',
   },
   excel: {
     exportModalTitle: 'Export data',
@@ -53,6 +56,19 @@ export default {
     maximize: 'Maximize',
     restore: 'Restore',
   },
+  searchForm: {
+    //placeholder
+    selectUser: 'Select a user',
+    enterInvoiceNumber: 'Enter an invoice number',
+    clientInputSearch: "Select a customer",
+    shopFilter: "Filter by shop",
+    shopInputSearch: "Select shops",
+    dateInputSearch: "Select a date",
+    countryInputSearch: "Select countries",
+    invoiceTypeInputSearch: "Select an invoice type",
+    invoiceModeInputSearch: "Select an invoicing mode",
+    orderSelectModeInputSearch: "Choose an order selection mode",
+  },
   table: {
     settingDens: 'Density',
     settingDensDefault: 'Default',
@@ -65,8 +81,14 @@ export default {
     settingFixedLeft: 'Fixed Left',
     settingFixedRight: 'Fixed Right',
     settingFullScreen: 'Full Screen',
+
+    acrossPages: 'Across pages',
+    noDataSelected: 'No data selected',
+    selectedRows: 'Selected { num } rows',
+    selectAll: 'Select all',
+
     index: 'Index',
-    total: 'total of {total}',
+    total: 'Total of {total}',
   },
   time: {
     before: ' ago',
@@ -76,6 +98,8 @@ export default {
     minutes: ' minutes',
     hours: ' hours',
     days: ' days',
+    startDate: 'Start Date',
+    endDate:'End Date',
   },
   tree: {
     selectAll: 'Select All',
@@ -113,7 +137,7 @@ export default {
     fileStatue: 'File status',
 
     startUpload: 'Start upload',
-    uploadSuccess: 'Upload successfully',
+    uploadSuccess: 'Uploaded successfully',
     uploadError: 'Upload failed',
     uploading: 'Uploading',
     uploadWait: 'Please wait for the file upload to finish',

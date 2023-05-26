@@ -10,7 +10,7 @@ export const footerProps = {
    */
   showCancelBtn: { type: Boolean, default: true },
   cancelButtonProps: Object as PropType<Recordable>,
-  cancelText: { type: String, default: t('common.cancelText') },
+  cancelText: { type: String, default: t('common.operation.cancel') },
   /**
    * @description: Show confirmation button
    */

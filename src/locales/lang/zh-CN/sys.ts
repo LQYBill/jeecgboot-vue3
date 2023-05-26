@@ -22,6 +22,10 @@ export default {
     errMsg505: 'http版本不支持该请求!',
 
     registerMsg: '注册成功',
+
+    executionFailed : '执行失败',
+    syncOrderJobNotFound: '未找到同步订单任务',
+    syncRequestSubmitted: "订单同步请求已提交，完成后系统会发送通知，请稍后",
   },
   app: { logoutTip: '温馨提醒', logoutMessage: '是否确认退出系统?', menuLoading: '菜单加载中...' },
   errorLog: {
@@ -82,6 +86,13 @@ export default {
     // notify
     loginSuccessTitle: '登录成功',
     loginSuccessDesc: '欢迎回来',
+    logoutSuccess: '退出登录成功！',
+
+    // notify error
+    wrongCredentials: '用户名或密码错误',
+    errorLogout: '退出登录失败！',
+    invalidToken: 'Token无效!',
+    loginFailOvertimes: '该用户登录失败次数过多，请于10分钟后再次登录！',
 
     // placeholder
     accountPlaceholder: '请输入账号',
@@ -109,4 +120,25 @@ export default {
     nextStep:'下一步',
     goToLogin:'去登录'
   },
+  profile: {
+    account: '账户',
+    accountSecurity: '账号安全',
+    contactInformation: '联系信息',
+    myInformation: '个人信息',
+    detailedInformation: '详细资料',
+    jobTitle: '职位',
+    name: '姓名',
+    birthday: '生日',
+    sex: '性别',
+    male: '男',
+    female: '女',
+
+    //UserPasswordModal
+    currentPassword: '原有密码',
+    websiteLoginPassword: '进入网站的登录密码',
+    newPassword: '新密码',
+    passwordRequirements: '8-20位，需包含字母和数字',
+
+    editProfile: '编辑个人资料',
+  }
 };

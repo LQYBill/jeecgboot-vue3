@@ -20,10 +20,16 @@ export default {
     errMsg503: 'The service is unavailable, the server is temporarily overloaded or maintained!',
     errMsg504: 'Network timeout!',
     errMsg505: 'The http version does not support the request!',
+
+    registerMsg: 'Registration success',
+
+    executionFailed : 'Execution failed',
+      syncOrderJobNotFound: 'Order Sync job not found !',
+    syncRequestSubmitted: "The order synchronization request has been submitted, the system will send a notification after completion, please wait",
   },
   app: {
     logoutTip: 'Reminder',
-    logoutMessage: 'Confirm to exit the system?',
+    logoutMessage: 'Log out of Wia APP ?',
     menuLoading: 'Menu loading...',
   },
   errorLog: {
@@ -83,6 +89,13 @@ export default {
     // notify
     loginSuccessTitle: 'Login successful',
     loginSuccessDesc: 'Welcome back',
+    logoutSuccess: 'Logout successful',
+
+    // notify error
+    wrongCredentials: 'Wrong Username or Password',
+    errorLogout: 'Failed to logout',
+    invalidToken: 'Invalid Token',
+    loginFailOvertimes: 'The user failed to log in too many times, please try again in 10 minutes !',
 
     // placeholder
     accountPlaceholder: 'Please input username',
@@ -101,10 +114,32 @@ export default {
     mobile: 'Mobile',
 
     //重置密码页面英文
-    authentication:'authentication',
-    resetLoginPassword:'reset login password',
-    resetSuccess:'reset succeeded',
-    nextStep:'next step',
-    goToLogin:'go to login'
+    authentication: 'authentication',
+    resetLoginPassword: 'reset login password',
+    resetSuccess: 'reset succeeded',
+    nextStep: 'next step',
+    goToLogin: 'go to login',
   },
+  profile: {
+
+    account: 'Account',
+    accountSecurity: 'Account Security',
+    contactInformation: 'Contact Information',
+    myInformation: 'My Information',
+    detailedInformation: 'Detailed Information',
+    jobTitle: 'Job Title',
+    name: 'Name',
+    birthday: 'Birthday',
+    sex: 'Sex',
+    male: 'Male',
+    female: 'Female',
+
+    //UserPasswordModal
+    currentPassword: 'Current Password',
+    websiteLoginPassword: 'Password used for logging in.',
+    newPassword: 'New Password',
+    passwordRequirements: '8 à 20 caractères, doit inclure des lettres et des chiffres.',
+
+    editProfile: 'Edit Profile',
+  }
 };

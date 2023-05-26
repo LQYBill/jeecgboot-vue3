@@ -3,12 +3,12 @@ export default {
   header: {
     // user dropdown
     dropdownItemDoc: 'Document',
-    dropdownItemLoginOut: 'Login Out',
+    dropdownItemLoginOut: 'Log Out',
     dropdownItemSwitchPassword: 'Password Change',
     dropdownItemSwitchDepart: 'Switch Department',
     dropdownItemRefreshCache: 'Clean cache',
     dropdownItemSwitchAccount: 'Account Setting',
-    
+
     tooltipErrorLog: 'Error log',
     tooltipLock: 'Lock screen',
     tooltipNotify: 'Notification',
