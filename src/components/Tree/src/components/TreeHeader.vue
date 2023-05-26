@@ -10,7 +10,7 @@
     >
       <div :class="getInputSearchCls" v-if="search">
         <InputSearch
-          :placeholder="t('common.searchText')"
+          :placeholder="t('common.operation.search')"
           size="small"
           allowClear
           v-model:value="searchValue"

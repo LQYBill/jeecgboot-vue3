@@ -6,8 +6,9 @@
     import { defineComponent, ref, watch, computed } from 'vue';
     import { propTypes } from '/@/utils/propTypes';
     import { Form } from 'ant-design-vue';
+    import { useI18n } from "/@/hooks/web/useI18n";
 
-    const placeholder = ['开始日期', '结束日期']
+    const placeholder = [useI18n().t('component.time.startDate'), useI18n().t('component.time.endDate')]
     /**
      * 用于范围查询
      */

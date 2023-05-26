@@ -1,5 +1,5 @@
 <template>
-  <Card title="转化率" :loading="loading">
+  <Card :title="t('common.data.conversionRate')" :loading="loading">
     <div ref="chartRef" :style="{ width, height }"></div>
   </Card>
 </template>
@@ -7,7 +7,9 @@
   import { Ref, ref, watch } from 'vue';
   import { Card } from 'ant-design-vue';
   import { useECharts } from '/@/hooks/web/useECharts';
+  import { useI18n } from '/@/hooks/web/useI18n';
 
+  const { t } = useI18n();
   const props = defineProps({
     loading: Boolean,
     width: {
@@ -31,7 +33,7 @@
       setOptions({
         legend: {
           bottom: 0,
-          data: ['访问', '购买'],
+          data: [t('common.data.access'), t('common.data.purchase')],
         },
         tooltip: {},
         radar: {
@@ -39,19 +41,19 @@
           splitNumber: 8,
           indicator: [
             {
-              text: '电脑',
+              text: t('common.data.computer'),
               max: 100,
             },
             {
-              text: '充电器',
+              text: t('common.data.charger'),
               max: 100,
             },
             {
-              text: '耳机',
+              text: t('common.data.earphone'),
               max: 100,
             },
             {
-              text: '手机',
+              text: t('common.data.phone'),
               max: 100,
             },
             {
@@ -59,7 +61,7 @@
               max: 100,
             },
             {
-              text: '耳机',
+              text: t('common.data.earphone'),
               max: 100,
             },
           ],
@@ -78,14 +80,14 @@
             data: [
               {
                 value: [90, 50, 86, 40, 50, 20],
-                name: '访问',
+                name: t('common.data.access'),
                 itemStyle: {
                   color: '#b6a2de',
                 },
               },
               {
                 value: [70, 75, 70, 76, 20, 85],
-                name: '购买',
+                name: t('common.data.purchase'),
                 itemStyle: {
                   color: '#5ab1ef',
                 },

@@ -20,7 +20,7 @@
           <div class="p-1" onClick={changeModal.bind(null, true)}>
             <Tooltip>
               {{
-                title: () => t('common.searchText'),
+                title: () => t('common.operation.search'),
                 default: () => <SearchOutlined />,
               }}
             </Tooltip>

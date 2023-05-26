@@ -28,7 +28,7 @@
   import SaleTabCard from '../components/SaleTabCard.vue';
   import LineMulti from '/@/components/chart/LineMulti.vue';
   import HeadInfo from '/@/components/chart/HeadInfo.vue';
-  import { getLoginfo, getVisitInfo } from '../api.ts';
+  import { getLoginfo, getVisitInfo } from '../api';
 
   const loading = ref(true);
 

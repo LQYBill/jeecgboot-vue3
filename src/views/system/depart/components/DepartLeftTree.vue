@@ -1,12 +1,12 @@
 <template>
   <a-card :bordered="false" style="height: 100%">
     <div class="j-table-operator" style="width: 100%">
-      <a-button type="primary" preIcon="ant-design:plus-outlined" @click="onAddDepart">新增</a-button>
+      <a-button type="primary" preIcon="ant-design:plus-outlined" @click="onAddDepart">{{ t("common.operation.addNew") }}</a-button>
       <a-button type="primary" preIcon="ant-design:plus-outlined" @click="onAddChildDepart()">添加下级</a-button>
       <a-upload name="file" :showUploadList="false" :customRequest="onImportXls">
-        <a-button type="primary" preIcon="ant-design:import-outlined">导入</a-button>
+        <a-button type="primary" preIcon="ant-design:import-outlined">{{ t("common.operation.import") }}</a-button>
       </a-upload>
-      <a-button type="primary" preIcon="ant-design:export-outlined" @click="onExportXls">导出</a-button>
+      <a-button type="primary" preIcon="ant-design:export-outlined" @click="onExportXls">{{ t("common.operation.export") }}</a-button>
       <a-button type="primary" preIcon="ant-design:sync-outlined">同步企微?</a-button>
       <a-button type="primary" preIcon="ant-design:sync-outlined">同步钉钉?</a-button>
       <template v-if="checkedKeys.length > 0">
@@ -15,7 +15,7 @@
             <a-menu>
               <a-menu-item key="1" @click="onDeleteBatch">
                 <icon icon="ant-design:delete-outlined" />
-                <span>删除</span>
+                <span>{{ t("common.operation.delete") }}</span>
               </a-menu-item>
             </a-menu>
           </template>
@@ -89,6 +89,7 @@
 
 <script lang="ts" setup>
   import { inject, nextTick, ref, unref, defineExpose } from 'vue';
+  import { useI18n } from "/@/hooks/web/useI18n";
   import { useModal } from '/@/components/Modal';
   import { useMessage } from '/@/hooks/web/useMessage';
   import { useMethods } from '/@/hooks/system/useMethods';
@@ -99,6 +100,7 @@
 
   const prefixCls = inject('prefixCls');
   const emit = defineEmits(['select', 'rootTreeData']);
+  const { t } = useI18n();
   const { createMessage } = useMessage();
   const { handleImportXls, handleExportXls } = useMethods();
 

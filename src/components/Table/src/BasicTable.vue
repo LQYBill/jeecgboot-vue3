@@ -211,7 +211,7 @@
         /*if (slots.expandedRowRender) {
           propsData = omit(propsData, 'scroll');
         }*/
-        //update-end---author:wangshuai ---date:20230214  for：[QQYUN-4237]代码生成 内嵌子表模式 没有滚动条------------ 
+        //update-end---author:wangshuai ---date:20230214  for：[QQYUN-4237]代码生成 内嵌子表模式 没有滚动条------------
 
         propsData = omit(propsData, ['class', 'onChange']);
         return propsData;

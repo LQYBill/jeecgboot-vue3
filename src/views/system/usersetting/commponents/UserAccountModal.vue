@@ -12,6 +12,9 @@ import { ref, unref, defineEmits } from 'vue';
 import { userEdit } from "../UserSetting.api";
 import { useUserStore } from "/@/store/modules/user";
 import { useMessage } from "/@/hooks/web/useMessage";
+import { useI18n } from '/@/hooks/web/useI18n';
+
+const { t } = useI18n();
 
 const userStore = useUserStore();
 const { createMessage } = useMessage();
@@ -26,7 +29,7 @@ const emit = defineEmits(['register','success']);
 const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data) => {
   await resetFields();
   setModalProps({ confirmLoading: false });
-  title.value = '编辑个人资料';
+  title.value = t('sys.profile.editProfile');
   if(data.record.post){
     data.record.post = data.record.post.split(",")
   }

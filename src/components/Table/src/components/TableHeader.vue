@@ -29,15 +29,15 @@
           <template #message>
             <template v-if="selectRowKeys.length > 0">
               <span>
-                <span>已选中 {{ selectRowKeys.length }} 条记录</span>
-                <span v-if="isAcrossPage">(可跨页)</span>
+                <span>{{ t('component.table.selectedRows', {num: selectRowKeys.length}) }}</span>
+                <span v-if="isAcrossPage"> ({{t('component.table.acrossPages')}})</span>
               </span>
               <a-divider type="vertical" />
-              <a @click="setSelectedRowKeys([])">清空</a>
+              <a @click="setSelectedRowKeys([])">{{ t('common.operation.clear') }}</a>
               <slot name="alertAfter" />
             </template>
             <template v-else>
-              <span>未选中任何数据</span>
+              <span>{{ t('component.table.noDataSelected') }}</span>
             </template>
           </template>
         </a-alert>
@@ -55,9 +55,12 @@
   import TableTitle from './TableTitle.vue';
   import { useDesign } from '/@/hooks/web/useDesign';
   import { useTableContext } from '../hooks/useTableContext';
+  import { useI18n} from "/@/hooks/web/useI18n";
 
+  const { t } = useI18n();
   export default defineComponent({
     name: 'BasicTableHeader',
+    methods: {t},
     components: {
       Divider,
       TableTitle,

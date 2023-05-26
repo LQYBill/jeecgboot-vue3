@@ -11,7 +11,7 @@
       <slot name="title"></slot>
     </template>
 
-    <ScrollContainer :style="getScrollContentStyle" v-loading="getLoading" :loading-tip="loadingText || t('common.loadingText')">
+    <ScrollContainer :style="getScrollContentStyle" v-loading="getLoading" :loading-tip="loadingText || t('common.status.loadingText')">
       <slot></slot>
     </ScrollContainer>
     <DrawerFooter v-bind="getProps" @close="onClose" @ok="handleOk" :height="getFooterHeight">

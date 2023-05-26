@@ -86,7 +86,7 @@
       const getResetBtnOptions = computed((): ButtonOptions => {
         return Object.assign(
           {
-            text: t('common.resetText'),
+            text: t('common.operation.reset'),
             preIcon: 'ic:baseline-restart-alt',
           },
           props.resetButtonOptions
@@ -97,7 +97,7 @@
         return Object.assign(
           {},
           {
-            text: t('common.queryText'),
+            text: t('common.operation.query'),
             preIcon: 'ant-design:search-outlined',
           },
           props.submitButtonOptions

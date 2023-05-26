@@ -27,6 +27,9 @@ export default {
     cancelText: '关闭',
     okText: '确认',
   },
+  email: {
+    emailSent: '邮件发送成功',
+  },
   excel: {
     exportModalTitle: '导出数据',
     fileType: '文件类型',
@@ -55,6 +58,19 @@ export default {
     maximize: '最大化',
     restore: '还原',
   },
+  searchForm: {
+    //placeholder
+    selectUser: '请输入用户',
+    enterInvoiceNumber: '请输入发票号',
+    clientInputSearch: "请输入客户进行搜索",
+    shopFilter: "按店铺查看",
+    shopInputSearch: "请选择店铺进行搜索",
+    dateInputSearch: "请选择日期",
+    countryInputSearch: "请选择国家",
+    invoiceTypeInputSearch: "请选择发票类型",
+    invoiceModeInputSearch: "请选择发票模式",
+    orderSelectModeInputSearch: "请选择订单选择模式",
+  },
   table: {
     settingDens: '密度',
     settingDensDefault: '默认',
@@ -68,6 +84,10 @@ export default {
     settingFixedRight: '固定到右侧',
     settingFullScreen: '全屏',
 
+    acrossPages: '可跨页',
+    noDataSelected: '未选中任何数据',
+    selectedRows: '已选中 { num } 条记录',
+    selectAll: '全选',
     index: '序号',
 
     total: '共 {total} 条数据',
@@ -80,6 +100,8 @@ export default {
     minutes: '分钟',
     hours: '小时',
     days: '天',
+    startDate: '开始日期',
+    endDate:'结束日期',
   },
   tree: {
     selectAll: '选择全部',

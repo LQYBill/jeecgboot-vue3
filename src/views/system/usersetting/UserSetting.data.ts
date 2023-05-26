@@ -1,5 +1,8 @@
 import { FormSchema } from '/@/components/Form/index';
 import { rules } from '/@/utils/helper/validator';
+import { useI18n } from '/@/hooks/web/useI18n';
+
+const { t } = useI18n();
 
 export interface ListItem {
   key: string;
@@ -14,27 +17,15 @@ export interface ListItem {
 export const settingList = [
   {
     key: '1',
-    name: '个人信息',
+    name: t('sys.profile.myInformation'),
     component: 'BaseSetting',
     icon:'ant-design:user-outlined'
   },
-  {
-    key: '2',
-    name: '我的租户',
-    component: 'TenantSetting',
-    icon:'ant-design:team-outlined'
-  },
    {
-    key: '3',
-    name: '账号安全',
+    key: '2',
+    name: t('sys.profile.accountSecurity'),
     component: 'AccountSetting',
     icon:'ant-design:lock-outlined'
-  },
-  {
-    key: '4',
-    name: '第三方APP',
-    component: 'WeChatDingSetting',
-    icon: 'ant-design:contacts-outlined',
   },
 ];
 
@@ -46,14 +37,17 @@ export const formSchema: FormSchema[] = [
   {
     field: 'realname',
     component: 'Input',
-    label: '姓名',
+    label: t('sys.profile.name'),
     colProps: { span: 24 },
-    required:true
+    required:true,
+    componentProps: {
+      disabled: true,
+    }
   },
   {
     field: 'birthday',
     component: 'DatePicker',
-    label: '生日',
+    label: t('sys.profile.birthday'),
     colProps: { span: 24 },
     componentProps:{
       showTime:false,
@@ -64,36 +58,25 @@ export const formSchema: FormSchema[] = [
   {
     field: 'sex',
     component: 'RadioGroup',
-    label: '性别',
+    label: t('sys.profile.sex'),
     colProps: { span: 24 },
     componentProps:{
       options: [
         {
-          label: '男',
+          label: t('sys.profile.male'),
           value: 1,
         },
         {
-          label: '女',
+          label: t('sys.profile.female'),
           value: 2,
         },
       ],
     }
   },
   {
-    field: 'relTenantIds',
-    component: 'JDictSelectTag',
-    label: '租户',
-    colProps: { span: 24 },
-    componentProps:{
-      mode:'multiple',
-      dictCode:'sys_tenant,name,id',
-      disabled:true
-    }
-  },
-  {
     field: 'post',
     component: 'JDictSelectTag',
-    label: '职位',
+    label: t('sys.profile.jobTitle'),
     colProps: { span: 24 },
     componentProps:{
       mode:'multiple',

@@ -55,7 +55,7 @@ const transform: AxiosTransform = {
     if (hasSuccess) {
       if (success && message && options.successMessageMode === 'success') {
         //信息成功提示
-        createMessage.success(message);
+        createMessage.success(t(message));
       }
       return result;
     }
@@ -235,7 +235,7 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
         // authentication schemes，e.g: Bearer
         // authenticationScheme: 'Bearer',
         authenticationScheme: '',
-        timeout: 10 * 1000,
+        timeout: 60 * 1000,
         // 基础接口地址
         // baseURL: globSetting.apiUrl,
         headers: { 'Content-Type': ContentTypeEnum.JSON },

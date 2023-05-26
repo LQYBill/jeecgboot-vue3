@@ -20,7 +20,6 @@ import { useUserStore } from "/@/store/modules/user";
 import { useMessage } from "/@/hooks/web/useMessage";
 import { defineEmits, ref, reactive, toRaw } from "vue";
 import { useModalInner } from "/@/components/Modal";
-import { getCaptcha } from "/@/api/sys/user";
 import { SmsEnum } from "/@/views/sys/login/useLogin";
 import { Rule } from "/@/components/Form";
 import { rules } from "/@/utils/helper/validator";
@@ -50,13 +49,6 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
   data.record.smscode = '';
   Object.assign(formState, data.record);
 });
-
-/**
- * 倒计时执行前的函数
- */
-function sendCodeApi() {
-  return getCaptcha({ mobile: formState.phone, smsmode: SmsEnum.REGISTER });
-}
 
 /**
  * 更新手机号

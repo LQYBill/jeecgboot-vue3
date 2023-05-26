@@ -11,18 +11,8 @@
           width="80"
         />
         <div class="account-right">
-          <div v-if="!isEdit">
+          <div>
             <span class="font-size-17 account-name">{{ userInfo.realname }}</span>
-            <a-tooltip content="编辑姓名">
-              <Icon class="pointer font-size-17 gray-bd account-icon" icon="ant-design:edit-outlined"
-                    @click="editHandleClick" />
-            </a-tooltip>
-          </div>
-          <div v-else>
-            <a-input ref="accountNameEdit" :maxlength="100" v-model:value="userInfo.realname" @blur="editRealName" />
-          </div>
-          <div class="use-day">
-            使用：<span>{{userInfo.createTimeText}}</span>
           </div>
         </div>
       </div>
@@ -30,34 +20,34 @@
     <div class="account-data">
       <!-- 详细资料 -->
       <div class="account-detail">
-        <div class="font-size-15 font-bold" style="color: #333!important;margin-bottom: 16px">详细资料</div>
+        <div class="font-size-15 font-bold" style="color: #333!important;margin-bottom: 16px">{{ t('sys.profile.detailedInformation') }}</div>
         <div class="margin-bottom-10 font-size-13">
-          <span class="gray-75 item-label">生日</span>
+          <span class="gray-75 item-label">{{ t('sys.profile.birthday') }}</span>
           <span class="gray-3">{{ userInfo.birthday }}</span>
         </div>
         <div class="margin-bottom-10 font-size-13">
-          <span class="gray-75 item-label">性别</span>
+          <span class="gray-75 item-label">{{ t('sys.profile.sex') }}</span>
           <span class="gray-3">{{ userInfo.sexText }}</span>
         </div>
         <div class="margin-bottom-10 nowarp font-size-13">
-          <span class="gray-75 item-label">职位</span>
-          <span class="gray-3">{{ userInfo.postText ? userInfo.postText : "未填写" }}</span>
+          <span class="gray-75 item-label">{{ t('sys.profile.jobTitle') }}</span>
+          <span class="gray-3">{{ userInfo.postText ? userInfo.postText : t('common.status.notSpecified') }}</span>
         </div>
         <div class="font-size-13">
           <span class="item-label"></span>
-          <span class="item-label pointer" style="color:#1e88e5" @click="openEditModal">编辑</span>
+          <span class="item-label pointer" style="color:#1e88e5" @click="openEditModal">{{ t('common.operation.edit') }}</span>
         </div>
       </div>
       <!-- 联系信息 -->
       <div class="account-info">
-        <div class="font-size-15 font-bold" style="color: #333!important;margin-bottom: 16px">联系信息</div>
+        <div class="font-size-15 font-bold" style="color: #333!important;margin-bottom: 16px">{{ t('sys.profile.contactInformation') }}</div>
         <div class="margin-bottom-10 font-size-13">
-          <span class="gray-75 item-label">邮箱</span>
-          <span class="gray-3">{{ userInfo.email ? userInfo.email : "未填写" }}</span>
+          <span class="gray-75 item-label">{{ t('sys.login.email') }}</span>
+          <span class="gray-3">{{ userInfo.email ? userInfo.email : t('common.status.notSpecified') }}</span>
         </div>
         <div class="margin-bottom-10 font-size-13">
-          <span class="gray-75 item-label">手机</span>
-          <span class="gray-3">{{ userInfo.phone ? userInfo.phone : "未填写" }}</span>
+          <span class="gray-75 item-label">{{ t('common.data.phone') }}</span>
+          <span class="gray-3">{{ userInfo.phone ? userInfo.phone : t('common.status.notSpecified') }}</span>
         </div>
       </div>
     </div>
@@ -80,13 +70,14 @@ import { userEdit, getUserData, queryNameByCodes } from "./UserSetting.api";
 import UserAccountModal from "./commponents/UserAccountModal.vue";
 import { useModal } from "/@/components/Modal";
 import { cloneDeep } from "lodash-es";
+import { useI18n } from '/@/hooks/web/useI18n';
+
+const { t } = useI18n();
 
 //TODO 当字典租户隔离时，数据会查不到，默认一个
-const sexOption = getDictItemsByCode("sex") || [{text:'男',value:'1'},{text:'女',value:'2'}];
+const sexOption = getDictItemsByCode("sex") || [{text:t('sys.profile.male'),value:'1'},{text:t('sys.profile.male'),value:'2'}];
 const { createMessage } = useMessage();
 const userStore = useUserStore();
-//是否编辑
-const isEdit = ref<boolean>(false);
 //用户信息
 const userInfo = ref<any>({});
 //编辑时input触发事件
@@ -122,36 +113,13 @@ function updateUserInfo(params) {
 }
 
 /**
- * 编辑按钮点击事件
- */
-function editHandleClick() {
-  isEdit.value = true;
-  setTimeout(() => {
-    accountNameEdit.value.focus();
-  }, 100);
-}
-
-/**
- * 修改真实姓名
- */
-function editRealName() {
-  if (userInfo.value.realname) {
-    updateUserInfo({ realname: userInfo.value.realname, id: userInfo.value.id });
-    userStore.setUserInfo(userInfo.value);
-  } else {
-    createMessage.warn("请输入姓名");
-  }
-  isEdit.value = false;
-}
-
-/**
  * 获取生日信息
  */
 function getBirthDay(val) {
   if (val) {
     return dayjs(val).format("YYYY-MM-DD");
   } else {
-    return "未填写";
+    return t('common.status.notSpecified');
   }
 }
 
@@ -161,11 +129,11 @@ function getBirthDay(val) {
  */
 function getSex(val) {
   let findOption = sexOption.find(item => parseInt(item.value) === val);
-  let sex = "未填写";
+  let sex = t('common.status.notSpecified');
   if (findOption) {
     sex = findOption.text;
   }
-  return sex;
+  return sex === "男" ? t('sys.profile.male') : t('sys.profile.female');
 }
 
 /**

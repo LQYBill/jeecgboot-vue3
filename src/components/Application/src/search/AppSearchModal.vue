@@ -4,13 +4,13 @@
       <div :class="getClass" @click.stop v-if="visible">
         <div :class="`${prefixCls}-content`" v-click-outside="handleClose">
           <div :class="`${prefixCls}-input__wrapper`">
-            <a-input :class="`${prefixCls}-input`" :placeholder="t('common.searchText')" ref="inputRef" allow-clear @change="handleSearch">
+            <a-input :class="`${prefixCls}-input`" :placeholder="t('common.operation.search')" ref="inputRef" allow-clear @change="handleSearch">
               <template #prefix>
                 <SearchOutlined />
               </template>
             </a-input>
             <span :class="`${prefixCls}-cancel`" @click="handleClose">
-              {{ t('common.cancelText') }}
+              {{ t('common.operation.cancel') }}
             </span>
           </div>
 

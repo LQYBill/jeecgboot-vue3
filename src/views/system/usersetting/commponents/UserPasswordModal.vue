@@ -1,21 +1,21 @@
 <template>
-  <BasicModal v-bind="$attrs" @register="registerModal" title="修改密码" @ok="handleSubmit">
+  <BasicModal v-bind="$attrs" @register="registerModal" :title="t('layout.header.dropdownItemSwitchPassword')" @ok="handleSubmit">
     <a-form class="antd-modal-form" ref="formRef" :model="formState" :rules="validatorRules">
       <a-form-item name="oldpassword">
-        <div class="black font-size-13">原有密码</div>
+        <div class="black font-size-13">{{ t('sys.profile.currentPassword') }}</div>
         <div class="pass-padding">
-          <a-input-password v-model:value="formState.oldpassword" placeholder="原有密码" />
+          <a-input-password v-model:value="formState.oldpassword" :placeholder="t('sys.profile.currentPassword')" />
         </div>
         <div style="display: block">
-          <span class="gray-9e float-left font-size-13">进入网站的登录密码</span>
+          <span class="gray-9e float-left font-size-13">{{ t('sys.profile.websiteLoginPassword') }}</span>
         </div>
       </a-form-item>
       <a-form-item name="password">
-        <span class="black font-size-13">新密码</span>
+        <span class="black font-size-13">{{ t('sys.profile.newPassword') }}</span>
         <div class="pass-padding">
-          <a-input-password v-model:value="formState.password" placeholder="新密码" />
+          <a-input-password v-model:value="formState.password" :placeholder="t('sys.profile.newPassword')" />
         </div>
-        <span class="gray-9e font-size-13">8-20位，需包含字母和数字</span>
+        <span class="gray-9e font-size-13">{{ t('sys.profile.passwordRequirements') }}</span>
       </a-form-item>
     </a-form>
   </BasicModal>
@@ -27,6 +27,9 @@
   import { updateUserPassword } from '../UserSetting.api';
   import { useMessage } from "/@/hooks/web/useMessage";
   import { useUserStore, useUserStoreWithOut } from "/@/store/modules/user";
+  import { useI18n } from '/@/hooks/web/useI18n';
+
+  const { t } = useI18n();
 
   const $message = useMessage();
   //用户名

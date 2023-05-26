@@ -11,7 +11,7 @@
             <a-menu>
               <a-menu-item key="1" @click="batchHandleDelete">
                 <Icon icon="ant-design:delete-outlined" />
-                删除
+                {{ t("common.operation.delete") }}
               </a-menu-item>
             </a-menu>
           </template>
@@ -34,11 +34,13 @@
   import { BasicTable, useTable, TableAction } from '/@/components/Table';
   import { useListPage } from '/@/hooks/system/useListPage';
   import { useDrawer } from '/@/components/Drawer';
+  import { useI18n } from "/@/hooks/web/useI18n";
   import MenuDrawer from './MenuDrawer.vue';
   import DataRuleList from './DataRuleList.vue';
   import { columns,searchFormSchema } from './menu.data';
   import { list, deleteMenu, batchDeleteMenu } from './menu.api';
 
+  const { t } = useI18n();
   const checkedKeys = ref<Array<string | number>>([]);
   const showFooter = ref(true);
   const [registerDrawer, { openDrawer }] = useDrawer();

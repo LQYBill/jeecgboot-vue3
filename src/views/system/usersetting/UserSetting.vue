@@ -25,8 +25,6 @@ import { ScrollContainer } from "/@/components/Container";
 import { settingList } from "./UserSetting.data";
 import BaseSetting from "./BaseSetting.vue";
 import AccountSetting from "./AccountSetting.vue";
-import TenantSetting from "./TenantSetting.vue";
-import WeChatDingSetting from './WeChatDingSetting.vue';
 export default defineComponent({
   components: {
     ScrollContainer,
@@ -34,9 +32,7 @@ export default defineComponent({
     TabPane: Tabs.TabPane,
     BaseSetting,
     AccountSetting,
-    TenantSetting,
-    WeChatDingSetting,
-  }, 
+  },
   setup() {
     const activeKey = ref<string>('1');
 
@@ -47,7 +43,7 @@ export default defineComponent({
     function componentClick(key) {
       activeKey.value = key;
     }
-    
+
     return {
       prefixCls: "account-setting",
       settingList,
