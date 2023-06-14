@@ -67,9 +67,13 @@ export default {
     shopInputSearch: "请选择店铺进行搜索",
     dateInputSearch: "请选择日期",
     countryInputSearch: "请选择国家",
+    countrySelectSearch: "输入国家选择",
     invoiceTypeInputSearch: "请选择发票类型",
     invoiceModeInputSearch: "请选择发票模式",
     orderSelectModeInputSearch: "请选择订单选择模式",
+    skuSelectSearch: "输入sku选择",
+    warehouseSelect: "发货仓库不能为空！",
+    weightInputSearch: "请输入重量"
   },
   table: {
     settingDens: '密度',

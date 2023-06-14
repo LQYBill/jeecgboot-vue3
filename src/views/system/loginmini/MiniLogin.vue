@@ -161,7 +161,7 @@
     } catch (error) {
       notification.error({
         message: t('sys.api.errorTip'),
-        description: t(error.message) || t('sys.login.networkExceptionMsg'),
+        description: t(error.message) || t('sys.api.networkExceptionMsg'),
         duration: 3,
       });
     } finally {

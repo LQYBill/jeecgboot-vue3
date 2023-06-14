@@ -43,6 +43,7 @@ export default {
   operation: {
     action: "Action",
     add: "Add",
+    addNew: "New Entry",
     adSearch: "Advanced Search",
     batchOperation: "Batch Operation",
     cancel: 'Cancel',
@@ -58,9 +59,9 @@ export default {
     import: "Import",
     item: "Item",
     more: "More",
-    addNew: "Add New",
     query: 'Search',
     reset: "Reset",
+    resetAllFields: "Reset all fields",
     save: 'Save',
     search: 'Search',
     selected: "Selected",
