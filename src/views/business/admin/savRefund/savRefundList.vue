@@ -254,7 +254,6 @@ const exportParams = computed(()=>{
     }
   }
   paramsForm['selections'] = list.slice(0,-1);
-  console.log("Export param : ", JSON.stringify(paramsForm));
   return filterObj(paramsForm)
 });
 const list = (params) => {
@@ -306,13 +305,10 @@ function handleDetail(record) {
   });
 }
 function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
-  console.log("checkedKeys------>", selectedRowKeys);
-  console.log(selectRow);
   checkedKeys.value = selectedRowKeys;
   selectRows.value = selectRow;
 }
 function handleDelete(record: Recordable) {
-  console.log(record.id);
   defHttp.delete({ url: Api.delete, data: { id: record.id } }, { joinParamsToUrl: true }).then(()=> {
     reload();
   }).catch(e =>{
@@ -324,54 +320,6 @@ function onEditChange({ column, value, record }) {
   if (column.dataIndex === 'id') {
     record.editValueRefs.name4.value = `${value}`;
   }
-  console.log(column, value, record);
-}
-const superQueryConfig =
-{
-  createBy: {type: 'string', title: '创建人', dictCode: '', order: 1},
-  createTime: {title: '创建日期', type: 'datetime', order: 2},
-  platformOrderId: {
-    type: 'sel_search',
-    title: '平台订单ID',
-    dictTable: 'platform_order',
-    dictText: 'platform_order_id',
-    dictCode: 'id', order: 3
-  },
-  purchaseRefund: {title: '采购退款', type: 'switch', order: 4},
-  purchaseRefundAmount: {
-    type: 'BigDecimal',
-    title: '采购退款金额',
-    dictCode: '', order: 5
-  },
-  shippingRefund: {title: '运费退款', type: 'switch', order: 6},
-  invoiceNumber: {title: '退款发票号', type: 'string', order: 7},
-  refundDate: {title: '退款日期', type: 'date', order: 8},
-}
-const customSearch = ref(false);
-const queryParam = reactive({
-  shop: '',
-  platformOrderId: '',
-});
-watch(customSearch, () => {
-  setProps({ useSearchForm: !unref(customSearch) });
-});
-function searchQuery() {
-  setProps({ searchInfo: toRaw(queryParam) });
-  reload();
-}
-function searchReset() {
-  Object.assign(queryParam, { shop: '', platformOrderId: ''});
-  reload();
-}
-function handleSuperQuery(value, model, field) {
-  console.log(value)
-  console.log(model)
-  console.log(field)
-  // if(value){
-  //   let str = decodeURI(value.superQueryParams)
-  //   console.log(str)
-  //   model[field] = str
-  // }
 }
 </script>
 <style>
