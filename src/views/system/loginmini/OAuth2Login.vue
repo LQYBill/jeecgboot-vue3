@@ -78,7 +78,7 @@
       } else {
         notification.error({
           message: t('sys.login.errorTip'),
-          description: ((res.response || {}).data || {}).message || res.message || t('sys.login.networkExceptionMsg'),
+          description: ((res.response || {}).data || {}).message || res.message || t('sys.api.networkExceptionMsg'),
           duration: 4,
         });
       }

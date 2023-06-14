@@ -117,28 +117,6 @@ const searchFormSchema: FormSchema[] = [
       }
     },
     colProps: { span: 6 },
-  },
-  {
-    field: "createTime",
-    label: " " + t("data.invoice.createDate"),
-    component: 'DatePicker',
-    componentProps: {
-      showTime: true,
-      valueFormat: "YYYY-MM-DD HH:mm:ss",
-      onChange: (e:any) => {
-        console.log(e);
-      },
-    },
-    disabledLabelWidth:true,
-    itemProps: {
-      labelCol: {
-        span: 6,
-      },
-      wrapperCol: {
-        span: 12
-      }
-    },
-    colProps: { span: 5 },
   }
 ];
 // get the list of all shipping invoice
@@ -176,6 +154,7 @@ const [registerTable, { reload }] = useTable({
 });
 
 const checkedKeys = ref<Array<string | number>>([]);
+const selectRows = ref<Array<any>>([]);
 const rowSelection = {
   type: 'checkbox',
   columnWidth: 30,
@@ -184,9 +163,13 @@ const rowSelection = {
 };
 const exportParams = computed(()=>{
   let paramsForm = {};
-  if (checkedKeys.value && checkedKeys.value.length > 0) {
-    paramsForm['selections'] = checkedKeys.value.join(',');
+  let list:any[] = [];
+  if (selectRows.value && selectRows.value.length > 0) {
+    for(let item of selectRows.value) {
+      list.push(item.id);
+    }
   }
+  paramsForm['selections'] = list;
   console.log("Export param : ", JSON.stringify(paramsForm));
   return filterObj(paramsForm)
 });
@@ -261,10 +244,17 @@ function downloadExcelInvoice(type) {
       })
   }
 }
-function onSelectChange(selectedRowKeys: (string | number)[]) {
-  console.log("checkedKeys------>", checkedKeys)
+function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
   checkedKeys.value = selectedRowKeys;
+  selectRows.value = selectRow;
+  console.log("checkedKeys------>", checkedKeys.value);
+  console.log("selectRows------>", selectRows.value);
   downloadInvoiceDisabled.value = false;
   downloadDetailDisabled.value = false;
 }
 </script>
+<style>
+.alert.ant-alert.ant-alert-info{
+  margin: 1em 0;
+}
+</style>

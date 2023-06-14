@@ -1,6 +1,6 @@
 <template>
   <PageWrapper :title="t('data.invoice.invoicingPage')">
-    <div style="display:flex;justify-content: space-between;align-items: flex-end">
+    <div style="display:flex;justify-content: space-between;align-items: center">
       <div style="display:flex; justify-content: flex-start; align-items: flex-start;">
         <div style="border-radius: 100%;overflow: hidden;width: 80px;height: 80px;">
           <img src="/src/assets/images/logo.png" alt="instructor">
@@ -41,8 +41,7 @@
                 <BasicHelp text="erp status : shipping = 3, pre-shipping = 1, 2, all = 1, 2, 3"/>
               </template>
               <template #extra>
-                {{ t('data.tips.invoiceModeTip1') }}<br/>
-                {{ t('data.tips.invoiceModeTip2') }}
+                <span v-html="t('data.tips.invoiceModeTip')"></span>
               </template>
               <a-radio-group
                 v-model:value="formState.invoiceMode"
@@ -127,7 +126,7 @@
               :wrapperCol="{span: 18}"
               v-bind="validateInfos.name"
               name="date"
-              style="margin-left: 1em;  "
+              style="margin-left: 1em;"
             >
               <template #label>
                 <span title="Date" v-if="erpStatus === '3'">{{ t('data.invoice.shippingTime') }}</span>
@@ -139,6 +138,23 @@
                 :disabledDate="disabledDate"
                 allowClear
                 :disabled="dateDisabled"
+              />
+            </a-form-item>
+          </a-col>
+          <a-col :span="8">
+            <a-form-item
+              :label="$t('data.invoice.warehouse')"
+              :labelCol='{span: 4}'
+              :wrapperCol='{span: 20}'
+              name="warehouse"
+              style="margin-left: 1em;"
+            >
+            <!-- TODO : -->
+              <a-checkbox-group
+                v-model:value="warehouseInChina"
+                :options="warehouseOptions"
+                @change="onWarehouseChange"
+                :disabled="warehouseDisabled"
               />
             </a-form-item>
           </a-col>
@@ -155,7 +171,7 @@
           >
             <template #label>
               <span title="orderSelectMode">{{t('data.form.orderSelectMode')}}</span>
-              <BasicHelp text="You can manually select orders to invoice, or automatically select all available orders"/>
+              <BasicHelp :text="t('data.tips.orderSelectModeTip')"/>
             </template>
             <a-radio-group
               v-model:value="formState.orderSelectMode"
@@ -170,7 +186,7 @@
           </a-form-item>
         </a-row>
         <Divider v-if="step >= 4" orientation="left"></Divider>
-        <a-row v-if="orderSelectMode == 0" :class="[(step == 4 || step == 7) && orderSelectMode == 0 ? 'focus' : '']">
+        <a-row v-if="orderSelectMode == 0 && step >= 4" :class="[(step == 4 || step == 7) && orderSelectMode == 0 ? 'focus' : '']">
           <a-spin :spinning="makeManualInvoiceSpinning">
             <a-button class="ml-2 mr-2" type="primary" preIcon="ant-design:search-outlined" @click="loadOrders" :loading="findOrdersLoading" :disabled="searchDisabled">
               {{ t("common.operation.search") }}
@@ -186,7 +202,7 @@
             </a-button>
           </a-spin>
         </a-row>
-        <a-row v-if="orderSelectMode == 1" :class="[step == 7 && orderSelectMode == 1 ? 'focus' : '']">
+        <a-row v-if="orderSelectMode == 1 && step == 7" :class="[step == 7 && orderSelectMode == 1 ? 'focus' : '']">
           <a-spin :spinning="makeInvoiceSpinning">
             <a-button class="ml-1 mr-2" type="primary" preIcon="ant-design:download-outlined" @click="makeInvoice" :loading="makeInvoiceLoading" :disabled="makeInvoiceDisabled">
               {{ t("data.invoice.generateShippingInvoice") }}
@@ -196,7 +212,7 @@
             </a-button>
           </a-spin>
         </a-row>
-        <a-row v-if="orderSelectMode == 0">
+        <a-row v-if="orderSelectMode == 0 && step >= 4">
           <a-card
             :bordered='false'
             :title='t("data.invoice.shippingFeesEstimationForSelectedOrders")'
@@ -216,7 +232,7 @@
           </a-card>
         </a-row>
       </a-form>
-      <div v-if="orderSelectMode == 0" :class="[step == 5 && orderSelectMode == 0 ? 'focus' : '']">
+      <div v-if="orderSelectMode == 0 && step >= 4" :class="[step == 5 && orderSelectMode == 0 ? 'focus' : '']">
         <BasicTable
           @register="registerTable"
           :expandedRowKeys="expandedRowKeys"
@@ -277,21 +293,18 @@ import {useI18n} from "/@/hooks/web/useI18n";
 import {downloadFile} from "/@/api/common/api";
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
 import JSelectMultiple from "/@/components/Form/src/jeecg/components/JSelectMultiple.vue";
-import {Tag, Card, Form, Divider} from "ant-design-vue";
+import {Tag, Form, Divider} from "ant-design-vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
-import {BasicColumn, FormSchema, useTable} from "/@/components/Table";
+import {BasicColumn, useTable} from "/@/components/Table";
 import dayjs, {Dayjs} from "dayjs";
 import PlatformOrderContentSubTable
   from "/@/views/business/admin/platformOrder/subTables/PlatformOrderContentSubTable.vue";
 import JRangeDate from "/@/components/Form/src/jeecg/components/JRangeDate.vue";
-import RadioButtonGroup from "/@/components/Form/src/components/RadioButtonGroup.vue";
 import BasicHelp from "/@/components/Basic/src/BasicHelp.vue";
 import Icon from "/@/components/Icon/src/Icon.vue";
-import {formAgentSchema} from "/@/views/system/user/user.data";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
-const CardGrid = Card.Grid;
 
 onMounted (()=> {
   loadCustomerList();
@@ -307,7 +320,7 @@ const validatorRules = ref({
   date: [{ required: true, message: t('component.searchForm.dateInputSearch'), trigger: 'blur' }],
   invoiceMode: [{ required: true, message: t('component.searchForm.invoiceModeInputSearch'), trigger: 'blur' }],
   orderSelectMode: [{ required: true, message: t('component.searchForm.orderSelectModeInputSearch'), trigger: 'blur' }],
-
+  warehouse: [{ required: true, message: "At least one required", trigger: 'click' }]
 });
 const formState = reactive<Record<string, any>>({
   customer: '',
@@ -315,7 +328,8 @@ const formState = reactive<Record<string, any>>({
   date: '',
   // country: '',
   invoiceMode: '',
-  orderSelectMode: ''
+  orderSelectMode: '',
+  warehouse: '',
 });
 const { resetFields, validate, validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
@@ -354,11 +368,16 @@ const shopDisabled = ref(true);
 
 const startDate = ref<Dayjs>(dayjs('2023-01-01').startOf("day"));
 const endDate = ref<Dayjs>(dayjs().endOf("day"));
-const test = ref<Dayjs>();
 const selectedStartDate = ref<string>();
 const selectedEndDate = ref<string>();
 const dateDisabled = ref<boolean>(true);
 
+const warehouseDisabled = ref<boolean>(false);
+const warehouseInChina = ref([0,1]);
+const warehouseOptions =  ref([
+  { label: t('data.invoice.warehouseAbroad'), value: 0 },
+  { label: t('data.invoice.warehouseInChina'), value: 1 }
+]);
 // const countryList = ref<any[]>([]);
 // const countryDisabled = ref<boolean>(true);
 // const selectedCountries = ref<any[]>([]);
@@ -661,7 +680,6 @@ function loadAvailableDate() {
         let endDateString = end.getFullYear() + '-' + (end.getMonth() + 1 < 10 ? '0' : '') + (end.getMonth() + 1) + '-' + (end.getDate() < 10 ? '0' : '') + end.getDate();
         startDate.value = dayjs(startDateString).startOf("day");
         endDate.value = dayjs(endDateString).endOf("day");
-        console.log(startDate.value);
         dateDisabled.value = false;
       }).catch(error => {
         console.error("Error while loading available date : " + error);
@@ -669,7 +687,7 @@ function loadAvailableDate() {
         step.value = 6;
       });
   }
-  else {
+  else { // (1,2) & (1,2,3)
     let param = {
       shopIds: shopIDs.value.toString().split(","),
       erpStatuses: erpStatus.value.toString().split(","),
@@ -686,7 +704,6 @@ function loadAvailableDate() {
           let endDateString = end.getFullYear() + '-' + (end.getMonth() + 1 < 10 ? '0' : '') + (end.getMonth() + 1) + '-' + (end.getDate() < 10 ? '0' : '') + end.getDate();
           startDate.value = dayjs(startDateString).startOf("day");
           endDate.value = dayjs(endDateString).endOf("day");
-          console.log(startDate.value);
           dateDisabled.value = false;
         }
       ).catch(e => {
@@ -718,12 +735,35 @@ function handleDateChange(dateRange) {
   selectedEndDate.value = dateString[1];
   console.log("date range : " + selectedStartDate.value + ", " + selectedEndDate.value);
   if(dateRange.length !== 0) {
+    if (warehouseInChina.value.length === 0) {
+      createMessage.warning(t('component.searchForm.warehouseSelect'))
+      return;
+    }
     step.value = 3;
     orderSelectModeDisabled.value = false;
   }
   else {
     clearField("date");
-    step.value = 6;
+    step.value = erpStatus.value === "3" ? 2 : 8;
+  }
+}
+function onWarehouseChange(checkedValues) {
+  warehouseInChina.value = checkedValues;
+  clearField("orderSelectMode");
+  if(warehouseInChina.value.length === 0) {
+    createMessage.warning(t('component.searchForm.warehouseSelect'));
+    orderSelectModeDisabled.value = false;
+    if(step.value === 3)
+    {
+      step.value = erpStatus.value === "3" ? 2 : 8;
+    }
+  }
+  else {
+    // !! returns if false empty (""), null or undefined
+    if(!!selectedStartDate.value && !!selectedEndDate.value) {
+      step.value = 3;
+      orderSelectModeDisabled.value = false;
+    }
   }
 }
 function disabledDate(current: Dayjs) {
@@ -763,6 +803,10 @@ function loadOrders() {
     clearField("date");
     return;
   }
+  if (warehouseInChina.value.length === 0) {
+    createMessage.warning(t('component.searchForm.warehouseSelect'));
+    return;
+  }
   const type = erpStatus.value === "3" ? "shipping" : erpStatus.value === "1,2" ? "pre-shipping" : "all";
   let requestParam = {
     clientId: customerId.value,
@@ -774,6 +818,7 @@ function loadOrders() {
     type: type,
     order: iSorter.value.order.toString(),
     column: iSorter.value.column.toString(),
+    warehouses: warehouseInChina.value.toString().split(','),
   };
 
   if (Object.keys(iSorter.value).length > 0) {
@@ -793,13 +838,8 @@ function loadOrders() {
       } else {
         ipagination.value.total = 0;
       }
-      console.log("pagination : " + JSON.stringify(ipagination));
       if (orderList.value.length > 0) {
         step.value = 5;
-        let orderIdList:any[] = [];
-        orderList.value.map(order => {
-          orderIdList.push(order.id);
-        });
         syncDisabled.value = false;
       } else {
         step.value = 6;
@@ -833,11 +873,16 @@ function checkSkuBetweenDate() {
     clearField("date");
     return;
   }
+  if (warehouseInChina.value.length === 0) {
+    createMessage.warning(t('component.searchForm.warehouseSelect'))
+    return;
+  }
   let param = {
     clientID: customerId.value.toString(),
     shopIDs: shopIDs.value.toString().split(','),
     start: selectedStartDate.value.toString(),
     end: dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString(),
+    warehouses: warehouseInChina.value.toString().split(','),
   };
   if(erpStatus.value === '3') {
     defHttp.post({url: Api.checkOrdersBetweenDate, params: param})
@@ -888,6 +933,10 @@ function makeManualInvoice() {
     createMessage.warning(t("component.searchForm.dateInputSearch"));
     return;
   }
+  if (warehouseInChina.value.length === 0) {
+    createMessage.warning(t('component.searchForm.warehouseSelect'))
+    return;
+  }
   const period = selectedStartDate.value.toString()+ "," + dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString();
   const type = erpStatus.value === "3" ? "shipping" : erpStatus.value === "1,2" ? "pre-shipping" : "all";
 
@@ -901,6 +950,7 @@ function makeManualInvoice() {
   shopDisabled.value = true;
   customerDisabled.value = true;
   dateDisabled.value = true;
+  warehouseDisabled.value = true;
   // countryDisabled.value = true;
   orderSelectModeDisabled.value = true;
   searchDisabled.value = true;
@@ -926,6 +976,7 @@ function makeManualInvoice() {
         shopDisabled.value = false;
         customerDisabled.value = false;
         dateDisabled.value = false;
+        warehouseDisabled.value = false;
         // countryDisabled.value = false;
         orderSelectModeDisabled.value = false;
         findOrdersLoading.value = false;
@@ -950,6 +1001,10 @@ function makeManualCompleteInvoice() {
     createMessage.error("Error 400 : bad request.");
     return;
   }
+  if (warehouseInChina.value.length === 0) {
+    createMessage.warning(t('component.searchForm.warehouseSelect'))
+    return;
+  }
   const type = erpStatus.value === "3" ? "shipping" : erpStatus.value === "1,2" ? "pre-shipping" : "all";
   const period = selectedStartDate.value.toString()+ "," + dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString();
 
@@ -964,6 +1019,7 @@ function makeManualCompleteInvoice() {
   shopDisabled.value = true;
   customerDisabled.value = true;
   dateDisabled.value = true;
+  warehouseDisabled.value = true;
   // countryDisabled.value = true;
   orderSelectModeDisabled.value = true;
   searchDisabled.value = true;
@@ -989,6 +1045,7 @@ function makeManualCompleteInvoice() {
         shopDisabled.value = false;
         customerDisabled.value = false;
         dateDisabled.value = false;
+        warehouseDisabled.value = true;
         // countryDisabled.value = false;
         orderSelectModeDisabled.value = false;
         searchDisabled.value = false;
@@ -1011,6 +1068,17 @@ function makeInvoice() {
     createMessage.error("Error 400 : bad request.");
     return;
   }
+  if (warehouseInChina.value.length === 0) {
+    createMessage.warning(t('component.searchForm.warehouseSelect'))
+    return;
+  }
+  invoiceModeDisabled.value = true;
+  shopDisabled.value = true;
+  customerDisabled.value = true;
+  dateDisabled.value = true;
+  warehouseDisabled.value = true;
+  // countryDisabled.value = true;
+  orderSelectModeDisabled.value = true;
   makeInvoiceLoading.value = true;
   makeInvoiceDisabled.value = true;
   completeInvoiceDisabled.value = true;
@@ -1020,6 +1088,7 @@ function makeInvoice() {
     start: selectedStartDate.value.toString(),
     end: dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString(),
     erpStatuses: erpStatus.value.toString().split(","),
+    warehouses: warehouseInChina.value.toString().split(','),
   }
   defHttp.post({url: Api.makeShippingInvoice, params: param})
     .then(
@@ -1028,12 +1097,18 @@ function makeInvoice() {
         let invoiceNumber = res.invoiceCode;
         downloadInvoice(invoiceFilename);
         downloadDetailFile(invoiceNumber);
+        clearField("date");
+        invoiceModeDisabled.value = false;
+        shopDisabled.value = false;
+        customerDisabled.value = false;
+        dateDisabled.value = false;
+        warehouseDisabled.value = false;
       }
     ).catch(e => {
       console.error(e);
     });
   makeInvoiceLoading.value = false;
-}//end of makeInvoice()
+}//end of makeInvoice
 function makeCompleteInvoice() {
   console.log("Complete Invoice");
   if (!customerId.value) {
@@ -1048,13 +1123,25 @@ function makeCompleteInvoice() {
     createMessage.error("Error 400 : bad request.");
     return;
   }
+  if (warehouseInChina.value.length === 0) {
+    createMessage.warning(t('component.searchForm.warehouseSelect'));
+    return;
+  }
   let param = {
     clientID: customerId.value.toString(),
     shopIDs: shopIDs.value.toString().split(','),
     start: selectedStartDate.value,
     end: dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString(),
     erpStatuses: erpStatus.value.toString().split(","),
+    warehouses: warehouseInChina.value.toString().split(','),
   }
+  invoiceModeDisabled.value = true;
+  shopDisabled.value = true;
+  customerDisabled.value = true;
+  dateDisabled.value = true;
+  warehouseDisabled.value = true;
+  // countryDisabled.value = true;
+  orderSelectModeDisabled.value = true;
   makeInvoiceDisabled.value = true;
   completeInvoiceDisabled.value = true;
   completeInvoiceLoading.value = true;
@@ -1066,8 +1153,12 @@ function makeCompleteInvoice() {
         let code = res.invoiceCode;
         downloadInvoice(filename);
         downloadDetailFile(code);
+        clearField("date");
+        invoiceModeDisabled.value = false;
         shopDisabled.value = false;
-        completeInvoiceDisabled.value = true;
+        customerDisabled.value = false;
+        dateDisabled.value = false;
+        warehouseDisabled.value = false;
       }
     ).catch(e => {
     console.error(e);
@@ -1170,22 +1261,26 @@ function clearField(field) {
     case "shop" :
       // clearField("country");
       fields.shop = "";
-      shopIDs.value = [];
-      shopList.value = [];
       startDate.value = dayjs(undefined);
       endDate.value = dayjs(undefined);
+      shopIDs.value = [];
+      shopList.value = [];
       dateDisabled.value = true;
-      let shopCheckbox = document.querySelectorAll("label[for='form_item_shop']")[0].parentElement?.nextElementSibling?.getElementsByClassName("ant-checkbox-input")[0];
-      if(typeof shopCheckbox !== 'undefined') {
-        shopCheckbox.checked = false;
-        shopCheckbox.parentElement?.classList.remove("ant-checkbox-checked");
+      try{
+        let shopCheckbox = document.querySelectorAll("label[for='form_item_shop']")[0].parentElement?.nextElementSibling?.getElementsByClassName("ant-checkbox-input")[0];
+        if(typeof shopCheckbox !== 'undefined') {
+          shopCheckbox.checked = false;
+          shopCheckbox.parentElement?.classList.remove("ant-checkbox-checked");
+        }
+      }catch (e) {
+
       }
     case "date":
       fields.date = "";
       selectedStartDate.value = "";
       selectedEndDate.value = "";
-    case "orderSelectMode" :
       orderSelectModeDisabled.value = true;
+    case "orderSelectMode" :
       orderSelectMode.value = undefined;
       fields.orderSelectMode = "";
     default :

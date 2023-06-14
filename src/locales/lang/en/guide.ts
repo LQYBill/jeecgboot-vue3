@@ -6,10 +6,10 @@ export default {
     tip1: "You can filter by customer initials or customer code",
 
     option2: "(Optional : You can also filter by shop, by default all shops are selected.)",
-    step2: "Please select a shipping time period.",
+    step2: "Please select a shipping time period and at least 1 warehouse location.",
 
     option2_1: "(Optional : You can also filter by shop, by default all shops are selected.)",
-    step2_1: "Please select an order time period.",
+    step2_1: "Please select an order time period and least 1 warehouse location.",
 
     step3: "Please choose how you want to select orders.",
     tip3: "\"Manual selection\" : you can view and pick each order you want to invoice <br>" +

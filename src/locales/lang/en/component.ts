@@ -58,6 +58,7 @@ export default {
   },
   searchForm: {
     //placeholder
+    platformOrderID: 'Select a Platform Order ID',
     selectUser: 'Select a user',
     enterInvoiceNumber: 'Enter an invoice number',
     clientInputSearch: "Select a customer",
@@ -65,9 +66,13 @@ export default {
     shopInputSearch: "Select shops",
     dateInputSearch: "Select a date",
     countryInputSearch: "Select countries",
+    countrySelectSearch: "Select a country",
     invoiceTypeInputSearch: "Select an invoice type",
     invoiceModeInputSearch: "Select an invoicing mode",
     orderSelectModeInputSearch: "Choose an order selection mode",
+    skuSelectSearch: "Select a sku",
+    warehouseSelect: "Select at least 1 warehouse",
+    weightInputSearch: "Fill the weight"
   },
   table: {
     settingDens: 'Density',

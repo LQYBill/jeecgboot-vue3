@@ -5,4 +5,4 @@ export const GITHUB_URL = 'https://github.com/jeecgboot/jeecgboot-vue3';
 export const DOC_URL = 'http://help.jeecg.com';
 
 // site url
-export const SITE_URL = 'http://www.jeecg.com';
+export const SITE_URL = 'https://wia-sourcing.com/';

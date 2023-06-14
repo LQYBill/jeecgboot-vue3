@@ -15,7 +15,7 @@
       <a-date-picker
         :showTime="false"
         valueFormat="YYYY-MM-DD"
-        :placeholder=t('component.time.startDate')
+        :placeholder="t('component.time.startDate')"
         v-model:value="queryParam[item.field + '_begin']"
         style="width: calc(50% - 15px)"
       ></a-date-picker>

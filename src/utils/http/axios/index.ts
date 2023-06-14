@@ -53,7 +53,7 @@ const transform: AxiosTransform = {
     // 这里逻辑可以根据项目进行修改
     const hasSuccess = data && Reflect.has(data, 'code') && (code === ResultEnum.SUCCESS || code === 200);
     if (hasSuccess) {
-      if (success && message && options.successMessageMode === 'success') {
+      if (success && message && message !== "[]" && options.successMessageMode === 'success') {
         //信息成功提示
         createMessage.success(t(message));
       }
@@ -235,7 +235,7 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
         // authentication schemes，e.g: Bearer
         // authenticationScheme: 'Bearer',
         authenticationScheme: '',
-        timeout: 60 * 1000,
+        timeout: 180 * 1000,
         // 基础接口地址
         // baseURL: globSetting.apiUrl,
         headers: { 'Content-Type': ContentTypeEnum.JSON },
