@@ -608,15 +608,12 @@ function loadCustomerList() {
 //   });
 // }
 function handleInvoiceModeChange(e) {
-  console.log(e.target.value);
   erpStatus.value = e.target.value;
   customerDisabled.value = false;
   clearField('client');
   step.value = 1;
 }
 function handleClientChange(id) {
-  // console.log(`fields value : customer : ${formState["customer"]}, shop : ${formState["shop"]}`)
-  console.log(`client selected ${id}`);
   let index = customerList.value.map(i => i.id).indexOf(id);
   customerId.value = id;
   customerInfo.value = customerList.value[index];
@@ -654,7 +651,6 @@ function loadShopList (clientID) {
             return shop.value;
           }
         );
-        console.log(`shopIds from shop list map : ${JSON.stringify(shopIDs.value)}`)
         loadAvailableDate();
       }
 
@@ -667,15 +663,10 @@ function loadAvailableDate() {
   if(erpStatus.value === "3") {
     let param:any = [];
     param = shopIDs.value.toString().split(",");
-
-    console.log("load date param : " + JSON.stringify(param));
     return defHttp.post({url: Api.getValidPeriod, params: param})
       .then(res => {
-        console.log("-- LoadAvailableDate : " + JSON.stringify(res));
         let start = new Date(res['start']);
         let end = new Date(res['end']);
-        console.log(`start : ${start}`);
-        console.log(`end : ${end}`);
         let startDateString = start.getFullYear() + '-' + (start.getMonth() + 1 < 10 ? '0' : '') + (start.getMonth() + 1) + '-' + (start.getDate() < 10 ? '0' : '') + start.getDate();
         let endDateString = end.getFullYear() + '-' + (end.getMonth() + 1 < 10 ? '0' : '') + (end.getMonth() + 1) + '-' + (end.getDate() < 10 ? '0' : '') + end.getDate();
         startDate.value = dayjs(startDateString).startOf("day");
@@ -695,11 +686,8 @@ function loadAvailableDate() {
     return defHttp.get({url: Api.getValidOrderTimePeriod, params: param})
       .then(
         res => {
-          console.log("-- LoadAvailableDate : " + JSON.stringify(res));
           let start = new Date(res['start']);
           let end = new Date(res['end']);
-          console.log(`start : ${start}`);
-          console.log(`end : ${end}`);
           let startDateString = start.getFullYear() + '-' + (start.getMonth() + 1 < 10 ? '0' : '') + (start.getMonth() + 1) + '-' + (start.getDate() < 10 ? '0' : '') + start.getDate();
           let endDateString = end.getFullYear() + '-' + (end.getMonth() + 1 < 10 ? '0' : '') + (end.getMonth() + 1) + '-' + (end.getDate() < 10 ? '0' : '') + end.getDate();
           startDate.value = dayjs(startDateString).startOf("day");
@@ -733,7 +721,6 @@ function handleDateChange(dateRange) {
   const dateString = dateRange.split(',');
   selectedStartDate.value = dateString[0];
   selectedEndDate.value = dateString[1];
-  console.log("date range : " + selectedStartDate.value + ", " + selectedEndDate.value);
   if(dateRange.length !== 0) {
     if (warehouseInChina.value.length === 0) {
       createMessage.warning(t('component.searchForm.warehouseSelect'))
@@ -774,7 +761,6 @@ function disabledDate(current: Dayjs) {
 //   loadAvailableDate();
 // }
 function handleOrderSelectMode(e) {
-  console.log(e.target.value === "0" ? "manualSelection" : "selectAll");
   if(e.target.value === "0") {
     orderSelectMode.value = 0;
     clearField("selectAll");
@@ -825,14 +811,12 @@ function loadOrders() {
     requestParam.order = iSorter.value.order;
     requestParam.column = iSorter.value.column;
   }
-  console.log(`loadOrders param : ${JSON.stringify(requestParam)}`);
   findOrdersLoading.value = true;
   orderListLoading.value = true;
 
   defHttp.get({url: Api.listOrders, params: requestParam})
     .then(res => {
       orderList.value = res.records;
-      console.log("list orders : " + JSON.stringify(res));
       if (res.total) {
         ipagination.value.total = res.total;
       } else {
@@ -906,7 +890,6 @@ function checkSkuBetweenDate() {
   else {
     // check sku but not it's order time between and erp_status IN (???)
     param.erpStatuses = erpStatus.value?.toString().split(',');
-    console.log("checkOrdersBetweenOrderDate param :"+JSON.stringify(param));
     defHttp.post({url: Api.checkOrdersBetweenOrderDate, params: param})
       .then(res => {
         purchasePricesAvailable.value = true;
@@ -962,7 +945,6 @@ function makeManualInvoice() {
   defHttp.post({url: Api.makeManualInvoice, params: param})
     .then(
       res => {
-        console.log(`make invoice ${res}`);
         checkedKeys.value = [];
         let filename = res.filename;
         let code = res.invoiceCode;
@@ -1014,7 +996,6 @@ function makeManualCompleteInvoice() {
     type: type,
     period: [period],
   };
-  console.log("manual complete param : " + JSON.stringify(param));
   invoiceModeDisabled.value = true;
   shopDisabled.value = true;
   customerDisabled.value = true;
@@ -1031,7 +1012,6 @@ function makeManualCompleteInvoice() {
   defHttp.post({url: Api.makeManualCompleteInvoice, params: param})
     .then(
       res => {
-        console.log(`make complete invoice res : ${res}`);
         checkedKeys.value = [];
         let filename = res.filename;
         let code = res.invoiceCode;
@@ -1110,7 +1090,6 @@ function makeInvoice() {
   makeInvoiceLoading.value = false;
 }//end of makeInvoice
 function makeCompleteInvoice() {
-  console.log("Complete Invoice");
   if (!customerId.value) {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     return;
@@ -1148,7 +1127,6 @@ function makeCompleteInvoice() {
   defHttp.post({url: Api.makeCompleteInvoice, params: param})
     .then(
       res => {
-        console.log(`makeCompleteInvoice res : ${res}`)
         let filename = res.filename;
         let code = res.invoiceCode;
         downloadInvoice(filename);
@@ -1169,7 +1147,6 @@ function makeCompleteInvoice() {
 } // end of makeCompleteInvoice()
 function downloadInvoice(invoiceFilename) {
   const param = {filename: invoiceFilename};
-  console.log(`filename : ${invoiceFilename}`);
   downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
     createMessage.info("Download succeed.")
   }).catch(e => {
@@ -1180,10 +1157,7 @@ function downloadDetailFile(invoiceNumber) {
   const param = {invoiceNumber: invoiceNumber}
   let now = dayjs().format("YYYYMMDD");
   let internalCode = customerInfo.value?.info.split(',')[2];
-  console.log(`internalCode : ${internalCode}`);
-
   let detailFilename = internalCode + "_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
-  console.log(`detail filename : ${detailFilename}`);
   downloadFile(Api.downloadInvoiceDetail, detailFilename, param)
     .catch(e => {
       console.error(`Download invoice detail fail : ${e}`);
@@ -1235,7 +1209,6 @@ function clearField(field) {
       estimatesReady.value = true;
       shippingFeesEstimates.value = [];
       purchasePricesAvailable.value = false;
-      console.log(`---> clear manual select `);
       break;
     case "selectAll":
       makeInvoiceDisabled.value = true;
@@ -1243,7 +1216,6 @@ function clearField(field) {
       makeInvoiceLoading.value = false;
       completeInvoiceLoading.value = false;
       makeInvoiceSpinning.value = false;
-      console.log("---> clear select all");
       break;
     case "all" :
       step.value = 0;
@@ -1294,7 +1266,6 @@ function clearField(field) {
 }
 function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
   estimatesReady.value = false;
-  console.log("checkedKeys------>", checkedKeys);
   checkedKeys.value = selectedRowKeys;
   makeManualInvoiceSpinning.value = true;
   if(checkedKeys.value.length > 0) {
@@ -1307,7 +1278,6 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
     defHttp.post({url: Api.estimateShippingFees, params: param})
       .then(
         res => {
-          console.log(`estimate res : ${JSON.stringify(res)}`)
           shippingFeesEstimates.value = res;
           estimatesReady.value = true;
         }
@@ -1338,7 +1308,6 @@ function handleTableChange(pagination, filters, sorter) {
     iSorter.value.column = sorter.field
     iSorter.value.order = 'ascend' === sorter.order ? 'asc' : 'desc'
   }
-  console.log(`pagination change : ${JSON.stringify(pagination)}`)
   ipagination.value.current = pagination.current;
   ipagination.value.total = pagination.total;
   ipagination.value.pageSize = pagination.pageSize;
