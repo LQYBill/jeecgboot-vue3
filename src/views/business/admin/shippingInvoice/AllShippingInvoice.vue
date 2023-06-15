@@ -1077,15 +1077,19 @@ function makeInvoice() {
         let invoiceNumber = res.invoiceCode;
         downloadInvoice(invoiceFilename);
         downloadDetailFile(invoiceNumber);
-        clearField("date");
-        invoiceModeDisabled.value = false;
-        shopDisabled.value = false;
-        customerDisabled.value = false;
-        dateDisabled.value = false;
-        warehouseDisabled.value = false;
+        step.value = erpStatus.value === "3" ? 2 : 8;
       }
     ).catch(e => {
       console.error(e);
+      step.value = 6;
+    }).finally(() => {
+      clearField("date");
+      loadAvailableDate();
+      invoiceModeDisabled.value = false;
+      shopDisabled.value = false;
+      customerDisabled.value = false;
+      dateDisabled.value = false;
+      warehouseDisabled.value = false;
     });
   makeInvoiceLoading.value = false;
 }//end of makeInvoice
@@ -1131,19 +1135,21 @@ function makeCompleteInvoice() {
         let code = res.invoiceCode;
         downloadInvoice(filename);
         downloadDetailFile(code);
-        clearField("date");
-        invoiceModeDisabled.value = false;
-        shopDisabled.value = false;
-        customerDisabled.value = false;
-        dateDisabled.value = false;
-        warehouseDisabled.value = false;
+        step.value = erpStatus.value === "3" ? 2 : 8;
       }
     ).catch(e => {
-    console.error(e);
-  }).finally(() => {
-    completeInvoiceLoading.value = false;
-    loadAvailableDate();
-  })
+      console.error(e);
+      step.value = 6;
+    }).finally(() => {
+      clearField("date");
+      completeInvoiceLoading.value = false;
+      loadAvailableDate();
+      invoiceModeDisabled.value = false;
+      shopDisabled.value = false;
+      customerDisabled.value = false;
+      dateDisabled.value = false;
+      warehouseDisabled.value = false;
+    });
 } // end of makeCompleteInvoice()
 function downloadInvoice(invoiceFilename) {
   const param = {filename: invoiceFilename};
@@ -1229,6 +1235,7 @@ function clearField(field) {
       customerInfo.value = undefined;
       customerId.value = undefined;
       shopDisabled.value = true;
+      warehouseDisabled.value = false;
       // countryDisabled.value = true;
     case "shop" :
       // clearField("country");
