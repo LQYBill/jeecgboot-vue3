@@ -55,7 +55,6 @@ export default {
   invoice: {
     additionalFees: "额外费用",
     allShippingInvoice: "按店铺开发票",
-    recipientCountry: "订单收件人国家",
     country: "国家",
     createBy: "创建人",
     createDate: "创建日期",
@@ -98,6 +97,7 @@ export default {
     quantity: "数量",
     receiveDetailsByEmail: "发送发票详情到电子邮箱",
     recipient: "订单收件人",
+    recipientCountry: "订单收件人国家",
     serviceFee: "服务总费用",
     shippingFee: "运费",
     shippingFees: "运费",
@@ -136,6 +136,7 @@ export default {
     purchaseRefund: "采购退款",
     purchaseRefundAmount: "采购退款金额",
     refundDate: '退款日期',
+    refundInvoiceNumber: '退款发票号',
     refundReason: '退款原因',
     refundStatus: "退款状态",
     serviceFeeRefundAmount: '服务费应退款金额',
