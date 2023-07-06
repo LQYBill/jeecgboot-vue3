@@ -1,12 +1,27 @@
 <template>
+  <a-card>
+    <BasicForm
+      @register="registerForm"
+      @submit="handleFilter"
+    />
+
+  </a-card>
   <BasicTable
-    @register="registerTable"
+    :columns="columns"
+    :dataSource="dataSource"
     :rowSelection="rowSelection"
+    :pagination="iPagination"
+    :ellipsis="false"
+    striped="striped"
+    :click-to-row-select="false"
+    :def-sort="iSorter"
+    @change="handleTableChange"
+    :loading="loading"
   >
     <template #toolbar>
       <a-button type="primary" preIcon="ant-design:plus-outlined" @click="handleAdd">{{ t('common.operation.addNew') }}</a-button>
       <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('SAV Refund List', Api.exportXls, exportParams)"> {{ t("common.operation.export") }}</a-button>
-      <a-upload name="file" :showUploadList="false" :customRequest="(file) => handleImportXls(file, Api.importExcelUrl, reload)">
+      <a-upload name="file" :showUploadList="false" :customRequest="(file) => handleImportXls(file, Api.importExcelUrl, loadList)">
         <a-button preIcon="ant-design:import-outlined" type="primary">{{ t('common.operation.import') }}</a-button>
       </a-upload>
     </template>
@@ -43,7 +58,7 @@
       />
     </template>
   </BasicTable>
-  <SavRefundModal @register="registerModal" @success="reload" :isDisabled="isDisabled"/>
+  <SavRefundModal @register="registerModal" @success="loadList" :isDisabled="isDisabled"/>
 </template>
 <script lang="ts" setup>
 import {BasicColumn, BasicTable, FormSchema, TableAction, useTable} from "/@/components/Table";
@@ -51,17 +66,23 @@ import {defHttp} from '/@/utils/http/axios';
 import {useMessage} from '/@/hooks/web/useMessage';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMethods} from "/@/hooks/system/useMethods";
-import {computed, reactive, ref, toRaw, unref, watch} from "vue";
+import {computed, onMounted, reactive, ref, toRaw, unref, watch} from "vue";
 import {filterObj} from "/@/utils/common/compUtils";
 import {useModal} from "/@/components/Modal";
 
 import SavRefundModal from './modules/SavRefundModal.vue';
+import BasicForm from "/@/components/Form/src/BasicForm.vue";
+import {useForm} from "/@/components/Form";
+import {toUpper} from "lodash-es";
 
 const { createMessage:msg } = useMessage();
 const { t } = useI18n();
 const { handleExportXls, handleImportXls } = useMethods();
 const [registerModal, { openModal }] = useModal();
 
+onMounted(()=> {
+  loadList();
+})
 enum Api {
   list = "/savRefund/savRefund/list",
   add = "/savRefund/savRefund/add",
@@ -194,25 +215,6 @@ const columns: BasicColumn[] = [
 ];
 const searchFormSchema: FormSchema[] = [
   {
-    field: "createBy",
-    label: t("data.invoice.createBy"),
-    labelWidth: 20,
-    component: 'Input',
-    componentProps: {
-      placeholder: t('component.searchForm.selectUser'),
-    },
-    disabledLabelWidth:true,
-    itemProps: {
-      labelCol: {
-        span: 6,
-      },
-      wrapperCol: {
-        span: 18
-      }
-    },
-    colProps: { span: 5 },
-  },
-  {
     field: "erpCode",
     label: t("data.invoice.shop"),
     labelWidth: 20,
@@ -231,11 +233,40 @@ const searchFormSchema: FormSchema[] = [
     },
     colProps: { span: 5 },
   },
+  {
+    field: "platformOrderId",
+    label: t("data.invoice.platformOrderID"),
+    component: 'Input',
+    componentProps: {
+      placeholder: t('component.searchForm.platformOrderIDFilter'),
+    },
+    disabledLabelWidth:true,
+    itemProps: {
+      labelCol: {
+        span: 8,
+      },
+      wrapperCol: {
+        span: 16,
+      }
+    },
+    colProps: { span: 5 },
+  },
 ];
-
+const [registerForm, { resetFields, setFieldsValue, validate }] = useForm({
+  schemas: searchFormSchema,
+  showActionButtonGroup: true,
+});
+const iPagination = ref<any>({
+  current: 1,
+  pageSize: 100,
+  pageSizeOptions: ['100', '200', '500'],
+  showQuickJumper: true,
+  showSizeChanger: true,
+  total: 0,
+});
 const iSorter = ref({
-  column: 'createBy',
-  order: 'ascend'
+  column: 'invoiceNumber',
+  order: 'asc'
 });
 const checkedKeys = ref<Array<string | number>>([]);
 const selectRows = ref<Array<any>>([]);
@@ -256,35 +287,9 @@ const exportParams = computed(()=>{
   paramsForm['selections'] = list.slice(0,-1);
   return filterObj(paramsForm)
 });
-const list = (params) => {
-  return defHttp.get({ url: Api.list, params });
-}
-const [registerTable, { reload, setProps }] = useTable({
-  title: 'SAV',
-  api: list,
-  // pagination: { current: 1, pageSize: 200, pageSizeOptions: ['100', '200'], total: 0 },
-  columns,
-  ellipsis: false,
-  useSearchForm: true,
-  formConfig: {
-    schemas: searchFormSchema,
-  },
-  //自定义默认排序
-  defSort: iSorter.value,
-  bordered: true,
-  striped: true,
-  showTableSetting: true,
-  showSummary: true,
-  showIndexColumn: true,
-  clickToRowSelect: false,
-  indexColumnProps: {
-    width: 60,
-    title: "#"
-  },
-  tableSetting: { fullScreen: true },
-  canResize: false,
-  rowKey: 'platformOrderId_dictText',
-});
+const dataSource = ref<Recordable<any>[]>();
+const filters = ref({});
+const loading = ref<boolean>(false);
 function handleAdd() {
   openModal(true, {
     isUpdate: false,
@@ -310,7 +315,7 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
 }
 function handleDelete(record: Recordable) {
   defHttp.delete({ url: Api.delete, data: { id: record.id } }, { joinParamsToUrl: true }).then(()=> {
-    reload();
+    loadList();
   }).catch(e =>{
     console.error(e);
   });
@@ -320,6 +325,52 @@ function onEditChange({ column, value, record }) {
   if (column.dataIndex === 'id') {
     record.editValueRefs.name4.value = `${value}`;
   }
+}
+function handleFilter(values) {
+  filters.value = values;
+  loadList(1);
+}
+function handleTableChange(pagination, filters, sorter) {
+  console.log(pagination);
+  console.log(sorter);
+  iPagination.value = pagination;
+  if (Object.keys(sorter).length > 0) {
+    console.log("haha");
+    iSorter.value.column = sorter.field
+    iSorter.value.order = 'ascend' === sorter.order ? 'asc' : 'desc'
+  }
+  loadList();
+}
+function getQueryParams() {
+  let params = Object.assign(iSorter.value);
+  params.pageNo = iPagination.value.current;
+  params.pageSize = iPagination.value.pageSize;
+  params.order = toUpper(iSorter.value.order);
+  params.column = iSorter.value.column;
+  params.shop = filters.value.erpCode;
+  params.orderID = filters.value.platformOrderId;
+  return filterObj(params);
+}
+function loadList(arg?) {
+  loading.value = true;
+  if (arg === 1) {
+    iPagination.value.current = 1;
+  }
+  let params = getQueryParams();
+  console.log(`params : ${JSON.stringify(params)}`);
+  defHttp.get({ url: Api.list, params: params }).then(res=> {
+    console.log(res);
+    dataSource.value = res.records;
+    if (res.total) {
+      iPagination.value.total = res.total;
+    } else {
+      iPagination.value.total = 0;
+    }
+  }).catch(e=> {
+    console.error(e);
+  }).finally(()=> {
+    loading.value = false;
+  });
 }
 </script>
 <style>

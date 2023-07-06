@@ -718,6 +718,7 @@ function handleShopChange(shops) {
   }
 }
 function handleDateChange(dateRange) {
+  clearField("orderSelectMode");
   const dateString = dateRange.split(',');
   selectedStartDate.value = dateString[0];
   selectedEndDate.value = dateString[1];
@@ -766,6 +767,7 @@ function handleOrderSelectMode(e) {
     clearField("selectAll");
     step.value = 4;
     searchDisabled.value = false;
+    loadOrders();
   }
   else {
     orderSelectMode.value = 1;
