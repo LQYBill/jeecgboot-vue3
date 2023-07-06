@@ -38,9 +38,7 @@ export default {
   form: {
     putAway: '收起',
     unfold: '展开',
-
     maxTip: '字符数应小于{0}位',
-
     apiSelectNotFound: '请等待数据加载完成...',
   },
   icon: {
@@ -60,7 +58,6 @@ export default {
   },
   searchForm: {
     //placeholder
-    selectUser: '请输入用户',
     enterInvoiceNumber: '请输入发票号',
     clientInputSearch: "请输入客户进行搜索",
     shopFilter: "按店铺查看",
@@ -71,7 +68,11 @@ export default {
     invoiceTypeInputSearch: "请选择发票类型",
     invoiceModeInputSearch: "请选择发票模式",
     orderSelectModeInputSearch: "请选择订单选择模式",
+    platformOrderID: '请选择平台订ID',
+    platformOrderIDFilter: '按平台订ID查看',
     skuSelectSearch: "输入sku选择",
+    userFilter: '按用户查看',
+    userSelect: '请输入用户',
     warehouseSelect: "发货仓库不能为空！",
     weightInputSearch: "请输入重量"
   },
