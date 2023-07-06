@@ -85,7 +85,7 @@ const searchFormSchema: FormSchema[] = [
     labelWidth: 20,
     component: 'JSearchSelect',
     componentProps: {
-        placeholder: t('component.searchForm.selectUser'),
+        placeholder: t('component.searchForm.userSelect'),
         dictOptions: userList
     },
     disabledLabelWidth:true,
