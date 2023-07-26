@@ -57,7 +57,9 @@ onMounted(() => {
 <style lang="less" scoped>
 .account-row-item {
   align-items: center;
-  border-bottom: 1px solid #eaeaea;
+  /*begin 兼容暗夜模式*/
+  border-bottom: 1px solid @border-color-base;
+  /*end 兼容暗夜模式*/
   box-sizing: border-box;
   display: flex;
   height: 71px;
@@ -70,7 +72,9 @@ onMounted(() => {
 }
 
 .gray-75 {
-  color: #757575 !important;
+  /*begin 兼容暗夜模式*/
+  color: @text-color !important;
+  /*end 兼容暗夜模式*/
 }
 
 .pointer {
@@ -100,7 +104,9 @@ onMounted(() => {
 .my-account{
   font-size: 17px;
   font-weight: 700!important;
-  color: #333!important;
+  /*begin 兼容暗夜模式*/
+  color: @text-color;
+  /*end 兼容暗夜模式*/
   margin-bottom: 20px;
 }
 </style>

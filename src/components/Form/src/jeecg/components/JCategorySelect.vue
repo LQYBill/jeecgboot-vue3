@@ -71,13 +71,12 @@
         required: false,
       },
     },
-    emits: ['options-change', 'change'],
+    emits: ['options-change', 'change', 'update:value'],
     setup(props, { emit, refs }) {
       console.info(props);
       const emitData = ref<any[]>([]);
       const treeData = ref<any[]>([]);
       const treeValue = ref();
-      treeValue.value = '';
       const attrs = useAttrs();
       const [state] = useRuleFormItem(props, 'value', 'change', emitData);
       watch(
@@ -122,7 +121,7 @@
           if(props.multiple){
             treeValue.value = [];
           }else{
-            treeValue.value = '';
+            treeValue.value = { value: null, label: null };
           }
         } else {
           loadDictItem({ ids: props.value }).then((res) => {
@@ -153,6 +152,7 @@
           obj[props.back] = label;
         }
         emit('change', value, obj);
+        emit("update:value",value)
       }
 
       function asyncLoadTreeData(treeNode) {
@@ -205,6 +205,7 @@
         if (!value) {
           emit('change', '');
           treeValue.value = '';
+          emit("update:value",'')
         } else if (Array.isArray(value)) {
           let labels = [];
           let values = value.map((item) => {

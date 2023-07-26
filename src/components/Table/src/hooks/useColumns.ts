@@ -9,6 +9,7 @@ import { isArray, isBoolean, isFunction, isMap, isString } from '/@/utils/is';
 import { cloneDeep, isEqual } from 'lodash-es';
 import { formatToDate } from '/@/utils/dateUtil';
 import { ACTION_COLUMN_FLAG, DEFAULT_ALIGN, INDEX_COLUMN_FLAG, PAGE_SIZE } from '../const';
+import { CUS_SEL_COLUMN_KEY } from "./useCustomSelection";
 
 function handleItem(item: BasicColumn, ellipsis: boolean) {
   const { key, dataIndex, children } = item;
@@ -95,7 +96,11 @@ function handleActionColumn(propsRef: ComputedRef<BasicTableProps>, columns: Bas
   }
 }
 
-export function useColumns(propsRef: ComputedRef<BasicTableProps>, getPaginationRef: ComputedRef<boolean | PaginationProps>) {
+export function useColumns(
+  propsRef: ComputedRef<BasicTableProps>,
+  getPaginationRef: ComputedRef<boolean | PaginationProps>,
+  handleCustomSelectColumn: Fn
+) {
   const columnsRef = ref(unref(propsRef).columns) as unknown as Ref<BasicColumn[]>;
   let cacheColumns = unref(propsRef).columns;
 
@@ -104,6 +109,10 @@ export function useColumns(propsRef: ComputedRef<BasicTableProps>, getPagination
 
     handleIndexColumn(propsRef, getPaginationRef, columns);
     handleActionColumn(propsRef, columns);
+    // update-begin--author:sunjianlei---date:220230630---for：【QQYUN-5571】自封装选择列，解决数据行选择卡顿问题
+    handleCustomSelectColumn(columns);
+    // update-end--author:sunjianlei---date:220230630---for：【QQYUN-5571】自封装选择列，解决数据行选择卡顿问题
+
     if (!columns) {
       return [];
     }
@@ -141,6 +150,14 @@ export function useColumns(propsRef: ComputedRef<BasicTableProps>, getPagination
         return hasPermission(column.auth) && isIfShow(column);
       })
       .map((column) => {
+        // update-begin--author:liaozhiyang---date:20230718---for: 【issues-179】antd3 一些警告以及报错(针对表格)
+        if(column.slots?.customRender) {
+          // slots的备份，兼容老的写法，转成新写法避免控制台警告
+          column.slotsBak = column.slots;
+          delete column.slots;
+        }
+        // update-end--author:liaozhiyang---date:20230718---for: 【issues-179】antd3 一些警告以及报错(针对表格)
+
         const { slots, customRender, format, edit, editRow, flag, title: metaTitle } = column;
 
         if (!slots || !slots?.title) {
@@ -238,6 +255,10 @@ export function useColumns(propsRef: ComputedRef<BasicTableProps>, getPagination
     if (ignoreAction) {
       columns = columns.filter((item) => item.flag !== ACTION_COLUMN_FLAG);
     }
+    // update-begin--author:sunjianlei---date:220230630---for：【QQYUN-5571】自封装选择列，解决数据行选择卡顿问题
+    // 过滤自定义选择列
+    columns = columns.filter((item) => item.key !== CUS_SEL_COLUMN_KEY);
+    // update-enb--author:sunjianlei---date:220230630---for：【QQYUN-5571】自封装选择列，解决数据行选择卡顿问题
 
     if (sort) {
       columns = sortFixedColumn(columns);
