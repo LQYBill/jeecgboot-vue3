@@ -3,6 +3,7 @@
     <BasicForm
       @register="registerForm"
       @submit="handleFilter"
+      @reset="handleReset"
     />
 
   </a-card>
@@ -328,6 +329,10 @@ function onEditChange({ column, value, record }) {
 }
 function handleFilter(values) {
   filters.value = values;
+  loadList(1);
+}
+function handleReset() {
+  filters.value = {};
   loadList(1);
 }
 function handleTableChange(pagination, filters, sorter) {
