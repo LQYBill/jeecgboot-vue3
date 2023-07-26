@@ -10,6 +10,9 @@
   import { formSchema } from './quartz.data';
   import { saveOrUpdateQuartz, getQuartzById } from './quartz.api';
   import { isJsonObjectString } from '/@/utils/is';
+  import {useI18n} from "/@/hooks/web/useI18n";
+
+  const { t } = useI18n();
   // Emits声明
   const emit = defineEmits(['register', 'success']);
   const isUpdate = ref(true);
@@ -29,6 +32,7 @@
       //获取详情
       //data.record = await getQuartzById({id: data.record.id});
       try {
+        console.log(data.record);
         data.record.paramterType = isJsonObjectString(data?.record?.parameter) ? 'json' : 'string';
       } catch (e) {
         console.log(e);
@@ -40,7 +44,7 @@
     }
   });
   //设置标题
-  const title = computed(() => (!unref(isUpdate) ? '新增任务' : '编辑任务'));
+  const title = computed(() => (!unref(isUpdate) ? t('job.operation.addNewJob') : t('job.operation.editJob')));
   //表单提交事件
   async function handleSubmit(v) {
     try {

@@ -1,31 +1,34 @@
 import { BasicColumn, FormSchema } from '/@/components/Table';
 import { render } from '/@/utils/common/renderUtils';
 import { JCronValidator } from '/@/components/Form';
+import {useI18n} from "/@/hooks/web/useI18n";
+
+const { t } = useI18n();
 
 export const columns: BasicColumn[] = [
   {
-    title: '任务类名',
+    title: t('job.jobClassName'),
     dataIndex: 'jobClassName',
     width: 200,
     align: 'left',
   },
   {
-    title: 'Cron表达式',
+    title: t('job.cronExpression'),
     dataIndex: 'cronExpression',
     width: 200,
   },
   {
-    title: '参数',
+    title: t('job.parameter'),
     dataIndex: 'parameter',
     width: 200,
   },
   {
-    title: '描述',
+    title: t('data.invoice.description'),
     dataIndex: 'description',
     width: 200,
   },
   {
-    title: '状态',
+    title: t('common.Status'),
     dataIndex: 'status',
     width: 100,
     customRender: ({ text }) => {
@@ -38,13 +41,13 @@ export const columns: BasicColumn[] = [
 export const searchFormSchema: FormSchema[] = [
   {
     field: 'jobClassName',
-    label: '任务类名',
+    label: t('job.jobClassName'),
     component: 'Input',
     colProps: { span: 8 },
   },
   {
     field: 'status',
-    label: '任务状态',
+    label: t('job.jobStatus'),
     component: 'JDictSelectTag',
     componentProps: {
       dictCode: 'quartz_status',
@@ -63,49 +66,49 @@ export const formSchema: FormSchema[] = [
   },
   {
     field: 'jobClassName',
-    label: '任务类名',
+    label: t('job.jobClassName'),
     component: 'Input',
     required: true,
   },
   {
     field: 'cronExpression',
-    label: 'Cron表达式',
+    label: t('job.cronExpression'),
     component: 'JEasyCron',
     defaultValue: '* * * * * ? *',
     rules: [{ required: true, message: '请输入Cron表达式' }, { validator: JCronValidator }],
   },
   {
-    field: 'paramterType',
-    label: '参数类型',
+    field: 'parameterType',
+    label: t('job.parameterType'),
     component: 'Select',
     defaultValue: 'string',
     componentProps: {
       options: [
-        { label: '字符串', value: 'string' },
-        { label: 'JSON对象', value: 'json' },
+        { label: t('variable.string'), value: 'string' },
+        { label: t('variable.jsonObject'), value: 'json' },
       ],
     },
   },
   {
     field: 'parameter',
-    label: '参数',
+    label: t('job.parameter'),
     component: 'InputTextArea',
     ifShow: ({ values }) => {
-      return values.paramterType == 'string';
+      return values.parameterType == 'string';
     },
   },
   {
     field: 'parameter',
-    label: '参数',
+    label: t('job.parameter'),
     component: 'JAddInput',
-    helpMessage: '键值对形式填写',
+    helpMessage: t('job.helpMessage.json'),
     ifShow: ({ values }) => {
-      return values.paramterType == 'json';
+      return values.parameterType == 'json';
     },
   },
   {
     field: 'status',
-    label: '状态',
+    label: t('common.Status'),
     component: 'JDictSelectTag',
     componentProps: {
       dictCode: 'quartz_status',
@@ -118,7 +121,7 @@ export const formSchema: FormSchema[] = [
   },
   {
     field: 'description',
-    label: '描述',
+    label: t('data.invoice.description'),
     component: 'InputTextArea',
   },
 ];
