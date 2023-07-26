@@ -21,7 +21,7 @@
     </template>
     <Dropdown :trigger="['hover']" :dropMenuList="getDropdownList" popconfirm v-if="dropDownActions && getDropdownList.length > 0">
       <slot name="more"></slot>
-      <a-button type="link" size="small" v-if="!$slots.more"> 更多 <Icon icon="mdi-light:chevron-down"></Icon> </a-button>
+      <a-button type="link" size="small" v-if="!$slots.more"> {{ t('common.operation.more')}} <Icon icon="mdi-light:chevron-down"></Icon> </a-button>
     </Dropdown>
   </div>
 </template>
@@ -39,9 +39,12 @@
   import { isBoolean, isFunction, isString } from '/@/utils/is';
   import { propTypes } from '/@/utils/propTypes';
   import { ACTION_COLUMN_FLAG } from '../const';
+  import {useI18n} from "/@/hooks/web/useI18n";
 
+  const { t } = useI18n();
   export default defineComponent({
     name: 'TableAction',
+    methods: {t},
     components: { Icon, PopConfirmButton, Divider, Dropdown, MoreOutlined, Tooltip },
     props: {
       actions: {
@@ -152,7 +155,7 @@
     /* update-begin-author:taoyan date:2022-11-18 for: 表格默认行高比官方示例多出2px*/
     height: 22px;
     /* update-end-author:taoyan date:2022-11-18 for: 表格默认行高比官方示例多出2px*/
-    
+
     .action-divider {
       display: table;
     }

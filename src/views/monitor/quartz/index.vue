@@ -2,20 +2,21 @@
   <div>
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
       <template #tableTitle>
-        <a-button preIcon="ant-design:plus-outlined" type="primary" @click="handleAdd" style="margin-right: 5px">新增</a-button>
-        <a-button type="primary" preIcon="ant-design:export-outlined" @click="onExportXls"> 导出</a-button>
-        <j-upload-button type="primary" preIcon="ant-design:import-outlined" @click="onImportXls">导入</j-upload-button>
+        <a-button preIcon="ant-design:plus-outlined" type="primary" @click="handleAdd" style="margin-right: 5px">
+          {{ t('common.operation.addNew') }}</a-button>
+        <a-button type="primary" preIcon="ant-design:export-outlined" @click="onExportXls">{{ t('common.operation.export') }}</a-button>
+        <j-upload-button type="primary" preIcon="ant-design:import-outlined" @click="onImportXls">{{ t('common.operation.import') }}</j-upload-button>
         <a-dropdown v-if="selectedRowKeys.length > 0">
           <template #overlay>
             <a-menu>
               <a-menu-item key="1" @click="batchHandleDelete">
                 <Icon icon="ant-design:delete-outlined"></Icon>
-                删除
+                {{t('common.operation.delete')}}
               </a-menu-item>
             </a-menu>
           </template>
           <a-button
-            >批量操作
+            >{{t('common.operation.batchOperation')}}
             <Icon icon="mdi:chevron-down"></Icon>
           </a-button>
         </a-dropdown>
@@ -36,14 +37,16 @@
   import { columns, searchFormSchema } from './quartz.data';
   import QuartzModal from './QuartzModal.vue';
   import { useMessage } from '/@/hooks/web/useMessage';
+  import {useI18n} from "/@/hooks/web/useI18n";
 
+  const { t } = useI18n();
   const { createMessage } = useMessage();
   const [registerModal, { openModal }] = useModal();
   // 列表页面公共参数、方法
   const { prefixCls, tableContext, onExportXls, onImportXls } = useListPage({
     designScope: 'quartz-template',
     tableProps: {
-      title: '任务列表',
+      title: t('job.jobForm'),
       api: getQuartzList,
       columns: columns,
       actionColumn: {
@@ -56,7 +59,7 @@
       },
     },
     exportConfig: {
-      name: '定时任务列表',
+      name: t('job.scheduledJobForm'),
       url: getExportUrl,
     },
     importConfig: {
@@ -73,9 +76,9 @@
   function getActions(record) {
     return [
       {
-        label: '启动',
+        label: t('job.operation.start'),
         popConfirm: {
-          title: '是否启动选中任务?',
+          title: t('job.popup.start'),
           confirm: handlerResume.bind(null, record),
         },
         ifShow: (_action) => {
@@ -83,9 +86,9 @@
         },
       },
       {
-        label: '停止',
+        label: t('job.operation.stop'),
         popConfirm: {
-          title: '是否暂停选中任务?',
+          title: t('job.popup.stop'),
           confirm: handlerPause.bind(null, record),
         },
         ifShow: (_action) => {
@@ -101,20 +104,20 @@
   function getDropDownAction(record) {
     return [
       {
-        label: '立即执行',
+        label: t('job.operation.execute'),
         popConfirm: {
-          title: '是否立即执行任务?',
+          title: t('job.popup.execute'),
           confirm: handlerExecute.bind(null, record),
         },
       },
       {
-        label: '编辑',
+        label: t('common.operation.edit'),
         onClick: handleEdit.bind(null, record),
       },
       {
-        label: '删除',
+        label: t('common.operation.delete'),
         popConfirm: {
-          title: '是否确认删除',
+          title: t('job.popup.delete'),
           confirm: handleDelete.bind(null, record),
         },
       },
