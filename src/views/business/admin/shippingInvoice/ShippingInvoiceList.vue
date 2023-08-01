@@ -5,10 +5,24 @@
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('detail')" :disabled = 'downloadDetailDisabled'> {{ t("data.invoice.downloadDetails") }}</a-button>
       </template>
+      <template v-slot:action="{ record, column }">
+        <TableAction
+          :actions="[
+            {
+              label: t('common.operation.delete'),
+              icon: 'ic:outline-delete-outline',
+              popConfirm: {
+                title: t('common.operation.deleteConfirmation'),
+                confirm: handleDelete.bind(null, record),
+              },
+            },
+          ]"
+        />
+      </template>
     </BasicTable>
 </template>
 <script async setup lang="ts">
-import {BasicTable, FormSchema, useTable} from "/@/components/Table/";
+import {BasicTable, FormSchema, TableAction, useTable} from "/@/components/Table/";
 import {BasicColumn} from '/@/components/Table/src/types/table';
 import {downloadFile, getUserList} from '/@/api/common/api';
 import {defHttp} from '/@/utils/http/axios';
@@ -29,6 +43,7 @@ onMounted(async () => {
 })
 // urls
 enum Api {
+  cancelInvoice = '/generated/shippingInvoice/cancelInvoice',
   exportXls = '/generated/shippingInvoice/exportXls',
   list = "/generated/shippingInvoice/list",
   getClient = "/generated/shippingInvoice/getClient",
@@ -76,6 +91,14 @@ const columns: BasicColumn[] = [
     title: t("data.invoice.paidAmount"),
     align:"center",
     dataIndex: 'paidAmount'
+  },
+  {
+    title: t('common.operation.action'),
+    dataIndex: 'action',
+    align:"center",
+    fixed:"right",
+    width:147,
+    slots: { customRender: 'action' }
   }
 ];
 const searchFormSchema: FormSchema[] = [
@@ -251,6 +274,13 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
   console.log("selectRows------>", selectRows.value);
   downloadInvoiceDisabled.value = false;
   downloadDetailDisabled.value = false;
+}
+function handleDelete(record: Recordable) {
+  defHttp.post({ url: Api.cancelInvoice, data: { id: record.id, invoiceNumber: record.invoiceNumber, clientId: record.clientId } }, { joinParamsToUrl: true }).then(()=> {
+    reload();
+  }).catch(e =>{
+    console.error(e);
+  });
 }
 </script>
 <style>

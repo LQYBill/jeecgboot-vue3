@@ -3,7 +3,7 @@
     <div class="table-operator">
       <!-- button to download invoice -->
       <a-button v-if="downloadReady" type='primary' shape="round" @click='downloadPdf()' preIcon="ant-design:download" size="large">
-        {{ $t("data.invoice.downloadInvoice") }}
+        {{ t("data.invoice.downloadInvoice") }}
       </a-button>
 
       <!-- button to download invoice details -->
@@ -11,7 +11,7 @@
         <template #icon>
           <mail-outlined />
         </template>
-        {{ $t("data.invoice.receiveDetailsByEmail") }}
+        {{ t("data.invoice.receiveDetailsByEmail") }}
       </a-button>
     </div>
     <section>
@@ -31,17 +31,17 @@
           <div style="padding: 0 1em;">
             <h1 style='font-size: 2em'>{{ customer }} <span style='font-weight: 200'>({{ invoice_entity }})</span></h1>
             <a-row type="flex" justify='space-between' align-items='center'>
-              <h2 >{{ $t("data.invoice.invoiceNumber") }} : {{ invoice_number }}</h2>
-              <h3>{{ $t("data.client.Currency") }} : {{ currency }}/{{ currencySymbol }}</h3>
+              <h2 >{{ t("data.invoice.invoiceNumber") }} : {{ invoice_number }}</h2>
+              <h3>{{ t("data.client.Currency") }} : {{ currency }}/{{ currencySymbol }}</h3>
             </a-row>
           </div>
         </template>
         <template #footer>
           <a-row type="flex" style="align-items: center; padding: 0em 1em;">
-            <a-col :span="12"><h2>{{ $t("data.invoice.total") }}</h2></a-col>
-            <a-col :span="3"><h2 class='center'>{{ $t("data.invoice.quantity") }} : </h2></a-col>
+            <a-col :span="12"><h2>{{ t("data.invoice.total") }}</h2></a-col>
+            <a-col :span="3"><h2 class='center'>{{ t("data.invoice.quantity") }} : </h2></a-col>
             <a-col :span="3"><div class='center' style='font-size: 1.5em;'>{{total_quantity}}</div></a-col>
-            <a-col :span="3"><h2 class='center'>{{ $t("data.invoice.totalAmount") }} : </h2></a-col>
+            <a-col :span="3"><h2 class='center'>{{ t("data.invoice.totalAmount") }} : </h2></a-col>
             <a-col :span="3">
               <div class='center'  style='font-size: 1.5em;'>€{{final_total_euro}} EUR</div>
               <div class='center' v-if='currency !== "EUR"'>({{currencySymbol}}{{final_total_customer_curr}} {{currency}})</div>
@@ -108,18 +108,18 @@ export default {
           align: 'center',
         },
         {
-          title: this.$t("data.invoice.description"),
+          title: t("data.invoice.description"),
           align: 'left',
           className: 'column_description',
           dataIndex: 'description',
         },
         {
-          title: this.$t("data.invoice.orderQty"),
+          title: t("data.invoice.orderQty"),
           align: 'center',
           dataIndex: 'quantity',
         },
         {
-          title: this.$t("data.invoice.subTotal"),
+          title: t("data.invoice.subTotal"),
           align: 'center',
           dataIndex: 'total_amount',
         }
@@ -133,7 +133,7 @@ export default {
     num: getInvoiceNum
   },
   methods: {
-
+    t,
     checkInvoice() {
       let email = userStore.getUserInfo.email;
       let orgCode = userStore.getUserInfo.orgCode;
@@ -198,7 +198,7 @@ export default {
               self.total_quantity += Number(key);
               self.dataSource.push({
                 key: self.index,
-                description: "Total shipping cost for " + self.$t("location.country."+i),
+                description: "Total shipping cost for " + t("location.country."+i),
                 quantity: key,
                 total_amount: subtotal,
               });
@@ -210,7 +210,7 @@ export default {
           // VAT
           self.dataSource.push({
             key: self.index,
-            description: "Total VAT fee for " + self.$t("location.continent.EuropeanUnion"),
+            description: "Total VAT fee for " + t("location.continent.EuropeanUnion"),
             quantity: null,
             total_amount: res.vat
           });

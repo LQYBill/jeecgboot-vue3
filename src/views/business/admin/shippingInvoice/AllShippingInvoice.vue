@@ -143,7 +143,7 @@
           </a-col>
           <a-col :span="8">
             <a-form-item
-              :label="$t('data.invoice.warehouse')"
+              :label="t('data.invoice.warehouse')"
               :labelCol='{span: 4}'
               :wrapperCol='{span: 20}'
               name="warehouse"
@@ -236,7 +236,6 @@
         <BasicTable
           @register="registerTable"
           :expandedRowKeys="expandedRowKeys"
-          :rowSelection="rowSelection"
           :loading="orderListLoading"
           :pagination="ipagination"
           @expand="handleExpand"
@@ -411,17 +410,16 @@ const orderList = ref<any[]>([]);
 const tableRef = ref();
 const expandedRowKeys = ref<any[]>([]);
 const checkedKeys = ref<Array<string | number>>([]);
-const rowSelection = {
+const rowSelection = reactive ({
   type: 'checkbox',
   columnWidth: 30,
-  selectedRowKeys: checkedKeys,
   onChange: onSelectChange,
   getCheckboxProps: getCheckboxProps
-};
+});
 let ipagination = ref({
   current: 1,
-  defaultPageSize: 100,
-  pageSize: 100,
+  defaultPageSize: 50,
+  pageSize: 50,
   pageSizeOptions: ['50', '100', '200', '500'],
   showTotal: (total, range) => {
     return range[0] + '-' + range[1] + ' / ' + total
@@ -508,8 +506,11 @@ const columns: BasicColumn[] = [
     slots: {customRender: 'toReview'},
   },
 ];
-const [registerTable, { reload }] = useTable({
+const [registerTable, { reload, expandAll, collapseAll }] = useTable({
   title: t('data.invoice.orderList'),
+  isTreeTable: true,
+  expandIconColumnIndex: 1,
+  rowSelection: rowSelection,
   dataSource: orderList,
   columns,
   defSort: iSorter.value,
@@ -585,7 +586,10 @@ function loadCustomerList() {
       customer => {
         let list = {};
         list["id"] = `${customer.id}`;
-        list["info"] = `${customer.firstName},${customer.surname},${customer.internalCode}`;
+        list["firstname"] = `${customer.firstName}`;
+        list["lastname"] = `${customer.surname}`;
+        list["internalCode"] = `${customer.internalCode}`;
+        list["invoiceEntity"] = `${customer.invoiceEntity}`;
         return list;
       }
     );
@@ -1162,10 +1166,9 @@ function downloadInvoice(invoiceFilename) {
   });
 }
 function downloadDetailFile(invoiceNumber) {
-  const param = {invoiceNumber: invoiceNumber}
+  const param = {invoiceNumber: invoiceNumber, invoiceEntity: customerInfo.value?.invoiceEntity}
   let now = dayjs().format("YYYYMMDD");
-  let internalCode = customerInfo.value?.info.split(',')[2];
-  let detailFilename = internalCode + "_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
+  let detailFilename = customerInfo.value?.internalCode + "_(" + customerInfo.value?.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
   downloadFile(Api.downloadInvoiceDetail, detailFilename, param)
     .catch(e => {
       console.error(`Download invoice detail fail : ${e}`);
@@ -1203,8 +1206,8 @@ function clearField(field) {
     case "manualSelection":
       ipagination.value.current = 1;
       ipagination.value.total = 1;
-      ipagination.value.pageSize = 100;
-      ipagination.value.defaultPageSize = 100;
+      ipagination.value.pageSize = 50;
+      ipagination.value.defaultPageSize = 50;
       orderList.value = [];
       searchDisabled.value = true;
       findOrdersLoading.value = false;
@@ -1275,9 +1278,22 @@ function clearField(field) {
 }
 function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
   estimatesReady.value = false;
-  checkedKeys.value = selectedRowKeys;
   makeManualInvoiceSpinning.value = true;
-  if(checkedKeys.value.length > 0) {
+  if(selectedRowKeys.length > 0) {
+    // deactivate undesired checked keys
+    let uncheckableRowKeys:any[] = [];
+    for(let row of selectionRows){
+      if(!(!!row.logisticChannelName || !!row.invoiceLogisticChannelName)) {
+        // console.log(row.id);
+        uncheckableRowKeys.push(row.id);
+      }
+    }
+    for(let idx of uncheckableRowKeys) {
+      let index = selectedRowKeys.indexOf(idx);
+      selectedRowKeys.splice(index, 1);
+    }
+
+    checkedKeys.value = selectedRowKeys;
     step.value = 7;
     let param = {
       clientID: customerId.value,
@@ -1324,10 +1340,10 @@ function handleTableChange(pagination, filters, sorter) {
   loadOrders();
 }
 function getCheckboxProps(record: Recordable) {
-  if ((record.logisticChannelName === '' || record.logisticChannelName === null) && record.invoiceLogisticChannelName === null) {
-    return { disabled: true };
-  } else {
+  if (!!record.logisticChannelName || !!record.invoiceLogisticChannelName) {
     return { disabled: false };
+  } else {
+    return { disabled: true };
   }
 }
 function handleExpand(expanded, record) {

@@ -49,7 +49,11 @@ export const formSchema: FormSchema[] = [
     component: 'DatePicker',
     label: t('sys.profile.birthday'),
     colProps: { span: 24 },
+    defaultValue: ()=> {
+      return new Date().toISOString().split('T')[0];
+    },
     componentProps:{
+      placeholder: t('sys.profile.birthday'),
       showTime:false,
       valueFormat:"YYYY-MM-DD",
       getPopupContainer: () => document.body,
