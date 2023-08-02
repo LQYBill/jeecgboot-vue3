@@ -45,17 +45,18 @@
         :dropDownActions="[
           {
             label: t('common.operation.details'),
+            icon: 'ant-design:eye-outlined',
             onClick: handleDetail.bind(null, record),
           },
-            {
-              label: t('common.operation.delete'),
-              icon: 'ic:outline-delete-outline',
-              popConfirm: {
-                title: t('common.operation.deleteConfirmation'),
-                confirm: handleDelete.bind(null, record),
-              },
+          {
+            label: t('common.operation.delete'),
+            icon: 'ic:outline-delete-outline',
+            popConfirm: {
+              title: t('common.operation.deleteConfirmation'),
+              confirm: handleDelete.bind(null, record),
             },
-          ]"
+          },
+        ]"
       />
     </template>
   </BasicTable>

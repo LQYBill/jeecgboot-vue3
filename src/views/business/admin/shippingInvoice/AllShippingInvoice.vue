@@ -143,7 +143,7 @@
           </a-col>
           <a-col :span="8">
             <a-form-item
-              :label="$t('data.invoice.warehouse')"
+              :label="t('data.invoice.warehouse')"
               :labelCol='{span: 4}'
               :wrapperCol='{span: 20}'
               name="warehouse"
@@ -236,7 +236,6 @@
         <BasicTable
           @register="registerTable"
           :expandedRowKeys="expandedRowKeys"
-          :rowSelection="rowSelection"
           :loading="orderListLoading"
           :pagination="ipagination"
           @expand="handleExpand"
@@ -508,8 +507,11 @@ const columns: BasicColumn[] = [
     slots: {customRender: 'toReview'},
   },
 ];
-const [registerTable, { reload }] = useTable({
+const [registerTable, { reload, expandAll, collapseAll }] = useTable({
   title: t('data.invoice.orderList'),
+  isTreeTable: true,
+  expandIconColumnIndex: 1,
+  rowSelection: rowSelection,
   dataSource: orderList,
   columns,
   defSort: iSorter.value,
@@ -585,7 +587,10 @@ function loadCustomerList() {
       customer => {
         let list = {};
         list["id"] = `${customer.id}`;
-        list["info"] = `${customer.firstName},${customer.surname},${customer.internalCode}`;
+        list["firstname"] = `${customer.firstName}`;
+        list["lastname"] = `${customer.surname}`;
+        list["internalCode"] = `${customer.internalCode}`;
+        list["invoiceEntity"] = `${customer.invoiceEntity}`;
         return list;
       }
     );
@@ -1019,23 +1024,27 @@ function makeManualCompleteInvoice() {
         let code = res.invoiceCode;
         downloadInvoice(filename);
         downloadDetailFile(code);
-        ipagination.value.current = 1;
-        findOrdersLoading.value = true;
-        loadOrders();
-
-        invoiceModeDisabled.value = false;
-        shopDisabled.value = false;
-        customerDisabled.value = false;
-        dateDisabled.value = false;
-        warehouseDisabled.value = true;
-        // countryDisabled.value = false;
-        orderSelectModeDisabled.value = false;
-        searchDisabled.value = false;
-        findOrdersLoading.value = false;
-        orderListLoading.value = false;
-        makeManualInvoiceLoading.value = false;
       }
-    );
+    ).catch(e => {
+      console.error(e);
+      step.value = 6;
+    }).finally(() => {
+      ipagination.value.current = 1;
+      findOrdersLoading.value = true;
+      invoiceModeDisabled.value = false;
+      shopDisabled.value = false;
+      customerDisabled.value = false;
+      dateDisabled.value = false;
+      warehouseDisabled.value = true;
+      // countryDisabled.value = false;
+      orderSelectModeDisabled.value = false;
+      searchDisabled.value = false;
+      findOrdersLoading.value = false;
+      orderListLoading.value = false;
+      makeManualInvoiceLoading.value = false;
+      manualCompleteInvoiceLoading.value = false;
+      loadOrders();
+    });
 }// end of makeManualCompleteInvoice
 function makeInvoice() {
   if (!customerId.value) {
@@ -1156,20 +1165,20 @@ function makeCompleteInvoice() {
 function downloadInvoice(invoiceFilename) {
   const param = {filename: invoiceFilename};
   downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
-    createMessage.info("Download succeed.")
+    createMessage.info("Download successful.")
   }).catch(e => {
     console.error(`Download invoice fail : ${e}`);
   });
 }
 function downloadDetailFile(invoiceNumber) {
-  const param = {invoiceNumber: invoiceNumber}
+  const param = {invoiceNumber: invoiceNumber, invoiceEntity: customerInfo.value?.invoiceEntity}
   let now = dayjs().format("YYYYMMDD");
-  let internalCode = customerInfo.value?.info.split(',')[2];
-  let detailFilename = internalCode + "_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
-  downloadFile(Api.downloadInvoiceDetail, detailFilename, param)
-    .catch(e => {
+  let detailFilename = customerInfo.value?.internalCode + "_(" + customerInfo.value?.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
+  downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {
+    createMessage.info("Download successful.")
+  }).catch(e => {
       console.error(`Download invoice detail fail : ${e}`);
-    });
+  });
 }
 /**
  *   Clears the formRef fields
@@ -1275,9 +1284,22 @@ function clearField(field) {
 }
 function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
   estimatesReady.value = false;
-  checkedKeys.value = selectedRowKeys;
   makeManualInvoiceSpinning.value = true;
-  if(checkedKeys.value.length > 0) {
+  if(selectedRowKeys.length > 0) {
+    // deactivate undesired checked keys
+    let uncheckableRowKeys:any[] = [];
+    for(let row of selectionRows){
+      if(!(!!row.logisticChannelName || !!row.invoiceLogisticChannelName)) {
+        // console.log(row.id);
+        uncheckableRowKeys.push(row.id);
+      }
+    }
+    for(let idx of uncheckableRowKeys) {
+      let index = selectedRowKeys.indexOf(idx);
+      selectedRowKeys.splice(index, 1);
+    }
+
+    checkedKeys.value = selectedRowKeys;
     step.value = 7;
     let param = {
       clientID: customerId.value,
@@ -1324,10 +1346,10 @@ function handleTableChange(pagination, filters, sorter) {
   loadOrders();
 }
 function getCheckboxProps(record: Recordable) {
-  if ((record.logisticChannelName === '' || record.logisticChannelName === null) && record.invoiceLogisticChannelName === null) {
-    return { disabled: true };
-  } else {
+  if (!!record.logisticChannelName || !!record.invoiceLogisticChannelName) {
     return { disabled: false };
+  } else {
+    return { disabled: true };
   }
 }
 function handleExpand(expanded, record) {
