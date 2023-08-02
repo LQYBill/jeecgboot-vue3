@@ -76,22 +76,22 @@
           {
             title: '用户账号',
             dataIndex: 'username',
-            width: 180,
+            width: 50,
           },
           {
             title: '用户姓名',
             dataIndex: 'realname',
-            width: 180,
+            width: 50,
           },
           {
             title: '性别',
             dataIndex: 'sex_dictText',
-            width: 80,
+            width: 50,
           },
           {
             title: '手机号码',
             dataIndex: 'phone',
-            // width: 50,
+            width: 50,
           },
         ],
         useSearchForm: true,

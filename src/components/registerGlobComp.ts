@@ -2,8 +2,6 @@ import type { App } from 'vue';
 import { Icon } from './Icon';
 import AIcon from '/@/components/jeecg/AIcon.vue';
 import { Button, JUploadButton } from './Button';
-//敲敲云—仪表盘设计器（拖拽设计）
-import DragEngine from '@qiaoqiaoyun/drag-free';
 import {
   // Need
   Button as AntButton,
@@ -109,7 +107,6 @@ export function registerGlobComp(app: App) {
     .use(InputNumber)
     .use(Carousel)
     .use(Popconfirm)
-    .use(DragEngine)
     .use(Skeleton)
     .use(Cascader)
     .use(Rate);

@@ -2,7 +2,6 @@
   <div class="clearfix">
     <a-upload
       :listType="listType"
-      accept="image/*"
       :multiple="multiple"
       :action="uploadUrl"
       :headers="headers"
@@ -124,16 +123,13 @@
       watch(
         () => props.value,
         (val, prevCount) => {
-         //update-begin---author:liusq ---date:20230601  for：【issues/556】JImageUpload组件value赋初始值没显示图片------------
-            if (val && val instanceof Array) {
+          if (val instanceof Array) {
             val = val.join(',');
           }
           if (initTag.value == true) {
             initFileList(val);
           }
-        },
-        { immediate: true }
-        //update-end---author:liusq ---date:20230601  for：【issues/556】JImageUpload组件value赋初始值没显示图片------------
+        }
       );
 
       /**

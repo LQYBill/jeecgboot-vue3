@@ -48,8 +48,9 @@
           } else {
             target.value = Number.parseFloat(target.value);
           }
+          handleChangeCommon(target.value);
         }
-        handleChangeCommon(target.value, true);
+        handleChangeCommon(target.value);
       }
 
       return {

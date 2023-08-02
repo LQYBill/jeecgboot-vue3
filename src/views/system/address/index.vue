@@ -4,7 +4,7 @@
       <DepartLeftTree ref="leftTree" @select="onTreeSelect" />
     </a-col>
     <a-col :xl="18" :lg="24" :md="24" style="margin-bottom: 10px">
-      <div style="height: 100%;" class="address-book">
+      <div style="height: 100%; background-color: white">
         <!--引用表格-->
         <BasicTable @register="registerTable">
           <template #post="{ text }">
@@ -84,6 +84,6 @@
   queryPositionInfo();
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
   @import './index.less';
 </style>

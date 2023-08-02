@@ -145,33 +145,33 @@
         {
           title: '用户账号',
           dataIndex: 'username',
-          width: 120,
+          width: 40,
           align: 'left',
         },
         {
           title: '用户姓名',
           dataIndex: 'realname',
-          width: 120,
+          width: 40,
         },
         {
           title: '性别',
           dataIndex: 'sex_dictText',
-          width: 50,
+          width: 20,
         },
         {
           title: '手机号码',
           dataIndex: 'phone',
-          width: 120,
+          width: 30,
         },
         {
           title: '邮箱',
           dataIndex: 'email',
-          // width: 40,
+          width: 40,
         },
         {
           title: '状态',
           dataIndex: 'status_dictText',
-          width: 80,
+          width: 20,
         },
       ];
       //已选择的table信息

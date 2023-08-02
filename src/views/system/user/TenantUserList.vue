@@ -83,7 +83,6 @@
     openDrawer(true, {
       isUpdate: false,
       showFooter: true,
-      tenantSaas: true,
     });
   }
   /**
@@ -94,7 +93,6 @@
       record,
       isUpdate: true,
       showFooter: true,
-      tenantSaas: true,
     });
   }
   /**
@@ -105,7 +103,6 @@
       record,
       isUpdate: true,
       showFooter: false,
-      tenantSaas: true,
     });
   }
 

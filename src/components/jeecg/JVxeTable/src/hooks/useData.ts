@@ -17,14 +17,10 @@ export function useData(props: JVxeTableProps): JVxeDataProps {
       rowId: props.rowKey,
       // 高亮hover的行
       highlightHoverRow: true,
-
-      // --- 【issues/209】自带的tooltip会错位，所以替换成原生的title ---
       // 溢出隐藏并显示tooltip
-      showOverflow: "title",
+      showOverflow: true,
       // 表头溢出隐藏并显示tooltip
-      showHeaderOverflow: "title",
-      // --- 【issues/209】自带的tooltip会错位，所以替换成原生的title ---
-
+      showHeaderOverflow: true,
       showFooterOverflow: true,
       // 可编辑配置
       editConfig: {
