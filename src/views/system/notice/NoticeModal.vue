@@ -41,13 +41,7 @@
       let values = await validate();
       setModalProps({ confirmLoading: true });
       //提交表单
-      //update-begin-author:liusq---date:20230404--for: [issue#429]新增通知公告提交指定用户参数有undefined --- 
-      if(values.msgType==='ALL'){
-        values.userIds = '';
-      }else{
-        values.userIds += ',';
-      }
-      //update-end-author:liusq---date:20230404--for: [issue#429]新增通知公告提交指定用户参数有undefined --- 
+      values.userIds += ',';
       await saveOrUpdate(values, isUpdate.value);
       //关闭弹窗
       closeModal();

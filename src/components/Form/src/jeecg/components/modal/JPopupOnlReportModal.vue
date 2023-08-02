@@ -129,7 +129,7 @@
           queryParam,
           dictOptions,
         },
-      ] = usePopBiz(getBindValue,tableRef);
+      ] = usePopBiz(getBindValue);
 
       const showSearchFlag = computed(() => unref(queryInfo) && unref(queryInfo).length > 0);
       /**

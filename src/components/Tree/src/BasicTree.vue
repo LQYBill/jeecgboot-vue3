@@ -90,13 +90,11 @@
           onCheck: (v: CheckKeys, e) => {
             let currentValue = toRaw(state.checkedKeys) as KeyType[];
             if (isArray(currentValue) && searchState.startSearch) {
-             //update-begin-author:liusq---date:20230404--for: [issue/429]树搜索点击事件失效--- 
-              const value = e.node.eventKey;
-              currentValue = difference(currentValue, getChildrenKeys(value));
+              const { key } = unref(getFieldNames);
+              currentValue = difference(currentValue, getChildrenKeys(e.node.$attrs.node[key]));
               if (e.checked) {
-                  currentValue.push(value);
+                currentValue.push(e.node.$attrs.node[key]);
               }
-             //update-begin-author:liusq---date:20230404--for: [issue/429]树搜索点击事件失效---
               state.checkedKeys = currentValue;
             } else {
               state.checkedKeys = v;

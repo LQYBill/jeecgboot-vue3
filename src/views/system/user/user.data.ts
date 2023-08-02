@@ -284,12 +284,7 @@ export const formSchema: FormSchema[] = [
     label: '邮箱',
     field: 'email',
     component: 'Input',
-    dynamicRules: ({ model, schema }) => {
-      return [
-        { ...rules.duplicateCheckRule('sys_user', 'email', model, schema, true)[0] },
-        { ...rules.rule('email', false)[0] },
-      ];
-    },
+    rules: rules.rule('email', false),
   },
   {
     label: '手机号码',

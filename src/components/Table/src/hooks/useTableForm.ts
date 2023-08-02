@@ -12,15 +12,13 @@ export function useTableForm(
 ) {
   const getFormProps = computed((): Partial<FormProps> => {
     const { formConfig } = unref(propsRef);
-    const { submitButtonOptions, autoSubmitOnEnter} = formConfig || {};
+    const { submitButtonOptions } = formConfig || {};
     return {
       showAdvancedButton: true,
       ...formConfig,
       submitButtonOptions: { loading: unref(getLoading), ...submitButtonOptions },
       compact: true,
-      //update-begin-author:liusq---date:20230605--for: [issues/568]设置 autoSubmitOnEnter: false 不生效 ---
-      autoSubmitOnEnter: autoSubmitOnEnter,
-      //update-end-author:liusq---date:20230605--for: [issues/568]设置 autoSubmitOnEnter: false 不生效 ---
+      autoSubmitOnEnter: true,
     };
   });
 
