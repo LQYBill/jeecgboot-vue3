@@ -1303,7 +1303,7 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
     step.value = 7;
     let param = {
       clientID: customerId.value,
-      orderIds: selectedRowKeys,
+      orderIds: checkedKeys.value,
       type: erpStatus.value === "3" ? "shipping" : erpStatus.value === "1,2" ? "preshipping" : "all",
     };
     defHttp.post({url: Api.estimateShippingFees, params: param})
@@ -1329,8 +1329,11 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
         makeManualInvoiceDisabled.value = false;
       });
   } else {
+    checkedKeys.value = selectedRowKeys;
     shippingFeesEstimates.value = [];
     estimatesReady.value = true;
+    manualCompleteInvoiceDisabled.value = true;
+    makeManualInvoiceDisabled.value = true;
   }
   makeManualInvoiceSpinning.value = false;
 }
