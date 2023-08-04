@@ -8,9 +8,7 @@ import {BasicForm, FormSchema, useForm} from "/@/components/Form";
 import {BasicModal, useModalInner} from "/@/components/Modal";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {defHttp} from "/@/utils/http/axios";
-import {propTypes} from "/@/utils/propTypes";
 import {computed, defineProps, ref, unref} from "vue";
-import {getDemoById} from "/@/views/system/examples/demo/demo.api";
 
 const { t } = useI18n();
 
@@ -105,7 +103,7 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
     });
   }
   record.value = data.record;
-  console.log(`record : ${JSON.stringify(record.value)}`);
+  // console.log(`record : ${JSON.stringify(record.value)}`);
 });
 const title = computed(() => (!unref(isUpdate) ? t('common.operation.addNew') : props.isDisabled ? t('common.operation.details'): t('common.operation.edit')));
 async function handleSubmit(v) {
@@ -119,13 +117,13 @@ async function handleSubmit(v) {
     if(isUpdate.value) {
       url = Api.edit;
       param.id = record.value.id;
-      await defHttp.put({url: url, params: values});
+      await defHttp.put({url: url, params: param});
     }
     else {
       url = Api.add
-      await defHttp.post({url: url, params: values});
+      await defHttp.post({url: url, params: param});
     }
-    console.log(`submit param : ${JSON.stringify(param)}`)
+    // console.log(`submit param : ${JSON.stringify(param)}`);
     //关闭弹窗
     closeModal();
     //刷新列表

@@ -146,7 +146,6 @@ export default {
     shippingRefundAmount: 'Shipping Fee Refund Amount',
     totalRefundAmount: 'Total Refund Amount',
     tvaRefundAmount: 'TVA Refund Amount',
-
   },
   shipping: {
     destination: "Destination",
@@ -157,6 +156,10 @@ export default {
     length: "Length",
     gram: "gram",
   },
+  product: {
+    productListPage: 'Product List',
+    code: 'Code',
+  },
   tips : {
     invoiceModeTip: "Shipping: shipped orders<br/>"+
                     "Pre-Shipping: pending orders and orders in preparation<br/>"+
@@ -165,5 +168,7 @@ export default {
   },
   Invoice: "Invoice",
   abbreviation: "Abbreviation",
-  welcome: "Welcome"
+  welcome: "Welcome",
+  enName: 'En name',
+  zhName: 'Zh name',
 }
