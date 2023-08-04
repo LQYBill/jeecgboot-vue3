@@ -337,11 +337,8 @@ function handleReset() {
   loadList(1);
 }
 function handleTableChange(pagination, filters, sorter) {
-  console.log(pagination);
-  console.log(sorter);
   iPagination.value = pagination;
   if (Object.keys(sorter).length > 0) {
-    console.log("haha");
     iSorter.value.column = sorter.field
     iSorter.value.order = 'ascend' === sorter.order ? 'asc' : 'desc'
   }
@@ -363,9 +360,7 @@ function loadList(arg?) {
     iPagination.value.current = 1;
   }
   let params = getQueryParams();
-  console.log(`params : ${JSON.stringify(params)}`);
   defHttp.get({ url: Api.list, params: params }).then(res=> {
-    console.log(res);
     dataSource.value = res.records;
     if (res.total) {
       iPagination.value.total = res.total;

@@ -154,14 +154,19 @@ export default {
     length: "长",
     gram: "克",
   },
+  product: {
+    productListPage: '商品列表',
+    code: '代码',
+  },
   tips : {
     invoiceModeTip: "物流发票: 已发货订单<br/>"+
                     "预收物流发票: 待处理和配货中的订单<br/>"+
                     "按店铺开发票: 待处理，配货中和已发货的订单",
     orderSelectModeTip: "从列表中勾选订单或自动选所有符合条件的订单",
-
   },
   Invoice: "发票",
   abbreviation: "缩写",
-  welcome: "欢迎"
+  welcome: "欢迎",
+  enName: '英文名称',
+  zhName: '中文名称',
 }
