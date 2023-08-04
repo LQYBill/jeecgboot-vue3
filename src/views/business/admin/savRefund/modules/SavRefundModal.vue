@@ -103,13 +103,11 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
     });
   }
   record.value = data.record;
-  // console.log(`record : ${JSON.stringify(record.value)}`);
 });
 const title = computed(() => (!unref(isUpdate) ? t('common.operation.addNew') : props.isDisabled ? t('common.operation.details'): t('common.operation.edit')));
 async function handleSubmit(v) {
   try {
     let values = await validate();
-    console.log(`submit values : ${JSON.stringify(values)}`)
     setModalProps({ confirmLoading: true });
     //提交表单
     let url;
@@ -123,7 +121,6 @@ async function handleSubmit(v) {
       url = Api.add
       await defHttp.post({url: url, params: param});
     }
-    // console.log(`submit param : ${JSON.stringify(param)}`);
     //关闭弹窗
     closeModal();
     //刷新列表

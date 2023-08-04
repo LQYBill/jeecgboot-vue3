@@ -52,19 +52,16 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
     });
   }
   record.value = data.record;
-  console.log(`record : ${JSON.stringify(record.value)}`);
 });
 const title = computed(() => (!unref(isUpdate) ? t('common.operation.addNew') : props.isDisabled ? t('common.operation.details'): t('common.operation.edit')));
 async function handleSubmit() {
   try {
     let value = await validate();
-    console.log(value)
     setModalProps({ confirmLoading: true });
     let param = {};
     if(isUpdate.value) {
       param.weight = value.weight;
       param.ids = record.value;
-      console.log(`submit param : ${JSON.stringify(param)}`)
       await defHttp.post({url: Api.edit, params: param});
     }
     //关闭弹窗
