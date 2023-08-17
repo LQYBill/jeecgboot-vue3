@@ -16,6 +16,8 @@ export default {
 
   welcomeTo: 'Welcome to ',
 
+  errorMessage: 'Error message',
+
   data: {
     downloads: 'downloads',
     sales: 'sales',

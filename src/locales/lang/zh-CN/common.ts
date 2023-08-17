@@ -16,6 +16,8 @@ export default {
 
   welcomeTo: '欢迎进入',
 
+  errorMessage: '失败信息',
+
   data: {
     downloads: '下载数',
     sales: '成交额',

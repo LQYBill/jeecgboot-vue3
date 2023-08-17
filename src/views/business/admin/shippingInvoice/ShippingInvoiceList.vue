@@ -4,6 +4,7 @@
         <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('Invoice List', Api.exportXls, exportParams)"> {{ t("common.operation.export") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('detail')" :disabled = 'downloadDetailDisabled'> {{ t("data.invoice.downloadDetails") }}</a-button>
+        <a-button v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin' || username === 'Gauthier')" type="error" preIcon="ant-design:delete-outlined" @click="handleDeleteBatch" :disabled = 'deleteBatchDisabled'> {{ t("common.operation.delete") }}</a-button>
       </template>
       <template v-slot:action="{ record, column }">
         <TableAction
@@ -31,25 +32,33 @@ import {useI18n} from "/@/hooks/web/useI18n";
 import {useMethods} from "/@/hooks/system/useMethods";
 import {computed, onMounted, ref} from "vue";
 import {filterObj} from "/@/utils/common/compUtils";
+import {useUserStore} from "/@/store/modules/user";
+import {usePermissionStore} from "/@/store/modules/permission";
 
+const userStore = useUserStore();
+const permissionStore = usePermissionStore();
 const { createMessage } = useMessage();
 const { t } = useI18n();
 const { handleExportXls } = useMethods();
+const username = ref<string>();
 
 // options of the select menu in search menu
 const userList = ref([]);
 onMounted(async () => {
   fetchUserList();
+  username.value = userStore.getUserInfo.username;
 })
 // urls
 enum Api {
   cancelInvoice = '/generated/shippingInvoice/cancelInvoice',
+  cancelBatchInvoice = '/generated/shippingInvoice/cancelBatchInvoice',
   exportXls = '/generated/shippingInvoice/exportXls',
   list = "/generated/shippingInvoice/list",
   getClient = "/generated/shippingInvoice/getClient",
   downloadCompleteInvoiceExcel = "/generated/shippingInvoice/downloadCompleteInvoiceExcel",
 }
 
+const deleteBatchDisabled = ref(true);
 const downloadInvoiceDisabled = ref(true);
 const downloadDetailDisabled = ref(true);
 
@@ -66,6 +75,13 @@ const columns: BasicColumn[] = [
     sorter: true,
     dataIndex: 'createTime'
   },
+  // {
+  //   title: t("data.invoice.clientId"),
+  //   align:"center",
+  //   sorter: true,
+  //   dataIndex: 'clientId',
+  //   defaultHidden: true,
+  // },
   {
     title: t("data.invoice.invoiceNumber"),
     align:"center",
@@ -147,7 +163,7 @@ const list = (params) => {
   return defHttp.get({ url: Api.list, params });
 }
 // creating table
-const [registerTable, { reload }] = useTable({
+const [registerTable, { reload, clearSelectedRowKeys }] = useTable({
   title: 'Invoice List',
   titleHelpMessage: "You can view and download all shipping invoices on this page.",
   api: list,
@@ -272,15 +288,54 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
   selectRows.value = selectRow;
   console.log("checkedKeys------>", checkedKeys.value);
   console.log("selectRows------>", selectRows.value);
-  downloadInvoiceDisabled.value = false;
-  downloadDetailDisabled.value = false;
+  if(checkedKeys.value.length > 0) {
+    downloadInvoiceDisabled.value = false;
+    downloadDetailDisabled.value = false;
+    deleteBatchDisabled.value = false;
+  }
+  else {
+    downloadInvoiceDisabled.value = true;
+    downloadDetailDisabled.value = true;
+    deleteBatchDisabled.value = true;
+  }
 }
 function handleDelete(record: Recordable) {
   defHttp.post({ url: Api.cancelInvoice, data: { id: record.id, invoiceNumber: record.invoiceNumber, clientId: record.clientId } }, { joinParamsToUrl: true }).then(()=> {
+    checkedKeys.value = [];
+    selectRows.value = [];
+    clearSelectedRowKeys();
     reload();
   }).catch(e =>{
     console.error(e);
   });
+}
+function handleDeleteBatch() {
+  let ids:any[] = [];
+  let invoiceNumbers:any[] = [];
+  let clientIds:any[] = [];
+  for(let row of selectRows.value) {
+    console.log(JSON.stringify({id: row.id, invoiceNumber: row.invoiceNumber, clientId: row.clientId}));
+    ids.push(row.id);
+    invoiceNumbers.push(row.invoiceNumber);
+    clientIds.push(row.clientId);
+  }
+  let data = {
+    ids: ids,
+    invoiceNumbers: invoiceNumbers,
+    clientIds: clientIds,
+  };
+  console.log(JSON.stringify(data));
+
+  defHttp.post({url: Api.cancelBatchInvoice, data: data }, { joinParamsToUrl: true })
+    .then(res=> {
+      checkedKeys.value = [];
+      selectRows.value = [];
+      clearSelectedRowKeys();
+      reload();
+    })
+    .catch(e=> {
+      console.error(e);
+    });
 }
 </script>
 <style>
