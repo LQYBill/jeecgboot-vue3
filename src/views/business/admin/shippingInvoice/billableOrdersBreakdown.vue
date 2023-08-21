@@ -3,26 +3,28 @@
     <BasicTable
       @register="registerTable"
     >
-      <template #headerTop>
-        <a-alert type="warning" show-icon>
-          <template #message>
-            <span></span>
-            <template v-if="checkedKeys.length > 0">
-              <span>{{ checkedKeys.length }}/{{listByClient.length}} clients will be ignored</span>
-              <a-button type="link" @click="checkedKeys = []" size="small">Clear</a-button>
-            </template>
-            <template v-else>
-            <span>
-              On this page you can see a breakdown of all the billable orders by client and shops.<br/>
-              By default if you press the billing button, it will bill everyone and all orders,
-              but you can opt-out a client by ticking the checkbox corresponding to it's row.
-            </span>
-            </template>
-          </template>
-        </a-alert>
-      </template>
       <template #tableTitle>
-        <PopConfirmButton type="warning" title="Confirm making invoice ?" @confirm="makeInvoice" :disabled="invoiceDisabled" okText="ok" :loading="invoiceLoading" cancelText="Cancel">{{ t("data.invoice.generateShippingInvoice") }}</PopConfirmButton>
+        <PopConfirmButton
+          type="warning"
+          title="Confirm making invoice ?"
+          preIcon="ant-design:download-outlined"
+          @confirm="makeInvoice"
+          :disabled="invoiceDisabled"
+          okText="ok" :loading="invoiceLoading"
+          cancelText="Cancel"
+        >
+          {{ t("data.invoice.generateShippingInvoice") }}
+        </PopConfirmButton>
+        <PopConfirmButton v-if="username === 'admin' || username === 'Gauthier'"
+                          type="error"
+                          title="Confirm reset task status ?"
+                          preIcon="ant-design:reload-outlined"
+                          @confirm="resetTask" okText="ok"
+                          :loading="resetLoading"
+                          cancelText="Cancel"
+        >
+          {{ t("common.operation.resetTask") }}
+        </PopConfirmButton>
       </template>
 
       <template v-slot:invoiceType="record">
@@ -35,7 +37,6 @@
       <template v-slot:hasErrors="record">
         <Tag
           :color="record.record.hasErrors === 0 ? 'green' : 'volcano'"
-          :onmouseenter="showErrors"
 
         >
           <Icon icon="ant-design:flag-twotone"></Icon>
@@ -61,25 +62,30 @@ import BillableOrdersSubTable
 import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
 import {PopConfirmButton} from "/@/components/Button";
 import {Tag} from "ant-design-vue";
+import {useUserStore} from "/@/store/modules/user";
 export default defineComponent({
   components: {Tag, PageWrapper, BasicTable, BillableOrdersSubTable, PopConfirmButton},
   setup() {
 
     const { t } = useI18n();
     const { createMessage } = useMessage();
+    const userStore = useUserStore();
+    const username = ref<string>();
 
     onMounted(()=> {
       loadList();
+      username.value = userStore.getUserInfo.username;
     });
     enum Api {
       list = "/shippingInvoice/breakdown/byShop",
       listByClient = "/shippingInvoice/breakdown/byClient",
       makeInvoice = "/shippingInvoice/breakdown/makeInvoice",
+      resetTask = "/pendingTask/reset",
     }
 
     const invoiceLoading = ref<boolean>(false);
     const invoiceDisabled = ref<boolean>(false);
-    const invoiceList = ref<string[]>([]);
+    const resetLoading = ref<boolean>(false);
 
     const clientsToInvoice = ref({0:[],1:[]});
     const listByClient = ref<any[]>();
@@ -96,7 +102,6 @@ export default defineComponent({
       total: 0
     });
     const checkedKeys = ref<Array<string | number>>([]);
-    const disabledRowKeys = ref<Array<string | number>>([]);
     const selectRows = ref<Array<any>>([]);
     const rowSelection = {
       type: 'checkbox',
@@ -182,21 +187,17 @@ export default defineComponent({
       rowKey: 'code',
     });
     function loadList() {
-      disabledRowKeys.value = [];
       checkedKeys.value = [];
       defHttp.get({ url: Api.list })
         .then(res=> {
-          // console.log(`list by shop : ${JSON.stringify(res)}`);
+          createMessage.info("Estimation by shop finished, now mapping by client.");
           listByShop.value = res;
           defHttp.post({url: Api.listByClient, params : res})
             .then( r => {
+              createMessage.info("Estimation by client finished.");
               listByClient.value = r;
               clientsToInvoice.value = {0:[],1:[]};
               listByClient.value?.map((estimation)=> {
-                if(estimation.hasErrors > 0) {
-                  console.log("has errors ! ");
-                  disabledRowKeys.value.push(estimation.code);
-                }
                 clientsToInvoice.value[estimation.isCompleteInvoice].push(estimation.clientId);
               });
               loading.value = false;
@@ -236,13 +237,8 @@ export default defineComponent({
     function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
       checkedKeys.value = selectedRowKeys;
       selectRows.value = selectRow;
-      if(checkedKeys.value.length === 0 && selectRows.value.length === 0) {
-        checkedKeys.value = disabledRowKeys.value;
-      }
-      console.log("checkedKeys------>", checkedKeys.value);
-      console.log("selectRows------>", selectRows.value);
-      console.log("disabledSelectRowKeys------>", disabledRowKeys.value);
-      invoiceDisabled.value = checkedKeys.value.length === listByClient.value?.length;
+
+      invoiceDisabled.value = checkedKeys.value.length === 0;
     }
     function getCheckboxProps(record: Recordable) {
       if (record.hasErrors === 0) {
@@ -251,90 +247,36 @@ export default defineComponent({
         return { disabled: true };
       }
     }
-    function showErrors(record: Recordable) {
-      let message = record.target.parentElement.parentElement.dataset.rowKey;
-      let messageAlt = record.target.parentElement.parentElement.parentElement.dataset.rowKey;
-      console.log( !!message ? message : messageAlt);
-      // console.log(record);
-    }
-    async function makeInvoice() {
-      loading.value = true;
-      await loadClientToInvoice();
-      await Promise.all([makeShippingInvoice(), makeCompleteInvoice()])
-        .then(res => {
-          createMessage.info("Invoicing done.");
-          console.log(res);
-          console.log(`invoice list : ${JSON.stringify(invoiceList.value)}`);
-        })
-        .catch(e => {
-          console.error(e);
-        })
-        .finally(()=> {
-          loadList();
-          clearSelectedRowKeys();
-          reload();
-        });
+    function makeInvoice() {
+      loadClientToInvoice()
+      createMessage.info("Invoicing task started ...");
+      defHttp.get({
+        url: Api.makeInvoice,
+        params: { shipping: clientsToInvoice.value[0], complete: clientsToInvoice.value[1] }
+      });
+      clearSelectedRowKeys();
 
-    }
-    function makeShippingInvoice() {
-      return new Promise<void>(resolve => {
-        if(clientsToInvoice.value[0].length > 0) {
-          defHttp.get({
-            url: Api.makeInvoice,
-            params: {codes: clientsToInvoice.value[0], invoiceType: 0}
-          })
-            .then(res => {
-              createMessage.info("Shipping Invoice done.");
-              console.log(`list of shipping invoice : ${JSON.stringify(res)}`);
-              invoiceList.value.push(res);
-            })
-            .catch(e => {
-              console.error(e);
-            })
-            .finally(() => {
-              resolve();
-            });
-        }
-        else {
-          resolve();
-        }
-      })
-    }
-    function makeCompleteInvoice() {
-      return new Promise<void>(resolve => {
-        if(clientsToInvoice.value[1].length > 0) {
-          defHttp.get({
-            url: Api.makeInvoice,
-            params: {codes: clientsToInvoice.value[1], invoiceType: 1}
-          })
-            .then(res => {
-              createMessage.info("Complete Shipping Invoicing done.");
-              console.log(`list of complete shipping invoice : ${JSON.stringify(res)}`);
-              invoiceList.value.push(res);
-            })
-            .catch(e => {
-              console.error(e);
-            })
-            .finally(() => {
-              resolve();
-            });
-        }
-        else {
-          resolve();
-        }
-      })
     }
     async function loadClientToInvoice() {
       return new Promise<void>(resolve => {
         clientsToInvoice.value = {0:[],1:[]};
         listByClient.value?.map((estimation)=> {
-          if(!checkedKeys.value.includes(estimation.code)) {
+          if(checkedKeys.value.includes(estimation.code)) {
             clientsToInvoice.value[estimation.isCompleteInvoice].push(estimation.clientId);
           }
         });
         console.log(`clients to invoice : ${JSON.stringify(clientsToInvoice.value)}`);
         resolve();
       });
+    }
+    function resetTask() {
+      defHttp.post({ url: Api.resetTask, params: {task: 'BI'} })
+        .then(res => {
+
+        })
+        .catch(e => {
+          console.error(e);
+        });
     }
     return {
       registerTable,
@@ -344,9 +286,10 @@ export default defineComponent({
       setSelectedRowKeys,
       setProps,
       makeInvoice,
-      showErrors,
+      resetTask,
       t,
       createMessage,
+      username,
       loading,
       invoiceLoading,
       invoiceDisabled,
@@ -354,6 +297,7 @@ export default defineComponent({
       listByClient,
       listByShop,
       checkedKeys,
+      resetLoading,
     }
   }
 });

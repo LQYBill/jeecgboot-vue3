@@ -4,7 +4,7 @@
         <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('Invoice List', Api.exportXls, exportParams)"> {{ t("common.operation.export") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('detail')" :disabled = 'downloadDetailDisabled'> {{ t("data.invoice.downloadDetails") }}</a-button>
-        <a-button v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin' || username === 'Gauthier')" type="error" preIcon="ant-design:delete-outlined" @click="handleDeleteBatch" :disabled = 'deleteBatchDisabled'> {{ t("common.operation.delete") }}</a-button>
+        <a-button v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin' || username === 'Gauthier')" type="error" preIcon="ant-design:delete-outlined" @click="handleDeleteBatch" :disabled = 'deleteBatchDisabled' :loading = 'deleteBatchLoading'> {{ t("common.operation.delete") }}</a-button>
       </template>
       <template v-slot:action="{ record, column }">
         <TableAction
@@ -62,6 +62,8 @@ const deleteBatchDisabled = ref(true);
 const downloadInvoiceDisabled = ref(true);
 const downloadDetailDisabled = ref(true);
 
+const deleteBatchLoading = ref<boolean>(false);
+
 const columns: BasicColumn[] = [
   {
     title: t("data.invoice.createBy"),
@@ -75,13 +77,6 @@ const columns: BasicColumn[] = [
     sorter: true,
     dataIndex: 'createTime'
   },
-  // {
-  //   title: t("data.invoice.clientId"),
-  //   align:"center",
-  //   sorter: true,
-  //   dataIndex: 'clientId',
-  //   defaultHidden: true,
-  // },
   {
     title: t("data.invoice.invoiceNumber"),
     align:"center",
@@ -163,7 +158,7 @@ const list = (params) => {
   return defHttp.get({ url: Api.list, params });
 }
 // creating table
-const [registerTable, { reload, clearSelectedRowKeys }] = useTable({
+const [registerTable, { reload, clearSelectedRowKeys, setLoading }] = useTable({
   title: 'Invoice List',
   titleHelpMessage: "You can view and download all shipping invoices on this page.",
   api: list,
@@ -209,7 +204,6 @@ const exportParams = computed(()=>{
     }
   }
   paramsForm['selections'] = list;
-  console.log("Export param : ", JSON.stringify(paramsForm));
   return filterObj(paramsForm)
 });
 function fetchUserList() {
@@ -255,14 +249,12 @@ function downloadExcelInvoice(type) {
   let date = today.getFullYear()+'-'+ month +'-'+ day;
 
   for( let invoiceNum of checkedKeys.value) {
-    console.log("invoice : " + invoiceNum);
     const param = {
       invoiceNumber: invoiceNum,
       filetype: type
     }
     defHttp.get({url: Api.getClient, params: param})
       .then(res => {
-        console.log("Get res : " + JSON.stringify(res));
         let filename = "";
         if(type === "invoice") {
           filename = "Invoice N°" + invoiceNum + " (" + res.invoiceEntity + ").xlsx";
@@ -272,7 +264,6 @@ function downloadExcelInvoice(type) {
         }
         console.log("Filename : " + filename);
         downloadFile(Api.downloadCompleteInvoiceExcel, filename, param).then(() => {
-          console.log("Download param : " + JSON.stringify(param));
         }).catch((err) => {
           console.error(err);
           createMessage.error(invoiceNum + " : " + err);
@@ -286,8 +277,6 @@ function downloadExcelInvoice(type) {
 function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
   checkedKeys.value = selectedRowKeys;
   selectRows.value = selectRow;
-  console.log("checkedKeys------>", checkedKeys.value);
-  console.log("selectRows------>", selectRows.value);
   if(checkedKeys.value.length > 0) {
     downloadInvoiceDisabled.value = false;
     downloadDetailDisabled.value = false;
@@ -314,7 +303,6 @@ function handleDeleteBatch() {
   let invoiceNumbers:any[] = [];
   let clientIds:any[] = [];
   for(let row of selectRows.value) {
-    console.log(JSON.stringify({id: row.id, invoiceNumber: row.invoiceNumber, clientId: row.clientId}));
     ids.push(row.id);
     invoiceNumbers.push(row.invoiceNumber);
     clientIds.push(row.clientId);
@@ -324,8 +312,8 @@ function handleDeleteBatch() {
     invoiceNumbers: invoiceNumbers,
     clientIds: clientIds,
   };
-  console.log(JSON.stringify(data));
-
+  deleteBatchLoading.value = true;
+  setLoading(true);
   defHttp.post({url: Api.cancelBatchInvoice, data: data }, { joinParamsToUrl: true })
     .then(res=> {
       checkedKeys.value = [];
@@ -335,6 +323,10 @@ function handleDeleteBatch() {
     })
     .catch(e=> {
       console.error(e);
+    })
+    .finally(() => {
+      setLoading(false);
+      deleteBatchLoading.value = false;
     });
 }
 </script>
