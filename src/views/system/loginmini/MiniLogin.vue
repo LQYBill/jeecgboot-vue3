@@ -100,8 +100,8 @@
   //账号登录表单字段
   const formData = reactive<any>({
     inputCode: '',
-    username: 'admin',
-    password: '123456',
+    username: '',
+    password: '',
   });
   const loginRef = ref();
   //第三方登录弹窗
