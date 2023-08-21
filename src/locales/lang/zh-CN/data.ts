@@ -1,5 +1,8 @@
 export default {
 
+  billableOrders: {
+    billableOrdersBreakdown: '可开票订单详细分解',
+  },
   client: {
     familyName: "姓",
     firstName: "名",
@@ -55,6 +58,8 @@ export default {
   invoice: {
     additionalFees: "额外费用",
     allShippingInvoice: "按店铺开发票",
+    clientId: '客户ID',
+    completeInvoice: "完整发票",
     country: "国家",
     createBy: "创建人",
     createDate: "创建日期",

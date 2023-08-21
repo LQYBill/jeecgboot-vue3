@@ -16,6 +16,8 @@ export default {
 
   welcomeTo: 'Welcome to ',
 
+  errorMessage: 'Error message',
+
   data: {
     downloads: 'downloads',
     sales: 'sales',
@@ -61,6 +63,7 @@ export default {
     more: "More",
     query: 'Search',
     reset: "Reset",
+    resetTask: 'Reset Task',
     resetAllFields: "Reset all fields",
     save: 'Save',
     search: 'Search',

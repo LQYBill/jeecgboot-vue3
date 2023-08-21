@@ -1,5 +1,8 @@
 export default {
 
+  billableOrders: {
+    billableOrdersBreakdown: 'Billable Orders Breakdown',
+  },
   client: {
     familyName: "Last Name",
     firstName: "First Name",
@@ -55,6 +58,8 @@ export default {
   invoice: {
     additionalFees: "Additional Fees",
     allShippingInvoice: "All Shipping Invoice",
+    clientId: 'Client ID',
+    completeInvoice: "Complete Invoice",
     country: "Country",
     createBy: "Created By",
     createDate: "Create Time",

@@ -4,6 +4,7 @@
         <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('Invoice List', Api.exportXls, exportParams)"> {{ t("common.operation.export") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('detail')" :disabled = 'downloadDetailDisabled'> {{ t("data.invoice.downloadDetails") }}</a-button>
+        <a-button v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin' || username === 'Gauthier')" type="error" preIcon="ant-design:delete-outlined" @click="handleDeleteBatch" :disabled = 'deleteBatchDisabled' :loading = 'deleteBatchLoading'> {{ t("common.operation.delete") }}</a-button>
       </template>
       <template v-slot:action="{ record, column }">
         <TableAction
@@ -31,27 +32,37 @@ import {useI18n} from "/@/hooks/web/useI18n";
 import {useMethods} from "/@/hooks/system/useMethods";
 import {computed, onMounted, ref} from "vue";
 import {filterObj} from "/@/utils/common/compUtils";
+import {useUserStore} from "/@/store/modules/user";
+import {usePermissionStore} from "/@/store/modules/permission";
 
+const userStore = useUserStore();
+const permissionStore = usePermissionStore();
 const { createMessage } = useMessage();
 const { t } = useI18n();
 const { handleExportXls } = useMethods();
+const username = ref<string>();
 
 // options of the select menu in search menu
 const userList = ref([]);
 onMounted(async () => {
   fetchUserList();
+  username.value = userStore.getUserInfo.username;
 })
 // urls
 enum Api {
   cancelInvoice = '/generated/shippingInvoice/cancelInvoice',
+  cancelBatchInvoice = '/generated/shippingInvoice/cancelBatchInvoice',
   exportXls = '/generated/shippingInvoice/exportXls',
   list = "/generated/shippingInvoice/list",
   getClient = "/generated/shippingInvoice/getClient",
   downloadCompleteInvoiceExcel = "/generated/shippingInvoice/downloadCompleteInvoiceExcel",
 }
 
+const deleteBatchDisabled = ref(true);
 const downloadInvoiceDisabled = ref(true);
 const downloadDetailDisabled = ref(true);
+
+const deleteBatchLoading = ref<boolean>(false);
 
 const columns: BasicColumn[] = [
   {
@@ -147,7 +158,7 @@ const list = (params) => {
   return defHttp.get({ url: Api.list, params });
 }
 // creating table
-const [registerTable, { reload }] = useTable({
+const [registerTable, { reload, clearSelectedRowKeys, setLoading }] = useTable({
   title: 'Invoice List',
   titleHelpMessage: "You can view and download all shipping invoices on this page.",
   api: list,
@@ -193,7 +204,6 @@ const exportParams = computed(()=>{
     }
   }
   paramsForm['selections'] = list;
-  console.log("Export param : ", JSON.stringify(paramsForm));
   return filterObj(paramsForm)
 });
 function fetchUserList() {
@@ -239,14 +249,12 @@ function downloadExcelInvoice(type) {
   let date = today.getFullYear()+'-'+ month +'-'+ day;
 
   for( let invoiceNum of checkedKeys.value) {
-    console.log("invoice : " + invoiceNum);
     const param = {
       invoiceNumber: invoiceNum,
       filetype: type
     }
     defHttp.get({url: Api.getClient, params: param})
       .then(res => {
-        console.log("Get res : " + JSON.stringify(res));
         let filename = "";
         if(type === "invoice") {
           filename = "Invoice N°" + invoiceNum + " (" + res.invoiceEntity + ").xlsx";
@@ -256,7 +264,6 @@ function downloadExcelInvoice(type) {
         }
         console.log("Filename : " + filename);
         downloadFile(Api.downloadCompleteInvoiceExcel, filename, param).then(() => {
-          console.log("Download param : " + JSON.stringify(param));
         }).catch((err) => {
           console.error(err);
           createMessage.error(invoiceNum + " : " + err);
@@ -270,17 +277,57 @@ function downloadExcelInvoice(type) {
 function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
   checkedKeys.value = selectedRowKeys;
   selectRows.value = selectRow;
-  console.log("checkedKeys------>", checkedKeys.value);
-  console.log("selectRows------>", selectRows.value);
-  downloadInvoiceDisabled.value = false;
-  downloadDetailDisabled.value = false;
+  if(checkedKeys.value.length > 0) {
+    downloadInvoiceDisabled.value = false;
+    downloadDetailDisabled.value = false;
+    deleteBatchDisabled.value = false;
+  }
+  else {
+    downloadInvoiceDisabled.value = true;
+    downloadDetailDisabled.value = true;
+    deleteBatchDisabled.value = true;
+  }
 }
 function handleDelete(record: Recordable) {
   defHttp.post({ url: Api.cancelInvoice, data: { id: record.id, invoiceNumber: record.invoiceNumber, clientId: record.clientId } }, { joinParamsToUrl: true }).then(()=> {
+    checkedKeys.value = [];
+    selectRows.value = [];
+    clearSelectedRowKeys();
     reload();
   }).catch(e =>{
     console.error(e);
   });
+}
+function handleDeleteBatch() {
+  let ids:any[] = [];
+  let invoiceNumbers:any[] = [];
+  let clientIds:any[] = [];
+  for(let row of selectRows.value) {
+    ids.push(row.id);
+    invoiceNumbers.push(row.invoiceNumber);
+    clientIds.push(row.clientId);
+  }
+  let data = {
+    ids: ids,
+    invoiceNumbers: invoiceNumbers,
+    clientIds: clientIds,
+  };
+  deleteBatchLoading.value = true;
+  setLoading(true);
+  defHttp.post({url: Api.cancelBatchInvoice, data: data }, { joinParamsToUrl: true })
+    .then(res=> {
+      checkedKeys.value = [];
+      selectRows.value = [];
+      clearSelectedRowKeys();
+      reload();
+    })
+    .catch(e=> {
+      console.error(e);
+    })
+    .finally(() => {
+      setLoading(false);
+      deleteBatchLoading.value = false;
+    });
 }
 </script>
 <style>

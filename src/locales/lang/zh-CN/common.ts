@@ -16,6 +16,8 @@ export default {
 
   welcomeTo: '欢迎进入',
 
+  errorMessage: '失败信息',
+
   data: {
     downloads: '下载数',
     sales: '成交额',
@@ -61,6 +63,7 @@ export default {
     more: "更多",
     query: '查询',
     reset: '重置',
+    resetTask: '重置任务',
     resetAllFields: "清除所有选项",
     save: '保存',
     search: '搜索',
