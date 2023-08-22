@@ -80,7 +80,7 @@ export default defineComponent({
       list = "/shippingInvoice/breakdown/byShop",
       listByClient = "/shippingInvoice/breakdown/byClient",
       makeInvoice = "/shippingInvoice/breakdown/makeInvoice",
-      resetTask = "/pendingTask/reset",
+      resetTask = "/taskHistory/reset",
     }
 
     const invoiceLoading = ref<boolean>(false);
@@ -270,7 +270,7 @@ export default defineComponent({
       });
     }
     function resetTask() {
-      defHttp.post({ url: Api.resetTask, params: {task: 'BI'} })
+      defHttp.get({ url: Api.resetTask, params: {task : 'BI'} })
         .then(res => {
 
         })
