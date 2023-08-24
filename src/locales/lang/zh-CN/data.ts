@@ -3,6 +3,10 @@ export default {
   billableOrders: {
     billableOrdersBreakdown: '可开票订单详细分解',
   },
+  credit: {
+    paymentProof: "付款证明",
+    amount: "金额",
+  },
   client: {
     familyName: "姓",
     firstName: "名",
@@ -83,6 +87,8 @@ export default {
     generateInvoice7pre: "生成完整（物流 + 采购）发票文件",
     generateShippingInvoice: "生成物流发票文件",
     invoiceNumber: "发票号码",
+    invoiceType: "发票类型",
+    invoiceMode: "发票模式",
     invoicingPage: "生成发票页",
     logisticChannel: "物流渠道",
     logisticChannelCode: "渠道代码",
@@ -169,6 +175,7 @@ export default {
                     "按店铺开发票: 待处理，配货中和已发货的订单",
     orderSelectModeTip: "从列表中勾选订单或自动选所有符合条件的订单",
   },
+  Client: "客户",
   Invoice: "发票",
   abbreviation: "缩写",
   welcome: "欢迎",

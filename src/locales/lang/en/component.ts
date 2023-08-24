@@ -58,6 +58,9 @@ export default {
   },
   searchForm: {
     //placeholder
+    amountInput: 'Enter an amount',
+    currencyInputSearch: 'Select a currency',
+    proofInput: 'Provide a screenshot as payment proof',
     enterInvoiceNumber: 'Enter an invoice number',
     clientInputSearch: "Select a customer",
     dateInputSearch: "Select a date",

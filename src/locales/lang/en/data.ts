@@ -3,6 +3,10 @@ export default {
   billableOrders: {
     billableOrdersBreakdown: 'Billable Orders Breakdown',
   },
+  credit: {
+    paymentProof: "Payment Proof",
+    amount: "Amount",
+  },
   client: {
     familyName: "Last Name",
     firstName: "First Name",
@@ -10,7 +14,7 @@ export default {
     telephone: "Telephone",
     city: "City",
     country: "Country",
-    Currency: "Currency",
+    currency: "Currency",
     postCode: "Postal Code"
   },
   order: {
@@ -171,6 +175,7 @@ export default {
                     "All Shipping Invoice: shipped, pending and in preparation orders",
     orderSelectModeTip: "You can manually select orders to invoice, or automatically select all available orders",
   },
+  Client: "Client",
   Invoice: "Invoice",
   abbreviation: "Abbreviation",
   welcome: "Welcome",

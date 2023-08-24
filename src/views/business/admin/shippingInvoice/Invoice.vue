@@ -32,7 +32,7 @@
             <h1 style='font-size: 2em'>{{ customer }} <span style='font-weight: 200'>({{ invoice_entity }})</span></h1>
             <a-row type="flex" justify='space-between' align-items='center'>
               <h2 >{{ t("data.invoice.invoiceNumber") }} : {{ invoice_number }}</h2>
-              <h3>{{ t("data.client.Currency") }} : {{ currency }}/{{ currencySymbol }}</h3>
+              <h3>{{ t("data.client.currency") }} : {{ currency }}/{{ currencySymbol }}</h3>
             </a-row>
           </div>
         </template>
