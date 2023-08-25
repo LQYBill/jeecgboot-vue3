@@ -4,7 +4,19 @@
         <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('Invoice List', Api.exportXls, exportParams)"> {{ t("common.operation.export") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('detail')" :disabled = 'downloadDetailDisabled'> {{ t("data.invoice.downloadDetails") }}</a-button>
-        <a-button v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin' || username === 'Gauthier')" type="error" preIcon="ant-design:delete-outlined" @click="handleDeleteBatch" :disabled = 'deleteBatchDisabled' :loading = 'deleteBatchLoading'> {{ t("common.operation.delete") }}</a-button>
+        <PopConfirmButton
+          v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin' || username === 'Gauthier')"
+          type="error"
+          title="Confirm cancelling invoices ?"
+          preIcon="ant-design:delete-outlined"
+          @confirm="handleDeleteBatch"
+          :disabled="deleteBatchDisabled"
+          :okText="t('common.operation.delete')"
+          :loading="deleteBatchLoading"
+          :cancelText="t('common.operation.cancel')"
+        >
+          {{ t("common.operation.delete") }}
+        </PopConfirmButton>
       </template>
       <template v-slot:action="{ record, column }">
         <TableAction
@@ -34,6 +46,7 @@ import {computed, onMounted, ref} from "vue";
 import {filterObj} from "/@/utils/common/compUtils";
 import {useUserStore} from "/@/store/modules/user";
 import {usePermissionStore} from "/@/store/modules/permission";
+import {PopConfirmButton} from "/@/components/Button";
 
 const userStore = useUserStore();
 const permissionStore = usePermissionStore();
