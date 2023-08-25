@@ -84,6 +84,7 @@ export default {
     generateShippingInvoice: "生成物流发票文件",
     invoiceNumber: "发票号码",
     invoicingPage: "生成发票页",
+    invoiceType: "发票类型",
     logisticChannel: "物流渠道",
     logisticChannelCode: "渠道代码",
     logisticChannelName: "渠道名称",
