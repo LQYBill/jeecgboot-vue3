@@ -49,7 +49,17 @@
       </a-form>
       <BasicTable @register="registerTable">
         <template #tableTitle>
-          <a-button type="warning" preIcon="ant-design:edit-outlined" @click="makeManualInvoice" :disabled="makeManualInvoiceDisabled">{{ t('data.invoice.generateInvoice') }}</a-button>
+          <PopConfirmButton
+            type="warning"
+            title="Confirm making invoice ?"
+            preIcon="ant-design:edit-outlined"
+            @confirm="makeManualInvoice"
+            :disabled="makeManualInvoiceDisabled"
+            okText="ok" :loading="makeManualInvoiceLoading"
+            cancelText="Cancel"
+          >
+            {{ t("data.invoice.generateInvoice") }}
+          </PopConfirmButton>
         </template>
         <template v-slot:productAvailability="record">
           <Tag
@@ -76,6 +86,7 @@ import JSelectMultiple from "/@/components/Form/src/jeecg/components/JSelectMult
 import {Card, Col, Form, Row, Tag} from "ant-design-vue";
 import dayjs from "dayjs";
 import {downloadFile} from "/@/api/common/api";
+import {PopConfirmButton} from "/@/components/Button";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -116,7 +127,7 @@ const selectedShopIds = ref<any[]>([]);
 const searchDisabled = ref<boolean>(true);
 const shopDisabled = ref<boolean>(false);
 const makeManualInvoiceDisabled = ref<boolean>(true);
-const makeManualInvoiceLoading = ref<boolean>(true);
+const makeManualInvoiceLoading = ref<boolean>(false);
 
 const estimatesReady = ref<boolean>(true);
 const shippingFeesEstimates = ref<any[]>([]);
@@ -150,7 +161,7 @@ const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, getSelectRo
   },
   pagination: ipagination,
   defSort: iSorter.value,
-  bordered: true,
+  bordered: false,
   striped: true,
   clickToRowSelect: true,
   showIndexColumn: true,
@@ -256,6 +267,7 @@ function makeManualInvoice() {
   searchDisabled.value = true;
   makeManualInvoiceDisabled.value = true;
   setLoading(true);
+  makeManualInvoiceLoading.value = true;
   defHttp.post({url: Api.makeManualInvoice, params})
     .then(res => {
       createMessage.success("Orders have been invoiced successfully");
@@ -274,6 +286,7 @@ function makeManualInvoice() {
       shopDisabled.value = true;
       searchDisabled.value = true;
       loadOrders();
+      makeManualInvoiceLoading.value = false;
     });
 }
 function downloadInvoice(invoiceFilename) {
@@ -301,7 +314,6 @@ function downloadDetailFile(invoiceNumber) {
 }
 function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
   estimatesReady.value = false;
-  makeManualInvoiceLoading.value = true;
   if(selectedRowKeys.length == 0) {
     makeManualInvoiceDisabled.value = true;
   }

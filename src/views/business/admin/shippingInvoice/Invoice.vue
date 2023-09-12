@@ -8,9 +8,6 @@
 
       <!-- button to download invoice details -->
       <a-button v-if="downloadReady && hasEmail" type='primary' shape="round" @click='sendEmail()' preIcon="ant-design:mail" size="large">
-        <template #icon>
-          <mail-outlined />
-        </template>
         {{ t("data.invoice.receiveDetailsByEmail") }}
       </a-button>
     </div>
@@ -83,7 +80,6 @@ export default {
       currency: null,
       currencySymbol: "$",
       invoice_number: null,
-      invoiceID: null,
       total_quantity: 0,
       final_total_euro: 0,
       final_total_customer_curr: 0,
@@ -140,7 +136,7 @@ export default {
       console.log("User : " + email + " " + orgCode);
       if(orgCode.includes("A01") || orgCode.includes("A02") || orgCode.includes("A03") || orgCode.includes("A04")) {
         let param = {
-          invoiceID: this.num,
+          invoiceNumber: this.num,
           email: email,
           orgCode: orgCode
         };
@@ -187,7 +183,6 @@ export default {
         return;
       }
       defHttp.get({url: self.url.invoiceData, params: param}).then(res=>{
-        console.log("FIRST INDEX : " + self.index);
         self.invoiceContentLoading = true;
         if(res !== null) {
           self.downloadReady = true;
@@ -204,7 +199,6 @@ export default {
               });
               // incrémente la clé
               self.index+=1;
-              console.log("index 1 : " + self.index);
             }
           }
           // VAT
@@ -216,7 +210,6 @@ export default {
           });
           self.final_total_euro += res.vat;
           self.index+=1;
-          console.log("index : " + self.index);
 
           // SERVICE FEE
           self.dataSource.push({
@@ -226,7 +219,6 @@ export default {
             total_amount: res.serviceFee
           });
           self.index+=1;
-          console.log("index : " + self.index);
 
           // PICKING FEE
           self.dataSource.push({
@@ -236,7 +228,6 @@ export default {
             total_amount: res.pickingFee
           });
           self.index+=1;
-          console.log("index : " + self.index);
 
           // PACKAGING MATERIAL FEE
           self.dataSource.push({
@@ -246,7 +237,6 @@ export default {
             total_amount: res.packagingMaterialFee
           });
           self.index+=1;
-          console.log("index : " + self.index);
 
           // REFUND
           if(res.refund > 0) {
@@ -258,7 +248,6 @@ export default {
             })
             self.final_total_euro -= res.refund;
             self.index+=1;
-            console.log("index : " + self.index);
           }
 
           // DISCOUNT (not used yet)
@@ -271,7 +260,6 @@ export default {
             })
             self.final_total_euro -= res.discount;
             self.index+=1;
-            console.log("index : " + self.index);
           }
 
           if(self.currency !== "EUR") {
@@ -294,7 +282,6 @@ export default {
     sendEmail(){
       const param = {
         invoiceNumber: this.invoice_number,
-        invoiceID: this.invoiceID,
         email: this.email,
         invoiceEntity: this.invoice_entity,
       }
@@ -324,9 +311,9 @@ export default {
 
 function getInvoiceNum() {
   try {
-    this.invoiceID = this.$route.query.invoiceID;
-    console.log("Query : " + this.invoiceID);
-    return this.invoiceID;
+    this.invoice_number = this.$route.query.invoice;
+    console.log("Query : " + this.invoice_number);
+    return this.invoice_number;
   }catch (e) {
     createMessage.error("Invoice ID required.");
     console.error("Invoice ID required.");

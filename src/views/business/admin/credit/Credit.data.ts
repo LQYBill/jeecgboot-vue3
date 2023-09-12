@@ -16,13 +16,13 @@ export const columns: BasicColumn[] = [
     dataIndex: 'createTime',
   },
   {
-    title: t('data.credit.paymentProof'),
+    title: t('data.transaction.paymentProof'),
     align: "center",
     dataIndex: 'paymentProofString',
     slots: {customRender: 'img'},
   },
   {
-    title: t('data.credit.amount'),
+    title: t('data.transaction.amount'),
     align: "center",
     dataIndex: 'amount',
   },
@@ -48,7 +48,7 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.credit.amount'),
+    label: t('data.transaction.amount'),
     field: 'amount',
     component: 'InputNumber',
     dynamicRules: ({model, schema}) => {
@@ -71,7 +71,7 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.credit.paymentProof'),
+    label: t('data.transaction.paymentProof'),
     field: 'paymentProofString',
     component: 'JImageUpload',
     componentProps: {},

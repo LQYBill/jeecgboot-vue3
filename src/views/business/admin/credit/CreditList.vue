@@ -188,7 +188,7 @@ function getDropDownAction(record) {
 const superQueryConfig = reactive({
   clientId:{ title: "client", view: "sel_search", type: "string", dictTable: "client", dictCode: "id", dictText: "internal_code", order: 1 },
   createTime:{ title: t('data.invoice.createDate'), view: "datetime", type: "string", order: 2 },
-  amount:{ title: t('data.credit.amount'), view: "number", type: "number", order: 3 },
+  amount:{ title: t('data.transaction.amount'), view: "number", type: "number", order: 3 },
 })
 
 const customSearch = ref(false);

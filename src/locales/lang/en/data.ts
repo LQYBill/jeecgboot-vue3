@@ -3,9 +3,10 @@ export default {
   billableOrders: {
     billableOrdersBreakdown: 'Billable Orders Breakdown',
   },
-  credit: {
+  transaction: {
     paymentProof: "Payment Proof",
     amount: "Amount",
+    type: "Type",
   },
   client: {
     familyName: "Last Name",

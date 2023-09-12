@@ -3,9 +3,10 @@ export default {
   billableOrders: {
     billableOrdersBreakdown: '可开票订单详细分解',
   },
-  credit: {
+  transaction: {
     paymentProof: "付款证明",
     amount: "金额",
+    type: "交易类型",
   },
   client: {
     familyName: "姓",
