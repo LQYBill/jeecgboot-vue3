@@ -36,6 +36,7 @@ export function getColumns(): BasicColumn[] {
       align: 'center',
       sorter: true,
       dataIndex: 'clientId',
+      defaultHidden: true,
     },
     {
       title: t('data.transaction.paymentProof'),
@@ -50,6 +51,20 @@ export function getColumns(): BasicColumn[] {
       sorter: true,
       dataIndex: 'invoiceNumber',
       slots: {customRender: 'invoiceNumber'}
+    },
+    {
+      title: t('data.invoice.shippingFee'),
+      align: 'center',
+      sorter: false,
+      dataIndex: 'shippingFee',
+      slots: {customRender: 'shippingFee'},
+    },
+    {
+      title: t('data.invoice.purchaseFee'),
+      align: 'center',
+      sorter: false,
+      dataIndex: 'purchaseFee',
+      slots: {customRender: 'purchaseFee'},
     },
     {
       title: t('data.transaction.amount'),

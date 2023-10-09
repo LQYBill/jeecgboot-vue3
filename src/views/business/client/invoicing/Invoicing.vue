@@ -179,12 +179,12 @@ function checkUser() {
   defHttp.get({url: Api.getClient})
     .then(res => {
       console.log(res);
-      if(res === 'admin') {
-        console.log('admin');
+      if(res.internal) {
+        console.log('internal use');
       }
       else {
-        client.value = res;
-        loadShopList(res.id);
+        client.value = res.client;
+        loadShopList(client.value.id);
       }
       shopDisabled.value = false;
     })
@@ -330,22 +330,22 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
       let index = selectedRowKeys.indexOf(idx);
       selectedRowKeys.splice(index, 1);
     }
-    // let param = {
-    //   clientID: client.value.id,
-    //   orderIds: getSelectRowKeys(),
-    //   type: "preshipping",
-    // };
-    // defHttp.post({url: Api.estimateShippingFees, params: param})
-    //   .then(
-    //     res => {
-    //       shippingFeesEstimates.value = res;
-    //       estimatesReady.value = true;
-    //       makeManualInvoiceDisabled.value = false;
-    //     }
-    //   ).catch(e => {
-    //   console.error(e);
-    // });
-    makeManualInvoiceDisabled.value = false;
+    let param = {
+      clientID: client.value.id,
+      orderIds: getSelectRowKeys(),
+      type: "preshipping",
+    };
+    defHttp.post({url: Api.estimateShippingFees, params: param})
+      .then(
+        res => {
+          shippingFeesEstimates.value = res;
+          estimatesReady.value = true;
+          makeManualInvoiceDisabled.value = false;
+        }
+      ).catch(e => {
+      console.error(e);
+    });
+    // makeManualInvoiceDisabled.value = false;
   }
 }
 function getCheckboxProps(record: Recordable) {

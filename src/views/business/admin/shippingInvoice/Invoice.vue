@@ -51,115 +51,112 @@
   </a-card>
 </template>
 
-<script>
+<script lang="ts">
 import {downloadFile} from '/@/api/common/api';
 import { defHttp } from '/@/utils/http/axios';
 import { useUserStore } from "/@/store/modules/user";
-import { useMessage } from '/src/hooks/web/useMessage';
+import { useMessage } from '/@/hooks/web/useMessage';
 import {useI18n} from "/@/hooks/web/useI18n";
+import {defineComponent, onMounted, ref} from 'vue';
+import {BasicColumn} from "/@/components/Table";
+import { useRoute } from 'vue-router';
 
-const userStore = useUserStore();
-const { createMessage } = useMessage();
 
-const { t } = useI18n();
-
-export default {
+export default defineComponent({
   name: 'Invoice',
   components: {
   },
   setup() {
-    return {
+    const userStore = useUserStore();
+    const { createMessage } = useMessage();
+    const { t } = useI18n();
+    const route = useRoute();
+
+    onMounted(()=> {
+      checkInvoice();
+    });
+    
+    const dataSource = ref<any[]>([]);
+    const index = ref(1);
+    const customer = ref('');
+    const email = ref('');
+    const invoice_entity = ref('');
+    const currency = ref();
+    const currencySymbol = ref("$");
+    const invoice_number = ref();
+    const total_quantity = ref(0);
+    const final_total_euro = ref(0);
+    const final_total_customer_curr = ref(0);
+    const invoice_type = ref();
+    const invoiceContentLoading = ref<boolean>(false);
+    const downloadReady = ref<boolean>(false);
+    const hasEmail = ref();
+    const failedPdfList = ref<any[]>([]);
+    const Api = {
+      checkInvoiceValidity: '/shippingInvoice/checkInvoiceValidity',
+      downloadInvoice: '/shippingInvoice/download',
+      invoiceData: '/shippingInvoice/invoiceData',
+      downloadCompleteInvoicePdf: "/generated/shippingInvoice/downloadPdf",
+      sendDetailsByEmail: "/generated/shippingInvoice/sendDetailsByEmail"
     }
-  },
-  data() {
-    return {
-      index: 1,
-      customer: '',
-      email: '',
-      invoice_entity: '',
-      currency: null,
-      currencySymbol: "$",
-      invoice_number: null,
-      total_quantity: 0,
-      final_total_euro: 0,
-      final_total_customer_curr: 0,
-      invoice_type: null,
-      invoiceContentLoading: true,
-      downloadReady: false,
-      hasEmail: false,
-      failedPdfList:[],
-      url: {
-        checkInvoiceValidity: '/shippingInvoice/checkInvoiceValidity',
-        downloadInvoice: '/shippingInvoice/download',
-        invoiceData: '/shippingInvoice/invoiceData',
-        downloadCompleteInvoicePdf: "/generated/shippingInvoice/downloadPdf",
-        sendDetailsByEmail: "/generated/shippingInvoice/sendDetailsByEmail"
+    const columns: BasicColumn[] =  [
+      {
+        title: 'Reference',
+        dataIndex: 'key',
+        width: 60,
+        align: 'center',
       },
-      dataSource: [],
-      columns: [
-        {
-          title: 'Reference',
-          dataIndex: 'key',
-          width: 60,
-          align: 'center',
-        },
-        {
-          title: t("data.invoice.description"),
-          align: 'left',
-          className: 'column_description',
-          dataIndex: 'description',
-        },
-        {
-          title: t("data.invoice.orderQty"),
-          align: 'center',
-          dataIndex: 'quantity',
-        },
-        {
-          title: t("data.invoice.subTotal"),
-          align: 'center',
-          dataIndex: 'total_amount',
-        }
-      ],
-    }
-  },
-  created() {
-    this.checkInvoice();
-  },
-  computed: {
-    num: getInvoiceNum
-  },
-  methods: {
-    t,
-    checkInvoice() {
+      {
+        title: t("data.invoice.description"),
+        align: 'left',
+        className: 'column_description',
+        dataIndex: 'description',
+      },
+      {
+        title: t("data.invoice.orderQty"),
+        align: 'center',
+        dataIndex: 'quantity',
+      },
+      {
+        title: t("data.invoice.subTotal"),
+        align: 'center',
+        dataIndex: 'total_amount',
+      }
+    ];
+
+
+
+    function checkInvoice() {
+      // todo : doublon de nommage email
       let email = userStore.getUserInfo.email;
       let orgCode = userStore.getUserInfo.orgCode;
       console.log("User : " + email + " " + orgCode);
       if(orgCode.includes("A01") || orgCode.includes("A02") || orgCode.includes("A03") || orgCode.includes("A04")) {
         let param = {
-          invoiceNumber: this.num,
+          invoiceNumber: getInvoiceNum(),
           email: email,
           orgCode: orgCode
         };
-        defHttp.get({url: this.url.checkInvoiceValidity, params: param}).then((res)=>{
+        defHttp.get({url: Api.checkInvoiceValidity, params: param}).then((res)=>{
           createMessage.success("Permission granted.");
-          this.invoice_number = res.invoiceNumber;
-          this.customer = res.name;
-          this.email = res.email;
-          this.hasEmail = !(this.email === "" || this.email === null);
-          this.invoice_entity = res.invoiceEntity;
+          invoice_number.value = res.invoiceNumber;
+          customer.value = res.name;
+          email.value = res.email;
+          hasEmail.value = !(email.value === "" || email.value === null);
+          invoice_entity.value = res.invoiceEntity;
           let currency = res.currency;
           if(currency === 'EUR' || currency === 'euro' || currency === 'eur' || currency === 'EURO') {
-            this.currency = 'EUR';
-            this.currencySymbol = "€"
+            currency.value = 'EUR';
+            currencySymbol.value = "€"
           }
           if(currency === "USD" || currency === 'usd') {
-            this.currency = 'USD'
+            currency.value = 'USD'
           }
           if(currency === "RMB" || currency === "rmb") {
-            this.currency = "RMB";
-            this.currency = "¥";
+            currency.value = "RMB";
+            currencySymbol.value = "¥";
           }
-          this.loadInvoice();
+          loadInvoice();
 
         }).catch((e) => {
           console.log("Error : " + e);
@@ -168,124 +165,123 @@ export default {
       else {
         createMessage.error("Not authorized to access this page.");
       }
-    },
-    loadInvoice() {
-      let self= this;
+    }
+    function loadInvoice() {
       const param = {
-        invoiceNumber: self.invoice_number,
+        invoiceNumber: invoice_number.value,
         originalCurrency: "EUR",
-        targetCurrency: self.currency
+        targetCurrency: currency.value
       };
       // on identifie le type de facture (1 : purchase, 2: shipping, 7: purchase + shipping
-      self.invoice_type = self.getInvoiceType();
-      if(self.invoice_type == null || self.invoice_type !== '2') {
+      invoice_type.value = getInvoiceType();
+      if(invoice_type.value == null || invoice_type.value !== '2') {
         createMessage.error("Access refused : Invalid type.")
         return;
       }
-      defHttp.get({url: self.url.invoiceData, params: param}).then(res=>{
-        self.invoiceContentLoading = true;
+      defHttp.get({url: Api.invoiceData, params: param}).then(res=>{
+        invoiceContentLoading.value = true;
         if(res !== null) {
-          self.downloadReady = true;
+          downloadReady.value = true;
           for(let i in res.feeAndQtyPerCountry) {
             for(let key in res.feeAndQtyPerCountry[i]) {
               let subtotal = res.feeAndQtyPerCountry[i][key];
-              self.final_total_euro += subtotal;
-              self.total_quantity += Number(key);
-              self.dataSource.push({
-                key: self.index,
+              final_total_euro.value += subtotal;
+              total_quantity.value += Number(key);
+              dataSource.value.push({
+                key: index.value,
                 description: "Total shipping cost for " + t("location.country."+i),
                 quantity: key,
                 total_amount: subtotal,
               });
               // incrémente la clé
-              self.index+=1;
+              index.value+=1;
             }
           }
           // VAT
-          self.dataSource.push({
-            key: self.index,
+          dataSource.value.push({
+            key: index.value,
             description: "Total VAT fee for " + t("location.continent.EuropeanUnion"),
             quantity: null,
             total_amount: res.vat
           });
-          self.final_total_euro += res.vat;
-          self.index+=1;
+          final_total_euro.value += res.vat;
+          index.value+=1;
 
           // SERVICE FEE
-          self.dataSource.push({
-            key: self.index,
+          dataSource.value.push({
+            key: index.value,
             description: "Total service fee",
             quantity: null,
             total_amount: res.serviceFee
           });
-          self.index+=1;
+          index.value+=1;
 
           // PICKING FEE
-          self.dataSource.push({
-            key: self.index,
+          dataSource.value.push({
+            key: index.value,
             description: "Total picking fee",
             quantity: null,
             total_amount: res.pickingFee
           });
-          self.index+=1;
+          index.value+=1;
 
           // PACKAGING MATERIAL FEE
-          self.dataSource.push({
-            key: self.index,
+          dataSource.value.push({
+            key: index.value,
             description: "Total packaging material fee",
             quantity: null,
             total_amount: res.packagingMaterialFee
           });
-          self.index+=1;
+          index.value+=1;
 
           // REFUND
           if(res.refund > 0) {
-            self.dataSource.push({
-              key: self.index,
+            dataSource.value.push({
+              key: index.value,
               description: 'Refund',
               quantity: null,
               total_amount: res.refund
             })
-            self.final_total_euro -= res.refund;
-            self.index+=1;
+            final_total_euro.value -= res.refund;
+            index.value+=1;
           }
 
           // DISCOUNT (not used yet)
           if(res.discount > 0) {
-            self.dataSource.push({
-              key: self.index,
+            dataSource.value.push({
+              key: index.value,
               description: 'Discount',
               quantity: null,
               total_amount: res.discount
             })
-            self.final_total_euro -= res.discount;
-            self.index+=1;
+            final_total_euro.value -= res.discount;
+            index.value+=1;
           }
 
-          if(self.currency !== "EUR") {
-            self.final_total_customer_curr = res.finalAmount;
+          if(currency.value !== "EUR") {
+            final_total_customer_curr.value = res.finalAmount;
           }
         }
         else {
-          createMessage.error("No data : " + self.invoice_number);
+          createMessage.error("No data : " + invoice_number.value);
         }
-        self.invoiceContentLoading = false;
+        invoiceContentLoading.value = false;
       })
-    }, //end of loadInvoice()
-    downloadPdf() {
+    } //end of loadInvoice()
+    function downloadPdf() {
       const param = {
-        invoiceNumber: this.invoice_number
+        invoiceNumber: invoice_number.value
       }
-      let filename = "Invoice N°" + this.invoice_number + " (" + this.customer + ").pdf";
-      downloadFile(this.url.downloadCompleteInvoicePdf, filename, param);
-    }, // end of DownloadPdf()
-    sendEmail(){
+      let filename = "Invoice N°" + invoice_number.value + " (" + customer.value + ").pdf";
+      downloadFile(Api.downloadCompleteInvoicePdf, filename, param);
+    } // end of DownloadPdf()
+    function sendEmail(){
       const param = {
-        invoiceNumber: this.invoice_number,
-        email: this.email,
-        invoiceEntity: this.invoice_entity,
+        invoiceNumber: invoice_number.value,
+        email: email.value,
+        invoiceEntity: invoice_entity.value,
       }
-      defHttp.get({url: this.url.sendDetailsByEmail, params: param})
+      defHttp.get({url: Api.sendDetailsByEmail, params: param})
         .then(res => {
           console.log(res);
           createMessage.success(res.result);
@@ -294,31 +290,50 @@ export default {
           console.log(error);
           createMessage.error(error);
         });
-    },
-    getInvoiceType() {
+    }
+    function getInvoiceType() {
       let re = new RegExp('^[0-9]{4}-[0-9]{2}-([0-9])[0-9]{3}$');
-      if (re.test(this.invoice_number)) {
-        let match = re.exec(this.invoice_number);
+      if (re.test(invoice_number.value)) {
+        let match = re.exec(invoice_number.value);
         return match[1];
       }
       else {
         createMessage.error("Invalid invoice number.");
         return null;
       }
-    }, // end of getInvoiceType()
-  }
-}
+    } // end of getInvoiceType()
 
-function getInvoiceNum() {
-  try {
-    this.invoice_number = this.$route.query.invoice;
-    console.log("Query : " + this.invoice_number);
-    return this.invoice_number;
-  }catch (e) {
-    createMessage.error("Invoice ID required.");
-    console.error("Invoice ID required.");
-  }
-}
+    function getInvoiceNum() {
+      try {
+        invoice_number.value = route.query.invoice;
+        console.log("Query : " + invoice_number.value);
+        return invoice_number.value;
+      } catch (e) {
+        createMessage.error("Invoice ID required.");
+        console.error("Invoice ID required.");
+      }
+    }
+    return {
+      downloadPdf,
+      sendEmail,
+      t,
+      columns,
+      dataSource,
+      invoiceContentLoading,
+      downloadReady,
+      hasEmail,
+      invoice_type,
+      customer,
+      invoice_number,
+      invoice_entity,
+      currency,
+      currencySymbol,
+      total_quantity,
+      final_total_euro,
+      final_total_customer_curr,
+    }
+  },
+})
 </script>
 
 <style scoped>

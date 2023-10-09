@@ -4,8 +4,9 @@ export default {
     billableOrdersBreakdown: 'Billable Orders Breakdown',
   },
   transaction: {
-    paymentProof: "Payment Proof",
+    accountTransactions: "Account Transactions",
     amount: "Amount",
+    paymentProof: "Payment Proof",
     type: "Type",
   },
   client: {
@@ -16,7 +17,9 @@ export default {
     city: "City",
     country: "Country",
     currency: "Currency",
-    postCode: "Postal Code"
+    preferredCurrency: "Preferred Currency",
+    postCode: "Postal Code",
+    accountBalance: "Account Balance",
   },
   order: {
     abnormalOrder: "Abnormal",

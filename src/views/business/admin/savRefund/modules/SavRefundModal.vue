@@ -57,7 +57,7 @@ const formSchema: FormSchema[] = [
     label: t('data.refund.purchaseRefundAmount'),
     component: 'InputNumber',
     required: true,
-    defaultValue: 1,
+    defaultValue: 0,
   },
   {
     field: 'shippingRefund',

@@ -4,8 +4,9 @@ export default {
     billableOrdersBreakdown: '可开票订单详细分解',
   },
   transaction: {
-    paymentProof: "付款证明",
+    accountTransactions: "账户交易",
     amount: "金额",
+    paymentProof: "付款证明",
     type: "交易类型",
   },
   client: {
@@ -16,7 +17,9 @@ export default {
     city: "城市",
     country: "国家",
     Currency: "货币",
-    postCode: "邮编"
+    preferredCurrency: "首选货币",
+    postCode: "邮编",
+    accountBalance: "账户余额",
   },
   order: {
     abnormalOrder: "异常订单",
