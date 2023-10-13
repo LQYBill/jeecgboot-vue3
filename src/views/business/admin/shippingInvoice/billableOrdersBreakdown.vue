@@ -208,6 +208,7 @@ export default defineComponent({
         })
         .catch(e => {
           console.error(e);
+          loading.value = false;
         });
     }
     function setSubTableContent(code) {

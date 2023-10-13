@@ -127,39 +127,40 @@ export default defineComponent({
 
 
     function checkInvoice() {
-      // todo : doublon de nommage email
-      let email = userStore.getUserInfo.email;
+      invoiceContentLoading.value = true;
+      let userEmail = userStore.getUserInfo.email;
       let orgCode = userStore.getUserInfo.orgCode;
-      console.log("User : " + email + " " + orgCode);
+      console.log("User : " + userEmail + " " + orgCode);
       if(orgCode.includes("A01") || orgCode.includes("A02") || orgCode.includes("A03") || orgCode.includes("A04")) {
         let param = {
           invoiceNumber: getInvoiceNum(),
-          email: email,
+          email: userEmail,
           orgCode: orgCode
         };
         defHttp.get({url: Api.checkInvoiceValidity, params: param}).then((res)=>{
+          console.log(res);
           createMessage.success("Permission granted.");
           invoice_number.value = res.invoiceNumber;
           customer.value = res.name;
           email.value = res.email;
           hasEmail.value = !(email.value === "" || email.value === null);
           invoice_entity.value = res.invoiceEntity;
-          let currency = res.currency;
-          if(currency === 'EUR' || currency === 'euro' || currency === 'eur' || currency === 'EURO') {
+          if(res.currency === 'EUR' || res.currency === 'euro' || res.currency === 'eur' || res.currency === 'EURO') {
             currency.value = 'EUR';
             currencySymbol.value = "€"
           }
-          if(currency === "USD" || currency === 'usd') {
+          if(res.currency === "USD" || res.currency === 'usd') {
             currency.value = 'USD'
           }
-          if(currency === "RMB" || currency === "rmb") {
+          if(res.currency === "RMB" || res.currency === "rmb") {
             currency.value = "RMB";
             currencySymbol.value = "¥";
           }
           loadInvoice();
 
         }).catch((e) => {
-          console.log("Error : " + e);
+          console.error(e);
+          invoiceContentLoading.value = false;
         });
       }
       else {
@@ -179,7 +180,6 @@ export default defineComponent({
         return;
       }
       defHttp.get({url: Api.invoiceData, params: param}).then(res=>{
-        invoiceContentLoading.value = true;
         if(res !== null) {
           downloadReady.value = true;
           for(let i in res.feeAndQtyPerCountry) {
@@ -267,6 +267,9 @@ export default defineComponent({
         }
         invoiceContentLoading.value = false;
       })
+        .catch(e => {
+          console.error(e);
+        })
     } //end of loadInvoice()
     function downloadPdf() {
       const param = {

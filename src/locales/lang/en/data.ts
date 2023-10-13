@@ -8,6 +8,8 @@ export default {
     amount: "Amount",
     paymentProof: "Payment Proof",
     type: "Type",
+    credit: "Credit",
+    debit: "Debit",
   },
   client: {
     familyName: "Last Name",
@@ -20,6 +22,7 @@ export default {
     preferredCurrency: "Preferred Currency",
     postCode: "Postal Code",
     accountBalance: "Account Balance",
+    estimatedBalance: "Estimated Balance",
   },
   order: {
     abnormalOrder: "Abnormal",

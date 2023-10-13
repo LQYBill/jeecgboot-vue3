@@ -8,6 +8,8 @@ export default {
     amount: "金额",
     paymentProof: "付款证明",
     type: "交易类型",
+    credit: "Credit",
+    debit: "Debit",
   },
   client: {
     familyName: "姓",
@@ -16,10 +18,11 @@ export default {
     telephone: "电话",
     city: "城市",
     country: "国家",
-    Currency: "货币",
+    currency: "货币",
     preferredCurrency: "首选货币",
     postCode: "邮编",
     accountBalance: "账户余额",
+    estimatedBalance: "预计账户余额",
   },
   order: {
     abnormalOrder: "异常订单",

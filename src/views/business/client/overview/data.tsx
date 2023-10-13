@@ -29,6 +29,7 @@ export function getColumns(): BasicColumn[] {
       align: 'center',
       sorter: true,
       dataIndex: 'type',
+      width: 70,
       slots: {customRender: 'transactionType'},
     },
     {

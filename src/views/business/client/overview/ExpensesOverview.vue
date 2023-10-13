@@ -45,6 +45,16 @@
                   </h2>
                   <h3>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ currencySymbol }}</h3>
                 </a-row>
+                <a-row type="flex" justify='space-between' style="align-items:baseline">
+                  <h2>
+                    {{ t('data.client.estimatedBalance') }} :
+                    <Tag
+                      :color="estimatedBalanceEur >= 0 ? 'geekblue' : 'volcano'"
+                    >
+                      {{ estimatedBalanceEur }} €
+                    </Tag>
+                  </h2>
+                </a-row>
                 <a-row class="invoiceToolbar">
                   <PopConfirmButton
                     type="warning"
@@ -68,7 +78,7 @@
                     okText="ok" :loading="completeInvoiceLoading"
                     cancelText="Cancel"
                   >
-                    {{ t("data.invoice.generateShippingInvoice") }}
+                    {{ t("data.invoice.generateInvoice7pre") }}
                   </PopConfirmButton>
                 </a-row>
               </div>
@@ -100,17 +110,17 @@
                 +{{ record.record.amount }}
               </Tag>
               <span v-else>
-          -{{ record.record.amount }}
+          - {{ record.record.amount }}
         </span>
             </template>
             <template v-slot:shippingFee="record">
         <span v-if="!!record.record.shippingFee">
-          -{{ record.record.shippingFee }}
+          - {{ record.record.shippingFee }}
         </span>
             </template>
             <template v-slot:purchaseFee="record">
         <span v-if="!!record.record.purchaseFee">
-          -{{ record.record.purchaseFee }}
+          - {{ record.record.purchaseFee }}
         </span>
             </template>
             <template #imgs="{ text }">
@@ -139,6 +149,16 @@
                     </Tag>
                   </h2>
                   <h3>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ currencySymbol }}</h3>
+                </a-row>
+                <a-row type="flex" justify='space-between' style="align-items:baseline">
+                  <h2 >
+                    {{ t('data.client.estimatedBalancece') }} :
+                    <Tag
+                      :color="estimatedBalanceUsd >= 0 ? 'geekblue' : 'volcano'"
+                    >
+                      {{ estimatedBalanceUsd }} $
+                    </Tag>
+                  </h2>
                 </a-row>
                 <a-row class="invoiceToolbar">
                   <PopConfirmButton
@@ -222,7 +242,7 @@
 </template>
 <script lang="ts">
 
-import {defineComponent, onBeforeMount, onMounted, reactive, ref, unref} from "vue";
+import {defineComponent, onBeforeMount, reactive, ref} from "vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {TableImg, useTable} from "/@/components/Table";
 import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
@@ -234,20 +254,20 @@ import {useI18n} from "/@/hooks/web/useI18n";
 import {defHttp} from "/@/utils/http/axios";
 import {useMessage} from "/@/hooks/web/useMessage";
 import { useGo } from '/@/hooks/web/usePage';
-import { useUserStore } from "/@/store/modules/user";
 
 import {Exception} from "/@/views/sys/exception";
 import { ExceptionEnum } from '/@/enums/exceptionEnum';
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
+import dayjs from "dayjs";
+import {downloadFile} from "/@/api/common/api";
+import success from "/@/views/demo/page/result/success/index.vue";
 
 export default defineComponent({
-  methods: {unref},
   components: {
     JSearchSelect,
     Exception,
     TableImg, Tag, PopConfirmButton, PageWrapper, BasicTable},
   setup() {
-    const userStore = useUserStore();
     const { t } = useI18n();
     const { createMessage } = useMessage();
 
@@ -256,8 +276,9 @@ export default defineComponent({
     const access = ref(true);
     const go = useGo();
 
-    const debitColor = "rgba(45, 0, 255, 0.1)";
-    const creditColor = "rgba(11, 166, 101, 0.1)";
+    const debitColor = "#EAE5FF";
+    const creditColor = "#E6F6EF";
+    const estimationColor = "#e6f7ff";
 
     onBeforeMount(()=> {
       checkUser();
@@ -266,8 +287,8 @@ export default defineComponent({
     // Form config
     const useForm = Form.useForm;
     const formRef = ref();
-    const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 6 } });
-    const wrapperCol = ref<any>({ xs: { span: 24 }, sm: { span: 18 } });
+    const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 2 } });
+    const wrapperCol = ref<any>({ xs: { span: 24 }, sm: { span: 12 } });
     const validatorRules = ref({
       customer: [{ required: true, message: t('component.searchForm.clientInputSearch'), trigger: 'blur' }],
     });
@@ -278,11 +299,14 @@ export default defineComponent({
 
     const Api = {
       getClient: '/userClient/getClient',
+      getBalance: '/balance/getBalanceByClientIdAndCurrency',
       list: '/transaction/listByClientAndCurrency',
       debit: '/transaction/debit',
       purchase: '/transaction/purchase',
-      makeShippingInvoice: '',
-      makeCompleteShippingInvoice: '',
+      makeShippingInvoice: '/shippingInvoice/make',
+      makeCompleteShippingInvoice: '/shippingInvoice/makeComplete',
+      downloadInvoice: '/shippingInvoice/download',
+      downloadInvoiceDetail: '/shippingInvoice/downloadInvoiceDetail',
     };
     const customerList = ref<any[]>([]);
     const customerSelectList = ref<any[]>([]);
@@ -295,11 +319,14 @@ export default defineComponent({
     const fullName = ref();
     const invoiceEntity = ref();
     const currencySymbol = ref();
-    const balanceEur = ref(-300);
-    const balanceUsd = ref(987654);
+    const balanceEur = ref(0);
+    const balanceUsd = ref(0);
+    const estimatedBalanceEur = ref(0);
+    const estimatedBalanceUsd = ref(0);
 
     const invoiceDisabled = ref<boolean>(true);
     const invoiceLoading = ref<boolean>(false);
+    const isCompleteInvoiceReady = ref<boolean>(false);
     const completeInvoiceDisabled = ref<boolean>(true);
     const completeInvoiceLoading = ref<boolean>(false);
 
@@ -309,6 +336,9 @@ export default defineComponent({
     const transactionsEur = ref<any[]>([]);
     const transactionsUsd = ref<any[]>([]);
     const debit = ref();
+    const shopIds = ref<any[]>([]);
+    const startDate = ref();
+    const endDate = ref();
 
     const checkedKeys = ref<Array<string | number>>([]);
     const selectRows = ref<any[]>([]);
@@ -359,7 +389,6 @@ export default defineComponent({
       rowKey: 'id',
       loading: usdTableLoading,
     });
-    // TODO : if user is admin, make a drop menu with all clients
     async function checkUser() {
       defHttp.get({url: Api.getClient})
         .then(res => {
@@ -388,8 +417,32 @@ export default defineComponent({
         })
     }
     function handleClientChange(id: any) {
-      let index = customerList.value.map(i => i.id).indexOf(id);
-      loadClient(customerList.value[index]);
+      client.value = [];
+      shopIds.value = [];
+      startDate.value = '';
+      endDate.value = '';
+      currency.value = '';
+      currencySymbol.value = '';
+      fullName.value = '';
+      balanceEur.value = 0;
+      balanceUsd.value = 0;
+      invoiceEntity.value = '';
+      transactionsEur.value = [];
+      transactionsUsd.value = [];
+      debit.value = [];
+      eurTableLoading.value = true;
+      usdTableLoading.value = true;
+      checkedKeys.value = [];
+      selectRows.value = [];
+      invoiceDisabled.value = true;
+      invoiceLoading.value = false;
+      completeInvoiceDisabled.value = true;
+      completeInvoiceLoading.value = false;
+      isCompleteInvoiceReady.value = false;
+      if(id) {
+        let index = customerList.value.map(i => i.id).indexOf(id);
+        loadClient(customerList.value[index]);
+      }
     }
     function loadClient(clientParam: any) {
       console.log(clientParam);
@@ -406,7 +459,24 @@ export default defineComponent({
       if(currency.value === 'RMB') {
         currencySymbol.value = "¥";
       }
+      loadBalance();
       loadTransactions("EUR");
+    }
+    function loadBalance() {
+      defHttp.get({url: Api.getBalance, params: {clientId: client.value.id, currency: "EUR"}})
+        .then(res => {
+          balanceEur.value = res;
+        })
+        .catch(e => {
+          console.error(e);
+        })
+      defHttp.get({url: Api.getBalance, params: {clientId: client.value.id, currency: "USD"}})
+        .then(res => {
+          balanceUsd.value = res;
+        })
+        .catch(e => {
+          console.error(e);
+        })
     }
     function loadTransactions(currency) {
       // TODO change
@@ -440,7 +510,7 @@ export default defineComponent({
 
           debit.value = {
             id: '0',
-            createTime: '',
+            createTime: 'Estimation',
             type: 'Debit',
             clientId: `${client.value.id}`,
             paymentProofString: '',
@@ -450,15 +520,28 @@ export default defineComponent({
             amount: res.totalEstimation,
             currency: currency
           };
+          // ajout de la ligne de début au début du tableau
           if(currency === "EUR") {
             console.log("ajout debit euro");
-            transactionsEur.value.push(debit.value);
+            transactionsEur.value.unshift(debit.value);
+            estimatedBalanceEur.value = balanceEur.value - debit.value.amount;
+            estimatedBalanceUsd.value = balanceUsd.value;
           }
           else {
             console.log("ajout debit usd");
-            transactionsUsd.value.push(debit.value);
+            transactionsUsd.value.unshift(debit.value);
+            estimatedBalanceUsd.value = balanceUsd.value - debit.value.amount;
+            estimatedBalanceEur.value = balanceUsd.value;
           }
-          createMessage.error(res.errorMessages);
+
+          if(res.errorMessages && res.errorMessages.length > 0) {
+            createMessage.error(res.errorMessages, 5);
+            console.error(res.errorMessages);
+          }
+          shopIds.value = res.shopIds;
+          startDate.value = res.startDate;
+          endDate.value = res.endDate;
+          isCompleteInvoiceReady.value = res.isCompleteInvoiceReady;
         })
         .catch(e=> {
           console.error(e);
@@ -468,17 +551,103 @@ export default defineComponent({
         });
     }
     function makeInvoice() {
-      defHttp.get({url: Api.makeShippingInvoice})
+      invoiceDisabled.value = true;
+      invoiceLoading.value = true;
+      let start = startDate.value.slice(0, -9);
+      let end = endDate.value.slice(0, -9);
+      end = dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
+      let params = {
+        clientID: client.value.id,
+        shopIDs: shopIds.value,
+        type: "pre-shipping",
+        start: start,
+        end : end,
+        erpStatuses : ['1', '2'],
+        warehouses: ['0', '1']
+      }
+      console.log(`param : ${JSON.stringify(params)}`)
+      defHttp.post({url: Api.makeShippingInvoice, params })
+        .then(res => {
+          let invoiceFilename = res.filename;
+          let invoiceNumber = res.invoiceCode;
+          downloadInvoice(invoiceFilename);
+          downloadDetailFile(invoiceNumber);
+          invoiceLoading.value = false;
+          checkedKeys.value = [];
+          selectRows.value = [];
+          shopIds.value = [];
+          startDate.value = '';
+          endDate.value = '';
+          loadTransactions("EUR");
+        })
+        .catch(e => {
+          console.error(e);
+        });
     }
-    function makeCompleteInvoice() {
-      defHttp.get({url: Api.makeCompleteShippingInvoice})
+    function makeCompleteInvoice() {let start = startDate.value.slice(0, -9);
+      completeInvoiceLoading.value = true;
+      completeInvoiceDisabled.value = true;
+
+      let end = endDate.value.slice(0, -9);
+      end = dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
+      let params = {
+        clientID: client.value.id,
+        shopIDs: shopIds.value,
+        type: "pre-shipping",
+        start: start,
+        end : end,
+        erpStatuses : ['1', '2'],
+        warehouses: ['0', '1']
+      }
+      console.log(`param : ${JSON.stringify(params)}`)
+      defHttp.post({url: Api.makeCompleteShippingInvoice, params})
+        .then(res => {
+          let invoiceFilename = res.filename;
+          let invoiceNumber = res.invoiceCode;
+          downloadInvoice(invoiceFilename);
+          downloadDetailFile(invoiceNumber);
+          completeInvoiceLoading.value = false;
+          checkedKeys.value = [];
+          selectRows.value = [];
+          shopIds.value = [];
+          startDate.value = '';
+          endDate.value = '';
+          loadTransactions("EUR");
+        })
+        .catch(e => {
+          console.error(e);
+        })
+    }
+    function downloadInvoice(invoiceFilename) {
+      const param = {filename: invoiceFilename};
+      downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
+        createMessage.info("Download successful.")
+      }).catch(e => {
+        console.error(`Download invoice fail : ${e}`);
+      });
+    }
+    function downloadDetailFile(invoiceNumber) {
+      const param =
+        {
+          invoiceNumber: invoiceNumber,
+          invoiceEntity: client.value.invoiceEntity,
+          internalCode: client.value.internalCode
+        }
+      let now = dayjs().format("YYYYMMDD");
+      let detailFilename = client.value.internalCode + "_(" + client.value.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
+      downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {
+        createMessage.info("Download successful.")
+      }).catch(e => {
+        console.error(`Download invoice detail fail : ${e}`);
+      });
     }
     function openInvoice(record) {
       go(`/business/admin/shippingInvoice/Invoice?invoice=${record.invoiceNumber}`);
     }
-    function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
+    function onSelectChange(selectedRowKeys: (string | number)[], selectRow: any[]) {
       console.log(`---> selected row keys : ${selectedRowKeys}`)
       invoiceDisabled.value = selectedRowKeys.length <= 0;
+      completeInvoiceDisabled.value = !(selectedRowKeys.length > 0 && isCompleteInvoiceReady.value);
       checkedKeys.value = selectedRowKeys;
       selectRows.value = selectRow;
     }
@@ -493,6 +662,11 @@ export default defineComponent({
     function colorizeRows() {
       let rows = document.getElementsByClassName('ant-table-row-level-0');
       [].forEach.call(rows, function(row) {
+        if(row.children[2].textContent == 'Estimation') {
+          for(let cell of row.children) {
+            cell.style.backgroundColor = estimationColor;
+          }
+        }
         if(row.children[3].textContent == 'Debit') {
           // row.children[3].style.backgroundColor = "rgba(255, 114, 0, 0.1)";
           // row.children[8].style.backgroundColor = "rgba(255, 114, 0, 0.1)";
@@ -550,6 +724,8 @@ export default defineComponent({
       currencySymbol,
       balanceEur,
       balanceUsd,
+      estimatedBalanceEur,
+      estimatedBalanceUsd,
     }
   }
 })
