@@ -41,6 +41,9 @@ export const formSchema: FormSchema[] = [
     componentProps: {
       dict: "client WHERE active = '1',internal_code,id"
     },
+    dynamicDisabled: ({ values }) => {
+      return !!values.id;
+    },
     dynamicRules: ({model, schema}) => {
       return [
         {required: true, message: t('component.searchForm.clientInputSearch')},
@@ -63,6 +66,9 @@ export const formSchema: FormSchema[] = [
     component: 'JSearchSelect',
     componentProps: {
       dict: "currency WHERE code <> 'RMB',code,id"
+    },
+    dynamicDisabled: ({ values }) => {
+      return !!values.id;
     },
     dynamicRules: ({model, schema}) => {
       return [

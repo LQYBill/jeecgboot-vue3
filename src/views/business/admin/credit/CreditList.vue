@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <PageWrapper title='Credit Management Page'>
     <!--引用表格-->
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
       <!--插槽:table标题-->
@@ -35,24 +35,10 @@
       <template #action="{ record }">
         <TableAction :actions="getTableAction(record)" :dropDownActions="getDropDownAction(record)"/>
       </template>
-      <!--字段回显插槽-->
-      <template #htmlSlot="{text}">
-        <div v-html="text"></div>
-      </template>
-      <!--省市区字段回显插槽-->
-      <template #pcaSlot="{text}">
-        {{ getAreaTextByCode(text) }}
-      </template>
-      <template #fileSlot="{text}">
-        <span v-if="!text" style="font-size: 12px;font-style: italic;">无文件</span>
-        <a-button v-else :ghost="true" type="primary" preIcon="ant-design:download-outlined" size="small"
-                  @click="downloadFile(text)">下载
-        </a-button>
-      </template>
     </BasicTable>
     <!-- 表单区域 -->
     <CreditModal @register="registerModal" @success="handleSuccess"></CreditModal>
-  </div>
+  </PageWrapper>
 </template>
 
 <script lang="ts" name="credit" setup>
@@ -66,6 +52,7 @@ import {list, deleteOne, batchDelete, getImportUrl, getExportUrl} from './Credit
 import {downloadFile} from '/@/utils/common/renderUtils';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
+import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
 
 const {t} = useI18n();
 const {createMessage} = useMessage();
@@ -81,6 +68,7 @@ const {prefixCls, tableContext, onExportXls, onImportXls} = useListPage({
     columns,
     canResize: false,
     striped: true,
+    useSearchForm: false,
     actionColumn: {
       title: t('common.operation.action'),
       width: 120,
@@ -158,7 +146,7 @@ function handleSuccess() {
 function getTableAction(record) {
   return [
     {
-      label: t('common.operation.edit'),
+      icon: 'clarity:note-edit-line',
       onClick: handleEdit.bind(null, record),
     }
   ]
@@ -170,9 +158,11 @@ function getTableAction(record) {
 function getDropDownAction(record) {
   return [
     {
+      icon: 'clarity:info-standard-line',
       label: t('common.operation.details'),
       onClick: handleDetail.bind(null, record),
     }, {
+      icon: 'ant-design:delete-outlined',
       label: t('common.operation.delete'),
       popConfirm: {
         title: t('common.operation.deleteConfirmation'),
@@ -191,15 +181,15 @@ const superQueryConfig = reactive({
   amount:{ title: t('data.transaction.amount'), view: "number", type: "number", order: 3 },
 })
 
-const customSearch = ref(false);
+// const customSearch = ref(false);
 const queryParam = reactive({
   clientId: '',
   createTime: '',
   amount: '',
 });
-watch(customSearch, () => {
-  setProps({ useSearchForm: !unref(customSearch) });
-});
+// watch(customSearch, () => {
+//   setProps({ useSearchForm: !unref(customSearch) });
+// });
 function searchQuery() {
   setProps({ searchInfo: toRaw(queryParam) });
   reload();

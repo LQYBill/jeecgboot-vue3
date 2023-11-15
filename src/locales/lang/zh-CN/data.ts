@@ -6,10 +6,11 @@ export default {
   transaction: {
     accountTransactions: "账户交易",
     amount: "金额",
-    paymentProof: "付款证明",
-    type: "交易类型",
+    attachments: "附件",
     credit: "Credit",
     debit: "Debit",
+    paymentProof: "付款证明",
+    type: "交易类型",
   },
   client: {
     familyName: "姓",

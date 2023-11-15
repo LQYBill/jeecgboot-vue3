@@ -1,7 +1,6 @@
 <template>
-  <Exception v-if="!access" :status="status" />
   <PageWrapper title='Expenses Overview'>
-    <a-card>
+    <a-card class="main-card">
       <a-form v-if="internalUse" ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
         <a-row>
           <a-col>
@@ -26,34 +25,30 @@
           </a-col>
         </a-row>
       </a-form>
+      <a-card class="card-header" v-if="client">
+        <h1>{{ fullName }} <span style="font-weight: 200">( {{ invoiceEntity }} )</span></h1>
+        <p>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ currencySymbol }}</p>
+      </a-card>
       <a-tabs defaultActiveKey="1" style="margin: 10px" v-if="client">
         <a-tab-pane tab="EUR" key="1">
           <BasicTable @register="registerTable">
             <template #tableTitle>
-              <div style="padding: 0 1em; width: 100%">
-                <h1>{{ t('data.transaction.accountTransactions') }} (EUR) <br/>
-                  <span style='font-weight: 200'>{{ fullName }} ( {{ invoiceEntity }} )</span>
-                </h1>
-                <a-row type="flex" justify='space-between' style="align-items:baseline">
-                  <h2>
+              <div style="width: 100%">
+                <a-row class="balance-row">
+                  <p>
                     {{ t('data.client.accountBalance') }} :
-                    <Tag
-                      :color="balanceEur >= 0 ? 'geekblue' : 'volcano'"
-                    >
-                      {{ balanceEur }} €
-                    </Tag>
-                  </h2>
-                  <h3>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ currencySymbol }}</h3>
-                </a-row>
-                <a-row type="flex" justify='space-between' style="align-items:baseline">
-                  <h2>
+                  </p>
+                  <h1>
+                    {{ balanceEur }} €
+                  </h1>
+                  <p>
                     {{ t('data.client.estimatedBalance') }} :
                     <Tag
-                      :color="estimatedBalanceEur >= 0 ? 'geekblue' : 'volcano'"
+                      :color="estimatedBalanceEur >= 0 ? 'geekblue' : 'volcano'" class="num-tag balance-estimated"
                     >
                       {{ estimatedBalanceEur }} €
                     </Tag>
-                  </h2>
+                  </p>
                 </a-row>
                 <a-row class="invoiceToolbar">
                   <PopConfirmButton
@@ -83,82 +78,71 @@
                 </a-row>
               </div>
             </template>
-
-            <template v-slot:transactionType="record">
+            <template #date="{ record }">
+              {{ dayjs(record.createTime).isValid() ? dayjs(record.createTime).format('DD/MM').toString() : record.createTime }}
+            </template>
+            <template #transactionType="{ record }">
               <Tag
-                :color="record.record.type === 'Credit' ? 'success' : 'purple'"
+                :color="record.type === 'Credit' ? 'green' : 'purple'"
               >
-                {{ record.record.type }}
+                {{ record.type }}
               </Tag>
             </template>
-            <template v-slot:invoiceNumber="record">
+            <template #attachments="{ record }">
+              <TableImg
+                v-if="record.type=='Credit' && !!record.paymentProofString"
+                :size="60"
+                :imgList="[imgHost+imgPath+record.paymentProofString]"
+              />
               <a-button
-                v-if="!!record.record.invoiceNumber"
+                v-else-if="record.type=='Debit' && !!record.invoiceNumber"
                 type="primary"
                 preIcon="ant-design:eye-outlined"
-                @click="openInvoice(record.record)"
+                @click="openInvoice(record)"
                 shape="round"
               >
-                {{ record.record.invoiceNumber }}
+                {{ record.invoiceNumber }}
               </a-button>
             </template>
-            <template v-slot:amount="record">
-              <Tag
-                v-if="record.record.type == 'Credit'"
-                color="success"
-              >
-                +{{ record.record.amount }}
-              </Tag>
+            <template #amount="{ record }">
+              <span v-if="record.type == 'Credit'" class="positive-balance">
+                +{{ record.amount }}
+              </span>
               <span v-else>
-          - {{ record.record.amount }}
-        </span>
+                - {{ record.amount }}
+              </span>
             </template>
-            <template v-slot:shippingFee="record">
-        <span v-if="!!record.record.shippingFee">
-          - {{ record.record.shippingFee }}
-        </span>
+            <template #shippingFee="{ record }">
+              <span v-if="!!record.shippingFee">
+                - {{ record.shippingFee }}
+              </span>
             </template>
-            <template v-slot:purchaseFee="record">
-        <span v-if="!!record.record.purchaseFee">
-          - {{ record.record.purchaseFee }}
-        </span>
-            </template>
-            <template #imgs="{ text }">
-              <TableImg
-                v-if="!!text"
-                :size="60"
-                :imgList="[imgHost+imgPath+text]"
-              />
+            <template #purchaseFee="{ record }">
+              <span v-if="!!record.purchaseFee">
+                - {{ record.purchaseFee }}
+              </span>
             </template>
           </BasicTable>
         </a-tab-pane>
         <a-tab-pane tab="USD" key="2" forceRender>
           <BasicTable @register="registerUSDTable">
             <template #tableTitle>
-              <div style="padding: 0 1em; width: 100%;">
-                <h1>{{ t('data.transaction.accountTransactions') }} (USD) <br/>
-                  <span style='font-weight: 200'>{{ fullName }} ( {{ invoiceEntity }} )</span>
-                </h1>
-                <a-row type="flex" justify='space-between' style="align-items:baseline">
-                  <h2 >
+              <div style="width: 100%;">
+                <a-row class="balance-row">
+                  <p>
                     {{ t('data.client.accountBalance') }} :
+                  </p>
+                  <h1>
+                    {{ balanceUsd }} $
+                  </h1>
+                  <p>
+                    {{ t('data.client.estimatedBalance') }} :
                     <Tag
-                      :color="balanceUsd >= 0 ? 'geekblue' : 'volcano'"
-                    >
-                      {{ balanceUsd }} $
-                    </Tag>
-                  </h2>
-                  <h3>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ currencySymbol }}</h3>
-                </a-row>
-                <a-row type="flex" justify='space-between' style="align-items:baseline">
-                  <h2 >
-                    {{ t('data.client.estimatedBalancece') }} :
-                    <Tag
-                      :color="estimatedBalanceUsd >= 0 ? 'geekblue' : 'volcano'"
+                      :color="estimatedBalanceUsd >= 0 ? 'geekblue' : 'volcano'" class="num-tag balance-estimated"
                     >
                       {{ estimatedBalanceUsd }} $
                     </Tag>
-                  </h2>
+                  </p>
                 </a-row>
                 <a-row class="invoiceToolbar">
                   <PopConfirmButton
@@ -183,48 +167,53 @@
                     okText="ok" :loading="completeInvoiceLoading"
                     cancelText="Cancel"
                   >
-                    {{ t("data.invoice.generateShippingInvoice") }}
+                    {{ t("data.invoice.generateInvoice7pre") }}
                   </PopConfirmButton>
                 </a-row>
               </div>
             </template>
-            <template v-slot:transactionType="record">
+            <template #date="{ record }">
+              {{ dayjs(record.createTime).isValid() ? dayjs(record.createTime).format('DD/MM').toString() : record.createTime }}
+            </template>
+            <template #transactionType="{ record }">
               <Tag
-                :color="record.record.type === 'Credit' ? 'success' : 'purple'"
+                :color="record.type === 'Credit' ? 'green' : 'purple'"
               >
-                {{ record.record.type }}
+                {{ record.type }}
               </Tag>
             </template>
-            <template v-slot:invoiceNumber="record">
+            <template #attachments="{ record }">
+              <TableImg
+                v-if="record.type=='Credit' && !!record.paymentProofString"
+                :size="60"
+                :imgList="[imgHost+imgPath+record.paymentProofString]"
+              />
               <a-button
-                v-if="!!record.record.invoiceNumber"
+                v-else-if="record.type=='Debit' && !!record.invoiceNumber"
                 type="primary"
                 preIcon="ant-design:eye-outlined"
-                @click="openInvoice(record.record)"
+                @click="openInvoice(record)"
                 shape="round"
               >
-                {{ record.record.invoiceNumber }}
+                {{ record.invoiceNumber }}
               </a-button>
             </template>
-            <template v-slot:amount="record">
-              <Tag
-                v-if="record.record.type == 'Credit'"
-                color="success"
-              >
-                +{{ record.record.amount }}
-              </Tag>
+            <template #amount="{ record }">
+              <span v-if="record.type == 'Credit'" class="positive-balance">
+                +{{ record.amount }}
+              </span>
               <span v-else>
-          -{{ record.record.amount }}
+          -{{ record.amount }}
         </span>
             </template>
-            <template v-slot:shippingFee="record">
-        <span v-if="!!record.record.shippingFee">
-          -{{ record.record.shippingFee }}
+            <template #shippingFee="{ record }">
+        <span v-if="!!record.shippingFee">
+          -{{ record.shippingFee }}
         </span>
             </template>
-            <template v-slot:purchaseFee="record">
-        <span v-if="!!record.record.purchaseFee">
-          -{{ record.record.purchaseFee }}
+            <template #purchaseFee="{ record }">
+        <span v-if="!!record.purchaseFee">
+          -{{ record.purchaseFee }}
         </span>
             </template>
             <template #imgs="{ text }">
@@ -253,32 +242,25 @@ import {getColumns} from "/@/views/business/client/overview/data";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {defHttp} from "/@/utils/http/axios";
 import {useMessage} from "/@/hooks/web/useMessage";
-import { useGo } from '/@/hooks/web/usePage';
 
-import {Exception} from "/@/views/sys/exception";
-import { ExceptionEnum } from '/@/enums/exceptionEnum';
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
 import dayjs from "dayjs";
 import {downloadFile} from "/@/api/common/api";
-import success from "/@/views/demo/page/result/success/index.vue";
 
 export default defineComponent({
+  methods: {dayjs},
   components: {
     JSearchSelect,
-    Exception,
     TableImg, Tag, PopConfirmButton, PageWrapper, BasicTable},
   setup() {
     const { t } = useI18n();
     const { createMessage } = useMessage();
 
     const internalUse = ref<boolean>(false);
-    const status = ref();
-    const access = ref(true);
-    const go = useGo();
 
     const debitColor = "#EAE5FF";
     const creditColor = "#E6F6EF";
-    const estimationColor = "#e6f7ff";
+    const estimationColor = "#F0F5FF";
 
     onBeforeMount(()=> {
       checkUser();
@@ -326,7 +308,6 @@ export default defineComponent({
 
     const invoiceDisabled = ref<boolean>(true);
     const invoiceLoading = ref<boolean>(false);
-    const isCompleteInvoiceReady = ref<boolean>(false);
     const completeInvoiceDisabled = ref<boolean>(true);
     const completeInvoiceLoading = ref<boolean>(false);
 
@@ -340,62 +321,62 @@ export default defineComponent({
     const startDate = ref();
     const endDate = ref();
 
-    const checkedKeys = ref<Array<string | number>>([]);
-    const selectRows = ref<any[]>([]);
     const ipagination = reactive({
       current: 1,
       pageSize: 100,
       pageSizeOptions: ['50', '100'],
       showQuickJumper: true,
       showSizeChanger: true,
-      total: 0
+      total: 0,
+      showTotal: (total, range) => {
+        return range[0] + '-' + range[1] + ' of ' + total + ' items';
+      },
     });
-    const rowSelection = {
-      type: 'checkbox',
-      columnWidth: 30,
-      selectedRowKeys: checkedKeys,
-      onChange: onSelectChange,
-      getCheckboxProps: getCheckboxProps,
-    };
+    const usdIpagination = reactive({
+      current: 1,
+      pageSize: 100,
+      pageSizeOptions: ['50', '100'],
+      showQuickJumper: true,
+      showSizeChanger: true,
+      total: 0,
+      showTotal: (total, range) => {
+        return range[0] + '-' + range[1] + ' of ' + total + ' items';
+      },
+    });
     const [registerTable] = useTable({
       dataSource: transactionsEur,
       columns: getColumns(),
       pagination: ipagination,
-      bordered: true,
+      bordered: false,
       striped: true,
-      rowSelection: rowSelection,
-      clickToRowSelect: false,
-      showIndexColumn: true,
+      showIndexColumn: false,
       indexColumnProps: {
         width: 60,
         title: "#"
       },
       rowKey: 'id',
       loading: eurTableLoading,
-      scroll: {y: false}
+      scroll: {y: false},
     });
     const [registerUSDTable] = useTable({
       dataSource: transactionsUsd,
       columns: getColumns(),
-      bordered: true,
+      pagination: usdIpagination,
+      bordered: false,
       striped: true,
-      rowSelection: rowSelection,
-      clickToRowSelect: false,
-      showIndexColumn: true,
+      showIndexColumn: false,
       indexColumnProps: {
         width: 60,
         title: "#"
       },
       rowKey: 'id',
       loading: usdTableLoading,
+      scroll: {y: false},
     });
     async function checkUser() {
       defHttp.get({url: Api.getClient})
         .then(res => {
-          console.log(res);
           if(res.internal) {
-            console.log('internal use');
-            console.log(res.internal);
             customerList.value = res.internal;
             customerSelectList.value = res.internal.map(
               client => ({
@@ -406,14 +387,11 @@ export default defineComponent({
             internalUse.value = true;
           }
           else {
-            console.log("ien-cli");
             loadClient(res.client);
           }
         })
         .catch(e => {
           console.error(e);
-          status.value = ExceptionEnum.PAGE_NOT_ACCESS
-          access.value = false;
         })
     }
     function handleClientChange(id: any) {
@@ -426,26 +404,24 @@ export default defineComponent({
       fullName.value = '';
       balanceEur.value = 0;
       balanceUsd.value = 0;
+      estimatedBalanceEur.value = 0;
+      estimatedBalanceUsd.value = 0;
       invoiceEntity.value = '';
       transactionsEur.value = [];
       transactionsUsd.value = [];
       debit.value = [];
       eurTableLoading.value = true;
       usdTableLoading.value = true;
-      checkedKeys.value = [];
-      selectRows.value = [];
       invoiceDisabled.value = true;
       invoiceLoading.value = false;
       completeInvoiceDisabled.value = true;
       completeInvoiceLoading.value = false;
-      isCompleteInvoiceReady.value = false;
       if(id) {
         let index = customerList.value.map(i => i.id).indexOf(id);
         loadClient(customerList.value[index]);
       }
     }
     function loadClient(clientParam: any) {
-      console.log(clientParam);
       client.value = clientParam;
       currency.value = client.value.currency;
       fullName.value = `${client.value.firstName} ${client.value.surname}`
@@ -497,17 +473,12 @@ export default defineComponent({
           }
         })
         .catch(e => {
-          status.value = ExceptionEnum.PAGE_NOT_ACCESS;
-          access.value = false;
           console.error(e);
         });
     }
     function loadDebit(currency) {
       defHttp.get({url: Api.debit, params: { clientId: client.value.id, currency: currency }})
         .then(res => {
-          console.log(`estimations : ${JSON.stringify(res)}`);
-          console.log(`debit amount : ${res.totalEstimation}`);
-
           debit.value = {
             id: '0',
             createTime: 'Estimation',
@@ -522,26 +493,23 @@ export default defineComponent({
           };
           // ajout de la ligne de début au début du tableau
           if(currency === "EUR") {
-            console.log("ajout debit euro");
             transactionsEur.value.unshift(debit.value);
             estimatedBalanceEur.value = balanceEur.value - debit.value.amount;
             estimatedBalanceUsd.value = balanceUsd.value;
           }
           else {
-            console.log("ajout debit usd");
             transactionsUsd.value.unshift(debit.value);
             estimatedBalanceUsd.value = balanceUsd.value - debit.value.amount;
             estimatedBalanceEur.value = balanceUsd.value;
           }
+          estimatedBalanceEur.value = Number(estimatedBalanceEur.value.toFixed(2));
+          estimatedBalanceUsd.value = Number(estimatedBalanceUsd.value.toFixed(2));
 
-          if(res.errorMessages && res.errorMessages.length > 0) {
-            createMessage.error(res.errorMessages, 5);
-            console.error(res.errorMessages);
-          }
           shopIds.value = res.shopIds;
           startDate.value = res.startDate;
           endDate.value = res.endDate;
-          isCompleteInvoiceReady.value = res.isCompleteInvoiceReady;
+          invoiceDisabled.value = false;
+          completeInvoiceDisabled.value = !res.isCompleteInvoiceReady;
         })
         .catch(e=> {
           console.error(e);
@@ -565,7 +533,6 @@ export default defineComponent({
         erpStatuses : ['1', '2'],
         warehouses: ['0', '1']
       }
-      console.log(`param : ${JSON.stringify(params)}`)
       defHttp.post({url: Api.makeShippingInvoice, params })
         .then(res => {
           let invoiceFilename = res.filename;
@@ -573,8 +540,6 @@ export default defineComponent({
           downloadInvoice(invoiceFilename);
           downloadDetailFile(invoiceNumber);
           invoiceLoading.value = false;
-          checkedKeys.value = [];
-          selectRows.value = [];
           shopIds.value = [];
           startDate.value = '';
           endDate.value = '';
@@ -599,7 +564,6 @@ export default defineComponent({
         erpStatuses : ['1', '2'],
         warehouses: ['0', '1']
       }
-      console.log(`param : ${JSON.stringify(params)}`)
       defHttp.post({url: Api.makeCompleteShippingInvoice, params})
         .then(res => {
           let invoiceFilename = res.filename;
@@ -607,8 +571,6 @@ export default defineComponent({
           downloadInvoice(invoiceFilename);
           downloadDetailFile(invoiceNumber);
           completeInvoiceLoading.value = false;
-          checkedKeys.value = [];
-          selectRows.value = [];
           shopIds.value = [];
           startDate.value = '';
           endDate.value = '';
@@ -642,40 +604,29 @@ export default defineComponent({
       });
     }
     function openInvoice(record) {
-      go(`/business/admin/shippingInvoice/Invoice?invoice=${record.invoiceNumber}`);
-    }
-    function onSelectChange(selectedRowKeys: (string | number)[], selectRow: any[]) {
-      console.log(`---> selected row keys : ${selectedRowKeys}`)
-      invoiceDisabled.value = selectedRowKeys.length <= 0;
-      completeInvoiceDisabled.value = !(selectedRowKeys.length > 0 && isCompleteInvoiceReady.value);
-      checkedKeys.value = selectedRowKeys;
-      selectRows.value = selectRow;
-    }
-    function getCheckboxProps(record: Recordable) {
-      return { disabled: record.id !== '0' };
+      window.open(`/business/admin/shippingInvoice/Invoice?invoice=${record.invoiceNumber}`);
     }
 
     /**
      * colorize debit and credit rows for better visibility
-     * here we decided to only colorize type and amount column
      */
     function colorizeRows() {
       let rows = document.getElementsByClassName('ant-table-row-level-0');
       [].forEach.call(rows, function(row) {
-        if(row.children[2].textContent == 'Estimation') {
+        if(row.children[0].textContent == 'Estimation') {
           for(let cell of row.children) {
             cell.style.backgroundColor = estimationColor;
           }
         }
-        if(row.children[3].textContent == 'Debit') {
-          // row.children[3].style.backgroundColor = "rgba(255, 114, 0, 0.1)";
-          // row.children[8].style.backgroundColor = "rgba(255, 114, 0, 0.1)";
-          row.children[3].style.backgroundColor = debitColor;
-          row.children[8].style.backgroundColor = debitColor;
+        if(row.children[1].textContent == 'Debit') {
+          row.children[0].style.borderLeftStyle = "solid";
+          row.children[0].style.borderLeftColor = debitColor;
+          row.children[0].style.borderLeftWidth = "5px";
         }
-        if(row.children[3].textContent == 'Credit') {
-          row.children[3].style.backgroundColor = creditColor;
-          row.children[8].style.backgroundColor = creditColor;
+        if(row.children[1].textContent == 'Credit') {
+          row.children[0].style.borderLeftStyle = "solid";
+          row.children[0].style.borderLeftColor = creditColor;
+          row.children[0].style.borderLeftWidth = "5px";
         }
         // for(let cell of row.children) {
         //   console.log(row.children[3].textContent);
@@ -689,7 +640,6 @@ export default defineComponent({
       });
       eurTableLoading.value = false;
       usdTableLoading.value = false;
-      console.log("Colorization finished.");
     }
     return {
       handleClientChange,
@@ -701,8 +651,6 @@ export default defineComponent({
       t,
       createMessage,
       internalUse,
-      access,
-      status,
       formRef,
       labelCol,
       wrapperCol,
@@ -731,11 +679,37 @@ export default defineComponent({
 })
 </script>
 
-<style>
-.ant-card {
+<style lang="less">
+@geekBlue: #1d39c4;
+@geekBlueBg : #F0F5FF;
+@lightGeekBlue : lighten(@geekBlue, 15%);
+@balancePositive : #5cc290;
+@volcano: #c73333;
+
+.jeecg-basic-table {
+  border-radius: 1em;
+  .ant-table-wrapper {
+    padding: 0 0 1em 0;
+    border-radius: 1em;
+  }
+  .ant-pagination {
+    padding: 0 1em;
+  }
+  .ant-table-tbody {
+    height: auto !important;
+  }
+}
+.ant-card.main-card {
   background-color: transparent;
-  .ant-card-body {
+  & > .ant-card-body {
     min-height: 50vh;
+  }
+}
+.ant-card.card-header {
+  margin: 10px;
+  border-radius: 1em;
+  h1 {
+    font-size: 2em;
   }
 }
 .ant-tabs-top > .ant-tabs-nav{
@@ -767,15 +741,73 @@ export default defineComponent({
     font-size: 1.5rem;
   }
   .ant-tag {
-    font-size: 1em;
     padding: 0.3em;
   }
   .invoiceToolbar {
     display: flex;
     gap: 1em;
+    padding: 1em;
+  }
+  & > * {
+    margin-right: 0;
   }
 }
 .jeecg-basic-table-header__toolbar {
   display: none;
+}
+.ant-tag {
+  border-radius: 1em;
+  &.num-tag {
+    font-size: 1em;
+  }
+}
+.balance-row {
+  display: flex;
+  justify-content: center;
+  align-items:center;
+  flex-direction: column;
+  background-color: @geekBlueBg;
+  padding: 1em 0;
+  border-radius: 0 0 10em 10em;
+  border-width: 0 1px 1px 1px;
+  margin-bottom: 1em;
+  p {
+    margin: 0;
+  }
+  h1 {
+    color: @geekBlue;
+  }
+  .balance-estimated {
+    &.ant-tag-geekblue {
+    background: @geekBlue;
+    color: @geekBlueBg;
+    }
+    &.ant-tag-volcano {
+      background-color: @volcano;
+      border-color: @volcano;
+      color: #fff;
+    }
+  }
+}
+.positive-balance {
+  color: @balancePositive;
+  font-weight: 600;
+}
+.ant-btn-primary,.ant-pagination.mini .ant-pagination-item-active {
+  border-color: @geekBlue !important;
+  background-color: @geekBlue !important;
+  color: @geekBlueBg !important;
+  &:hover {
+    background-color: @lightGeekBlue !important;
+    border-color: @lightGeekBlue !important;
+  }
+}
+.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn ,
+.ant-tabs-tab-btn:focus, .ant-tabs-tab-remove:focus, .ant-tabs-tab-btn:active, .ant-tabs-tab-remove:active,.ant-tabs-tab:hover,
+.ant-pagination.mini .ant-pagination-prev:hover a, .ant-pagination.mini .ant-pagination-next:hover a, .ant-pagination.mini .ant-pagination-item:focus a, .ant-pagination.mini .ant-pagination-item:hover a{
+  color: @geekBlue;
+}
+.ant-tabs-ink-bar {
+  background: @geekBlue;
 }
 </style>

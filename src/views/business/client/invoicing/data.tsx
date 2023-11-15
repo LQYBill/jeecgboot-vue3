@@ -47,6 +47,7 @@ export function getColumns(): BasicColumn[] {
       align: 'center',
       sorter: (a, b) => a.recipient - b.recipient,
       dataIndex: 'recipient',
+      defaultHidden: true,
     },
     {
       title: t('data.client.postCode'),

@@ -14,20 +14,18 @@ export function getColumns(): BasicColumn[] {
     {
       title: t('data.invoice.createBy'),
       align: 'center',
-      sorter: true,
       dataIndex: 'createBy',
         defaultHidden: true,
     },
     {
       title: t("data.invoice.createDate"),
       align:"center",
-      sorter: true,
       dataIndex: 'createTime',
+      slots: {customRender: 'date'},
     },
     {
       title: t('data.transaction.type'),
       align: 'center',
-      sorter: true,
       dataIndex: 'type',
       width: 70,
       slots: {customRender: 'transactionType'},
@@ -35,50 +33,38 @@ export function getColumns(): BasicColumn[] {
     {
       title: t('data.Client'),
       align: 'center',
-      sorter: true,
       dataIndex: 'clientId',
       defaultHidden: true,
     },
     {
-      title: t('data.transaction.paymentProof'),
+      title: 'Attachments',
       align: 'center',
-      sorter: true,
-      dataIndex: 'paymentProofString',
-      slots: { customRender: 'imgs' },
-    },
-    {
-      title: t('data.invoice.invoiceNumber'),
-      align: 'center',
-      sorter: true,
-      dataIndex: 'invoiceNumber',
-      slots: {customRender: 'invoiceNumber'}
+      dataIndex: 'attachments',
+      slots: {customRender: 'attachments'},
     },
     {
       title: t('data.invoice.shippingFee'),
       align: 'center',
-      sorter: false,
       dataIndex: 'shippingFee',
       slots: {customRender: 'shippingFee'},
     },
     {
       title: t('data.invoice.purchaseFee'),
       align: 'center',
-      sorter: false,
       dataIndex: 'purchaseFee',
       slots: {customRender: 'purchaseFee'},
     },
     {
       title: t('data.transaction.amount'),
       align: 'center',
-      sorter: true,
       dataIndex: 'amount',
       slots: {customRender: 'amount'},
     },
     {
       title: t('data.client.currency'),
       align: 'center',
-      sorter: true,
       dataIndex: 'currency',
+      defaultHidden: true,
     },
   ];
 }

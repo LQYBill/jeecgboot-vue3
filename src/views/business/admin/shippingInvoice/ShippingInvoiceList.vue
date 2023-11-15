@@ -91,6 +91,12 @@ const columns: BasicColumn[] = [
     dataIndex: 'createTime'
   },
   {
+    title: t("data.Client"),
+    align: "center",
+    sorter: true,
+    dataIndex: 'clientId_dictText'
+  },
+  {
     title: t("data.invoice.invoiceNumber"),
     align:"center",
     sorter: true,
@@ -115,6 +121,12 @@ const columns: BasicColumn[] = [
     title: t("data.invoice.paidAmount"),
     align:"center",
     dataIndex: 'paidAmount'
+  },
+  {
+    title: t('data.client.currency'),
+    align: "center",
+    fixed:"right",
+    dataIndex: 'currencyId_dictText'
   },
   {
     title: t('common.operation.action'),
@@ -346,5 +358,8 @@ function handleDeleteBatch() {
 <style>
 .alert.ant-alert.ant-alert-info{
   margin: 1em 0;
+}
+.ant-btn-link:hover, .ant-btn-link:focus {
+  color: red;
 }
 </style>

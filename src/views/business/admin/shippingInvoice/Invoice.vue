@@ -12,7 +12,8 @@
       </a-button>
     </div>
     <section>
-      <a-table  v-if="invoice_type === '2'"
+<!--      <a-table  v-if="invoice_type === '2'"-->
+      <a-table
                 ref='table'
                 size='middle'
                 bordered
@@ -175,10 +176,11 @@ export default defineComponent({
       };
       // on identifie le type de facture (1 : purchase, 2: shipping, 7: purchase + shipping
       invoice_type.value = getInvoiceType();
-      if(invoice_type.value == null || invoice_type.value !== '2') {
-        createMessage.error("Access refused : Invalid type.")
-        return;
-      }
+      // TODO : gérer les complete invoice
+      // if(invoice_type.value == null || invoice_type.value !== '2') {
+      //   createMessage.error("Access refused : Invalid type.")
+      //   return;
+      // }
       defHttp.get({url: Api.invoiceData, params: param}).then(res=>{
         if(res !== null) {
           downloadReady.value = true;
@@ -257,7 +259,7 @@ export default defineComponent({
             final_total_euro.value -= res.discount;
             index.value+=1;
           }
-
+          final_total_euro.value = Number(final_total_euro.value.toFixed(2));
           if(currency.value !== "EUR") {
             final_total_customer_curr.value = res.finalAmount;
           }
@@ -339,7 +341,11 @@ export default defineComponent({
 })
 </script>
 
-<style scoped>
+<style scoped lang="less">
+
+@geekBlue: #1d39c4;
+@geekBlueBg : #F0F5FF;
+@lightGeekBlue : lighten(@geekBlue, 15%);
 .table-operator {
   display: flex;
   justify-content: flex-start;
@@ -354,5 +360,15 @@ h2.center, div.center {
 .ant-table-footer h2, .ant-table-title h2{
   margin: 0;
   font-size: 1.3rem;
+}
+
+.ant-btn-primary,.ant-pagination.mini .ant-pagination-item-active {
+  border-color: @geekBlue !important;
+  background-color: @geekBlue !important;
+  color: @geekBlueBg !important;
+  &:hover {
+    background-color: @lightGeekBlue !important;
+    border-color: @lightGeekBlue !important;
+  }
 }
 </style>

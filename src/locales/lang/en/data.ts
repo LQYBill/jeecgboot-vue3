@@ -6,10 +6,11 @@ export default {
   transaction: {
     accountTransactions: "Account Transactions",
     amount: "Amount",
-    paymentProof: "Payment Proof",
-    type: "Type",
+    attachments: "Attachments",
     credit: "Credit",
     debit: "Debit",
+    paymentProof: "Payment Proof",
+    type: "Type",
   },
   client: {
     familyName: "Last Name",
