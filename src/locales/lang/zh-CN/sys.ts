@@ -26,6 +26,11 @@ export default {
     executionFailed : '执行失败',
     syncOrderJobNotFound: '未找到同步订单任务',
     syncRequestSubmitted: "订单同步请求已提交，完成后系统会发送通知，请稍后",
+
+    entryAddSuccess: '添加成功！',
+    entryEditSuccess: '编辑成功!',
+    entryDeleteSuccess: '删除成功!',
+    entryBatchDeleteSuccess: '批量删除成功!',
   },
   app: { logoutTip: '温馨提醒', logoutMessage: '是否确认退出系统?', menuLoading: '菜单加载中...' },
   errorLog: {

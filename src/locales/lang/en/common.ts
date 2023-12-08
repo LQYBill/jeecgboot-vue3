@@ -1,4 +1,6 @@
 export default {
+  available: 'Available',
+  unavailable: 'Unavailable',
   yes: 'Yes',
   no: 'No',
   okText: 'OK',
@@ -78,6 +80,7 @@ export default {
     yearly: 'yearly',
   },
   status: {
+    status: 'Status',
     notSpecified: 'Not Specified',
     loadingText: 'Loading...',
   }

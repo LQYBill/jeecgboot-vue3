@@ -1,4 +1,6 @@
 export default {
+  available: '可用',
+  unavailable: '不可用',
   yes: '是',
   no: '否',
   okText: '确认',
@@ -78,6 +80,7 @@ export default {
     yearly: '年',
   },
   status: {
+    status: '状态',
     notSpecified: '未填写',
     loadingText: '加载中...',
   }

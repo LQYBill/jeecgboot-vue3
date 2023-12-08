@@ -24,8 +24,13 @@ export default {
     registerMsg: 'Registration success',
 
     executionFailed : 'Execution failed',
-      syncOrderJobNotFound: 'Order Sync job not found !',
+    syncOrderJobNotFound: 'Order Sync job not found !',
     syncRequestSubmitted: "The order synchronization request has been submitted, the system will send a notification after completion, please wait",
+
+    entryAddSuccess: 'Entry added successfully !',
+    entryEditSuccess: 'Entry edited successfully !',
+    entryDeleteSuccess: 'Entry deleted successfully !',
+    entryBatchDeleteSuccess: 'Entries deleted successfully !',
   },
   app: {
     logoutTip: 'Reminder',

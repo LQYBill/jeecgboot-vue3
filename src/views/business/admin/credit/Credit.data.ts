@@ -80,7 +80,12 @@ export const formSchema: FormSchema[] = [
     label: t('data.transaction.paymentProof'),
     field: 'paymentProofString',
     component: 'JImageUpload',
-    componentProps: {},
+    componentProps: {
+      fileMax: 1,
+      listType : 'picture',
+      text: t('component.upload.upload'),
+      bizPath: 'credit/screenshots',
+    },
     dynamicRules: ({model, schema}) => {
       return [
         {required: true, message: t('component.searchForm.proofInput')},

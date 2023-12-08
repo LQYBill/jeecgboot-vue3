@@ -33,7 +33,7 @@
         <a-tab-pane tab="EUR" key="1">
           <BasicTable @register="registerTable">
             <template #tableTitle>
-              <div style="width: 100%">
+              <div style="width: 100%" v-if="client.category != 'self-service'">
                 <a-row class="balance-row">
                   <p>
                     {{ t('data.client.accountBalance') }} :
@@ -127,7 +127,7 @@
         <a-tab-pane tab="USD" key="2" forceRender>
           <BasicTable @register="registerUSDTable">
             <template #tableTitle>
-              <div style="width: 100%;">
+              <div style="width: 100%;" v-if="client.category != 'self-service'">
                 <a-row class="balance-row">
                   <p>
                     {{ t('data.client.accountBalance') }} :
@@ -251,7 +251,8 @@ export default defineComponent({
   methods: {dayjs},
   components: {
     JSearchSelect,
-    TableImg, Tag, PopConfirmButton, PageWrapper, BasicTable},
+    TableImg, Tag, PopConfirmButton, PageWrapper, BasicTable
+  },
   setup() {
     const { t } = useI18n();
     const { createMessage } = useMessage();
@@ -423,6 +424,8 @@ export default defineComponent({
     }
     function loadClient(clientParam: any) {
       client.value = clientParam;
+      client.value["category"] = client.value.clientCategoryId;
+      delete client.value['clientCategoryId'];
       currency.value = client.value.currency;
       fullName.value = `${client.value.firstName} ${client.value.surname}`
       invoiceEntity.value = client.value.invoiceEntity;
@@ -435,7 +438,8 @@ export default defineComponent({
       if(currency.value === 'RMB') {
         currencySymbol.value = "¥";
       }
-      loadBalance();
+      if(client.value.category != 'self-service')
+        loadBalance();
       loadTransactions("EUR");
     }
     function loadBalance() {
@@ -454,8 +458,8 @@ export default defineComponent({
           console.error(e);
         })
     }
+    // TODO : implémenter l'affichage des factures d'achat manuels
     function loadTransactions(currency) {
-      // TODO change
       const params = {
         clientId: client.value.id,
         currency: currency
@@ -469,7 +473,11 @@ export default defineComponent({
           }
           else {
             transactionsUsd.value = res;
-            loadDebit(client.value.currency);
+            if(client.value.category != 'self-service')
+              loadDebit(client.value.currency);
+            else {
+              colorizeRows();
+            }
           }
         })
         .catch(e => {

@@ -3,7 +3,7 @@
     <a-card>
       <a-form ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
         <a-row>
-          <a-col :span="5">
+          <a-col :span="6">
             <a-form-item
               :labelCol="labelCol"
               :wrapperCol="wrapperCol"
@@ -30,16 +30,27 @@
         <a-row>
           <a-card
             :bordered='false'
-            :title='t("data.invoice.shippingFeesEstimationForSelectedOrders")'
+            :title='t("data.invoice.estimatedFeesForSelectedOrders")'
             :loading='!estimatesReady'
             style="width: 100%">
             <div class="cardGridContainer">
-              <p class="mt-4" style="width: 100%" v-if='shippingFeesEstimates.length === 0'>{{t("data.invoice.noOrdersSelected")}}</p>
-              <template v-for='item in shippingFeesEstimates' style='width:20%;text-align:center'>
+              <p class="mt-4" style="width: 100%" v-if='estimation.length === 0'>{{t("data.invoice.noOrdersSelected")}}</p>
+              <template v-for='item in estimation' style='width:20%;text-align:center'>
                 <div class="fee-card">
                   <div class="flex flex-col items-center head-info">
-                    <span class="text-md mt-2">{{item.shop}}</span>
-                    <p class="text-md mt-2">{{item.dueForProcessedOrders}} €</p>
+                    <h1 class="text-md mt-2">{{item.shop}}</h1>
+                    <div class="flex justify-between w-full">
+                      <span class="text-md mt-2">{{ t('data.invoice.shippingFee')}} : </span>
+                      <span class="text-md mt-2">{{item.shippingFeesEstimation}} €</span>
+                    </div>
+                    <div class="flex justify-between w-full">
+                      <span class="text-md mt-2">{{ t('data.invoice.purchaseFee')}} : </span>
+                      <span class="text-md mt-2">{{item.purchaseEstimation}} €</span>
+                    </div>
+                    <div class="flex justify-between w-full">
+                      <span class="text-md mt-2">{{ t('data.invoice.total')}} : </span>
+                      <span class="text-md mt-2">{{item.totalEstimation}} €</span>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -51,21 +62,56 @@
         <template #tableTitle>
           <PopConfirmButton
             type="warning"
-            title="Confirm making invoice ?"
-            preIcon="ant-design:edit-outlined"
-            @confirm="makeManualInvoice"
-            :disabled="makeManualInvoiceDisabled"
-            okText="ok" :loading="makeManualInvoiceLoading"
+            title="Confirm making shipping invoice ?"
+            preIcon="ant-design:rocket-outlined"
+            @confirm="makeManualShippingInvoice"
+            :disabled="makeShippingDisabled"
+            okText="ok" :loading="makeShippingLoading"
             cancelText="Cancel"
           >
-            {{ t("data.invoice.generateInvoice") }}
+            {{ t("data.invoice.generateShippingInvoice") }}
+          </PopConfirmButton>
+          <PopConfirmButton
+            type="warning"
+            title="Confirm making purchase invoice ?"
+            preIcon="ant-design:shopping-outlined"
+            @confirm="makeManualPurchaseInvoice"
+            :disabled="makePurchaseDisabled"
+            okText="ok" :loading="makePurchaseLoading"
+            cancelText="Cancel"
+          >
+            {{ t("data.invoice.generatePurchaseInvoice") }}
+          </PopConfirmButton>
+          <PopConfirmButton
+            type="warning"
+            title="Confirm making purchase and shipping invoice ?"
+            preIcon="ant-design:calculator-outlined"
+            @confirm="makeCompleteManualInvoice"
+            :disabled="makeCompleteDisabled"
+            okText="ok" :loading="makeCompleteLoading"
+            cancelText="Cancel"
+          >
+            {{ t("data.invoice.generateInvoice7pre") }}
           </PopConfirmButton>
         </template>
         <template v-slot:productAvailability="record">
+          <Badge
+            :status="record.record.productAvailable === '1' ? 'success' : record.record.productAvailable === '2' ? 'processing' : 'error'"
+            :text="record.record.productAvailable === '1' ? t('data.order.inStock') : record.record.productAvailable === '2' ? t('data.order.ordered') : t('data.order.outOfStock')"
+          />
+        </template>
+        <template v-slot:shippingAvailability="record">
           <Tag
-            :color="record.record.productAvailable === '1' ? 'green' : 'volcano'"
+            :color="record.record.shippingAvailable === 'OK' ? 'green' : 'volcano'"
           >
-            {{ record.record.productAvailable=== '1' ? t("data.order.inStock") : t("data.order.outOfStock") }}
+            {{ record.record.shippingAvailable === 'OK' ? t("common.available") : t("common.unavailable") }}
+          </Tag>
+        </template>
+        <template v-slot:purchaseAvailability="record">
+          <Tag
+            :color="record.record.productAvailable === '1' || record.record.productAvailable === '2' || record.record.purchaseInvoiceNumber != null ? 'blue' : record.record.purchaseAvailable === 'OK' ? 'green' : 'volcano'"
+          >
+            {{ record.record.productAvailable === '1' || record.record.productAvailable === '2' || record.record.purchaseInvoiceNumber != null ? t("data.invoice.paid") : record.record.purchaseAvailable === 'OK' ? t("common.available") : t("common.unavailable") }}
           </Tag>
         </template>
       </BasicTable>
@@ -83,7 +129,7 @@ import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
 import {getColumns} from "/@/views/business/client/invoicing/data";
 import {defHttp} from "/@/utils/http/axios";
 import JSelectMultiple from "/@/components/Form/src/jeecg/components/JSelectMultiple.vue";
-import {Card, Col, Form, Row, Tag} from "ant-design-vue";
+import {Badge, Card, Col, Form, Row, Tag} from "ant-design-vue";
 import dayjs from "dayjs";
 import {downloadFile} from "/@/api/common/api";
 import {PopConfirmButton} from "/@/components/Button";
@@ -110,9 +156,11 @@ const { resetFields, validate, validateInfos } = useForm(formState, validatorRul
 const Api = {
   getClient: "/userClient/getClient",
   getShops: "/shippingInvoice/shopsByClient",
-  getOrders: "/shippingInvoice/preShipping/orderByShops",
-  estimateShippingFees: '/shippingInvoice/estimate',
-  makeManualInvoice: "/shippingInvoice/makeManualInvoice",
+  getOrders: "/shippingInvoice/preShipping/ordersStatusByShops",
+  selfEstimateFees: '/shippingInvoice/selfEstimateFees',
+  makeManualShippingInvoice: "/shippingInvoice/makeManualInvoice",
+  makeManualPurchaseInvoice: "/shippingInvoice/makeManualPurchaseInvoice",
+  makeCompleteManualInvoice: "/shippingInvoice/makeManualComplete",
   downloadInvoice: "/shippingInvoice/download",
   downloadInvoiceDetail: "/shippingInvoice/downloadInvoiceDetail",
 }
@@ -120,27 +168,32 @@ const Api = {
 const client = ref();
 
 const orderList = ref<any[]>([]);
+const ordersAndStatusList = ref<any[]>([]);
 const shopList = ref<any[]>([]);
 
 const selectedShopIds = ref<any[]>([]);
 
 const searchDisabled = ref<boolean>(true);
 const shopDisabled = ref<boolean>(false);
-const makeManualInvoiceDisabled = ref<boolean>(true);
-const makeManualInvoiceLoading = ref<boolean>(false);
+const makeShippingDisabled = ref<boolean>(true);
+const makeShippingLoading = ref<boolean>(false);
+const makePurchaseDisabled = ref<boolean>(true);
+const makePurchaseLoading = ref<boolean>(false);
+const makeCompleteDisabled = ref<boolean>(true);
+const makeCompleteLoading = ref<boolean>(false);
 
 const estimatesReady = ref<boolean>(true);
-const shippingFeesEstimates = ref<any[]>([]);
+const estimation = ref<any[]>([]);
 
 const expandedRowKeys = ref<any[]>([]);
 const iSorter = ref({
-  column: 'shopId',
-  order: 'desc'
+  field: 'shopId',
+  order: 'ascend'
 });
 let ipagination = ref({
   current: 1,
-  defaultPageSize: 100,
-  pageSize: 100,
+  defaultPageSize: 50,
+  pageSize: 50,
   pageSizeOptions: ['50', '100', '200', '500'],
   showTotal: (total, range) => {
     return range[0] + '-' + range[1] + ' / ' + total
@@ -160,11 +213,12 @@ const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, getSelectRo
     getCheckboxProps: getCheckboxProps
   },
   pagination: ipagination,
-  defSort: iSorter.value,
+  defSort: iSorter,
   bordered: false,
   striped: true,
   clickToRowSelect: true,
   showIndexColumn: true,
+  ellipsis: false,
   indexColumnProps: {
     width: 60,
     title: "#"
@@ -178,7 +232,6 @@ function checkUser() {
   shopDisabled.value = true;
   defHttp.get({url: Api.getClient})
     .then(res => {
-      console.log(res);
       if(res.internal) {
         console.log('internal use');
       }
@@ -196,12 +249,12 @@ function checkUser() {
     });
 }
 function loadShopList(clientId) {
+  clearSelectedRowKeys();
   defHttp.get({url : Api.getShops, params: {clientID: clientId}})
     .then(res => {
-
       shopList.value = res.map(
         shop => ({
-          label: shop.erpCode,
+          label: shop.name,
           value: shop.id,
         })
       );
@@ -212,23 +265,62 @@ function loadShopList(clientId) {
 }
 function handleShopChange(shops) {
   // value returned is array of shop
+  clearSelectedRowKeys();
   selectedShopIds.value = shops;
-  console.log(shops);
   if (selectedShopIds.value.length === 0) {
-    makeManualInvoiceDisabled.value = true;
+    makeCompleteDisabled.value = true;
     searchDisabled.value = true;
     orderList.value = [];
+    ordersAndStatusList.value = [];
   }
   else {
     searchDisabled.value = false;
   }
 }
 function loadOrders() {
+  clearSelectedRowKeys();
   setLoading(true);
   defHttp.get({url : Api.getOrders, params: {shopIds: selectedShopIds.value}})
     .then(res => {
       console.log(res);
-      orderList.value = res.records;
+      ordersAndStatusList.value = res.records;
+      res.records.map(
+        (entry) => {
+          // console.log(JSON.stringify(entry));
+          entry.left.shippingAvailable = entry.middle;
+          entry.left.purchaseAvailable = entry.right;
+          // console.log(JSON.stringify(entry.left));
+          orderList.value.push(entry.left);
+        }
+      );
+      // orderList.value.push({
+      //   shopId                : "Roll'ins",
+      //   platformOrderNumber   : "RI123456",
+      //   orderTime             : "2023-09-30 11:59:44",
+      //   shippingTime          : null,
+      //   country               : "France",
+      //   fretFee               : null,
+      //   orderServiceFee       : null,
+      //   shippingInvoiceNumber : null,
+      //   productAvailable      : "1",
+      //   shippingAvailable     : "Error : Test",
+      //   purchaseAvailable     : "Error : Test"
+      // });
+      // orderList.value.push({
+      //   shopId                : "Roll'ins",
+      //   platformOrderNumber   : "RI654321",
+      //   orderTime             : "2023-09-30 19:59:44",
+      //   shippingTime          : null,
+      //   country               : "France",
+      //   fretFee               : null,
+      //   orderServiceFee       : null,
+      //   shippingInvoiceNumber : null,
+      //   productAvailable      : "1",
+      //   shippingAvailable     : "Error : Test",
+      //   purchaseAvailable     : "OK"
+      // });
+      console.log("orderList : ");
+      console.log(JSON.stringify(orderList.value));
     })
     .catch(e => {
       console.error(e);
@@ -237,7 +329,80 @@ function loadOrders() {
       setLoading(false)
     });
 }
-function makeManualInvoice() {
+function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
+  estimatesReady.value = false;
+  makeShippingDisabled.value = true;
+  makePurchaseDisabled.value = true;
+  makeCompleteDisabled.value = true;
+  if(selectedRowKeys.length == 0) {
+    return;
+  }
+  // deactivate undesired checked keys and buttons
+  let uncheckableRowKeys:any[] = [];
+  let shippingInvoiceAvailable = true;
+  let purchaseInvoiceAvailable = true;
+  for(let row of selectionRows){
+    if(row.shippingAvailable != 'OK' && row.purchaseAvailable != 'OK') {
+      // console.log(row.id);
+      uncheckableRowKeys.push(row.id);
+    }
+    if(row.shippingAvailable != 'OK')
+      shippingInvoiceAvailable = false;
+    if(row.purchaseAvailable != 'OK')
+      purchaseInvoiceAvailable = false;
+    if(row.productAvailable == '1')
+      purchaseInvoiceAvailable = false;
+  }
+  makeShippingDisabled.value = !shippingInvoiceAvailable;
+  makePurchaseDisabled.value = !purchaseInvoiceAvailable;
+  makeCompleteDisabled.value = !(shippingInvoiceAvailable && purchaseInvoiceAvailable);
+
+  for(let idx of uncheckableRowKeys) {
+    let index = selectedRowKeys.indexOf(idx);
+    selectedRowKeys.splice(index, 1);
+  }
+  let param = {
+    clientID: client.value.id,
+    orderIds: getSelectRowKeys(),
+    type: "preshipping",
+  };
+  console.log(param);
+  defHttp.post({url: Api.selfEstimateFees, params: param})
+    .then(
+      res => {
+        console.log(res);
+        estimation.value = [];
+        for(let shop in res) {
+          console.log(`shop : ${shop}`);
+          console.log(`shop data : ${JSON.stringify(res[shop])}`);
+          let shopName = getShopName(shop);
+          // console.log(shopName);
+          let shopEstimation = res[shop];
+          shopEstimation.shop = shopName;
+          estimation.value.push(shopEstimation);
+        }
+        console.log(`Estimation : ${JSON.stringify(estimation.value)}`);
+        estimatesReady.value = true;
+      }
+    ).catch(e => {
+      console.error(e);
+    });
+}
+function getShopName(shopId: string) {
+  for(let shopDict of shopList.value) {
+    if(shopDict.value == shopId) {
+      return shopDict.label;
+    }
+  }
+}
+function getCheckboxProps(record: Recordable) {
+  if (record.shippingAvailable != 'OK' && record.purchaseAvailable != 'OK') {
+    return { disabled: true };
+  } else {
+    return { disabled: false };
+  }
+}
+function getPeriod() {
   let tmpStart = dayjs(getSelectRows()[0].orderTime);
   let start = getSelectRows()[0].orderTime.slice(0, -9);
   let tmpEnd = dayjs(getSelectRows()[0].orderTime);
@@ -252,23 +417,31 @@ function makeManualInvoice() {
       end = order.orderTime.slice(0, -9);
     }
   }
+  end = dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
   console.log(`START : ${start} -->${JSON.stringify(tmpStart)}`);
   console.log(`END : ${end} --> ${JSON.stringify(tmpEnd)}`);
-  const period = start + ',' + dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
-
+  return {
+    start: start,
+    end: end,
+  }
+}
+function makeManualShippingInvoice() {
+  let period = getPeriod();
   const params = {
     clientID: client.value.id,
     orderIds: getSelectRowKeys(),
     type: "pre-shipping",
-    period: [period],
+    start: period.start,
+    end: period.end,
   };
-  console.log(`params : ${JSON.stringify(params)}`);
   shopDisabled.value = true;
   searchDisabled.value = true;
-  makeManualInvoiceDisabled.value = true;
+  makeShippingDisabled.value = true;
+  makePurchaseDisabled.value = true;
+  makeCompleteDisabled.value = true;
   setLoading(true);
-  makeManualInvoiceLoading.value = true;
-  defHttp.post({url: Api.makeManualInvoice, params})
+  makeShippingLoading.value = true;
+  defHttp.post({url: Api.makeManualShippingInvoice, params})
     .then(res => {
       createMessage.success("Orders have been invoiced successfully");
       console.log(`res : ${JSON.stringify(res)}`);
@@ -286,7 +459,84 @@ function makeManualInvoice() {
       shopDisabled.value = true;
       searchDisabled.value = true;
       loadOrders();
-      makeManualInvoiceLoading.value = false;
+      makeShippingLoading.value = false;
+    });
+
+}
+function makeManualPurchaseInvoice() {
+  let period = getPeriod();
+  const params = {
+    clientID: client.value.id,
+    orderIds: getSelectRowKeys(),
+    type: "pre-shipping",
+    start: period.start,
+    end: period.end,
+  };
+  shopDisabled.value = true;
+  searchDisabled.value = true;
+  makeShippingDisabled.value = true;
+  makePurchaseDisabled.value = true;
+  makeCompleteDisabled.value = true;
+  setLoading(true);
+  makePurchaseLoading.value = true;
+  defHttp.post({url: Api.makeManualPurchaseInvoice, params})
+    .then(res => {
+      createMessage.success("Orders have been invoiced successfully");
+      console.log(`res : ${JSON.stringify(res)}`);
+
+      let filename = res.filename;
+      let code = res.invoiceCode;
+      downloadInvoice(filename);
+      downloadDetailFile(code);
+
+    })
+    .catch(e => {
+      console.error(e);
+    })
+    .finally(() => {
+      clearSelectedRowKeys();
+      shopDisabled.value = true;
+      searchDisabled.value = true;
+      loadOrders();
+      makePurchaseLoading.value = false;
+    });
+}
+function makeCompleteManualInvoice() {
+  let period = getPeriod();
+  const params = {
+    clientID: client.value.id,
+    orderIds: getSelectRowKeys(),
+    type: "pre-shipping",
+    start: period.start,
+    end: period.end,
+  };
+  console.log(`params : ${JSON.stringify(params)}`);
+  shopDisabled.value = true;
+  searchDisabled.value = true;
+  makeShippingDisabled.value = true;
+  makePurchaseDisabled.value = true;
+  makeCompleteDisabled.value = true;
+  setLoading(true);
+  makeCompleteLoading.value = true;
+  defHttp.post({url: Api.makeCompleteManualInvoice, params})
+    .then(res => {
+      createMessage.success("Orders have been invoiced successfully");
+      console.log(`res : ${JSON.stringify(res)}`);
+
+      let filename = res.filename;
+      let code = res.invoiceCode;
+      downloadInvoice(filename);
+      downloadDetailFile(code);
+    })
+    .catch(e => {
+      console.error(e);
+    })
+    .finally(() => {
+      clearSelectedRowKeys();
+      shopDisabled.value = true;
+      searchDisabled.value = true;
+      loadOrders();
+      makeCompleteLoading.value = false;
     });
 }
 function downloadInvoice(invoiceFilename) {
@@ -312,55 +562,32 @@ function downloadDetailFile(invoiceNumber) {
     console.error(`Download invoice detail fail : ${e}`);
   });
 }
-function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
-  estimatesReady.value = false;
-  if(selectedRowKeys.length == 0) {
-    makeManualInvoiceDisabled.value = true;
-  }
-  else {
-    // deactivate undesired checked keys
-    let uncheckableRowKeys:any[] = [];
-    for(let row of selectionRows){
-      if(!(!!row.logisticChannelName || !!row.invoiceLogisticChannelName)) {
-        // console.log(row.id);
-        uncheckableRowKeys.push(row.id);
-      }
-    }
-    for(let idx of uncheckableRowKeys) {
-      let index = selectedRowKeys.indexOf(idx);
-      selectedRowKeys.splice(index, 1);
-    }
-    let param = {
-      clientID: client.value.id,
-      orderIds: getSelectRowKeys(),
-      type: "preshipping",
-    };
-    defHttp.post({url: Api.estimateShippingFees, params: param})
-      .then(
-        res => {
-          shippingFeesEstimates.value = res;
-          estimatesReady.value = true;
-          makeManualInvoiceDisabled.value = false;
-        }
-      ).catch(e => {
-      console.error(e);
-    });
-    // makeManualInvoiceDisabled.value = false;
-  }
-}
-function getCheckboxProps(record: Recordable) {
-  if (!!record.logisticChannelName || !!record.invoiceLogisticChannelName) {
-    return { disabled: false };
-  } else {
-    return { disabled: true };
-  }
-}
-
 </script>
-<style>
+<style lang="less">
+@geekBlue: #1d39c4;
+@geekBlueBg : #F0F5FF;
+@lightGeekBlue : lighten(@geekBlue, 15%);
+@balancePositive : #5cc290;
+@volcano: #c73333;
+
+.ant-btn-primary,.ant-pagination.mini .ant-pagination-item-active {
+  border-color: @geekBlue !important;
+  background-color: @geekBlue !important;
+  color: @geekBlueBg !important;
+  &:hover {
+    background-color: @lightGeekBlue !important;
+    border-color: @lightGeekBlue !important;
+  }
+}
 .ant-checkbox-disabled .ant-checkbox-inner{
   background-color: #fff2e8;
   border-color: #ffbb96!important;
+}
+.ant-tag {
+  border-radius: 1em;
+  &.num-tag {
+    font-size: 1em;
+  }
 }
 .cardGridContainer {
   display: flex;
