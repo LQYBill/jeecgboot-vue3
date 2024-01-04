@@ -271,7 +271,7 @@ export default defineComponent({
       });
     }
     function resetTask() {
-      defHttp.get({ url: Api.resetTask, params: {task : 'BI'} })
+      defHttp.get({ url: Api.resetTask, params: {task : 'SI_G'} })
         .then(res => {
 
         })

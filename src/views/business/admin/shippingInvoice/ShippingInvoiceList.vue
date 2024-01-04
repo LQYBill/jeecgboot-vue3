@@ -5,7 +5,7 @@
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('detail')" :disabled = 'downloadDetailDisabled'> {{ t("data.invoice.downloadDetails") }}</a-button>
         <PopConfirmButton
-            v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin' || username === 'Gauthier')"
+            v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin')"
             type="error"
             title="Confirm making invoice ?"
             preIcon="ant-design:delete-outlined"
