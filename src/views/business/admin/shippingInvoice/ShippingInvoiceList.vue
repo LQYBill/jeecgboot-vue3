@@ -7,7 +7,7 @@
         <PopConfirmButton
             v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin')"
             type="error"
-            title="Confirm making invoice ?"
+            title="Confirm deleting invoice ?"
             preIcon="ant-design:delete-outlined"
             @confirm="handleDeleteBatch"
             :disabled="deleteBatchDisabled"
