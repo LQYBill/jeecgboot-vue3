@@ -1,4 +1,6 @@
 export default {
+  available: '可用',
+  unavailable: '不可用',
   yes: '是',
   no: '否',
   okText: '确认',
@@ -53,6 +55,7 @@ export default {
     close: '关闭',
     delete: "删除",
     deleteConfirmation: "确定要删除吗？",
+    deleteBatchConfirmation: "是否删除选中数据",
     details: "详情",
     download: "下载",
     edit: "编辑",
@@ -78,6 +81,7 @@ export default {
     yearly: '年',
   },
   status: {
+    status: '状态',
     notSpecified: '未填写',
     loadingText: '加载中...',
   }

@@ -1,4 +1,6 @@
 export default {
+  available: 'Available',
+  unavailable: 'Unavailable',
   yes: 'Yes',
   no: 'No',
   okText: 'OK',
@@ -53,6 +55,7 @@ export default {
     close: 'Close',
     delete: "Delete",
     deleteConfirmation: "Are you sure you want to delete ?",
+    deleteBatchConfirmation: "Are you sure you want to delete selected data ?",
     details: "Details",
     download: "Download",
     edit: "Edit",
@@ -78,6 +81,7 @@ export default {
     yearly: 'yearly',
   },
   status: {
+    status: 'Status',
     notSpecified: 'Not Specified',
     loadingText: 'Loading...',
   }

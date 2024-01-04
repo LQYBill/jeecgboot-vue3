@@ -28,7 +28,7 @@
     <a-card>
       <a-form ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
         <a-row :class="[step == 0 ? 'focus' : '']">
-          <a-col :span="9">
+          <a-col :span="24">
             <a-form-item
               :labelCol="{span: 5}"
               :wrapperCol="{span: 24}"
@@ -1171,7 +1171,12 @@ function downloadInvoice(invoiceFilename) {
   });
 }
 function downloadDetailFile(invoiceNumber) {
-  const param = {invoiceNumber: invoiceNumber, invoiceEntity: customerInfo.value?.invoiceEntity}
+  const param =
+    {
+      invoiceNumber: invoiceNumber,
+      invoiceEntity: customerInfo.value?.invoiceEntity,
+      internalCode: customerInfo.value?.internalCode
+    }
   let now = dayjs().format("YYYYMMDD");
   let detailFilename = customerInfo.value?.internalCode + "_(" + customerInfo.value?.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
   downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {

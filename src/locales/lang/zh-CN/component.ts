@@ -58,6 +58,9 @@ export default {
   },
   searchForm: {
     //placeholder
+    amountInput: '请输入金额',
+    currencyInputSearch: '请选择货币',
+    proofInput: '请提供付款证明',
     enterInvoiceNumber: '请输入发票号',
     clientInputSearch: "请输入客户进行搜索",
     shopFilter: "按店铺查看",
@@ -157,5 +160,11 @@ export default {
 
     dragText: '请按住滑块拖动',
     successText: '验证通过',
+
+    wrongInvoiceNumberFormat: '格式错误 : YYYY-MM-XXXX',
   },
+  tips : {
+    orderNumberSplitComma: '订单号用逗号分开',
+  },
+  advancedSearch: "Advanced Search",
 };

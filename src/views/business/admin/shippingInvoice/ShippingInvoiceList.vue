@@ -5,15 +5,15 @@
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('detail')" :disabled = 'downloadDetailDisabled'> {{ t("data.invoice.downloadDetails") }}</a-button>
         <PopConfirmButton
-          v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin' || username === 'Gauthier')"
-          type="error"
-          title="Confirm cancelling invoices ?"
-          preIcon="ant-design:delete-outlined"
-          @confirm="handleDeleteBatch"
-          :disabled="deleteBatchDisabled"
-          :okText="t('common.operation.delete')"
-          :loading="deleteBatchLoading"
-          :cancelText="t('common.operation.cancel')"
+            v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin')"
+            type="error"
+            title="Confirm cancelling invoice ?"
+            preIcon="ant-design:delete-outlined"
+            @confirm="handleDeleteBatch"
+            :disabled="deleteBatchDisabled"
+            :okText="t('common.operation.delete')"
+            :loading="deleteBatchLoading"
+            :cancelText="t('common.operation.cancel')"
         >
           {{ t("common.operation.delete") }}
         </PopConfirmButton>
@@ -91,6 +91,12 @@ const columns: BasicColumn[] = [
     dataIndex: 'createTime'
   },
   {
+    title: t("data.Client"),
+    align: "center",
+    sorter: true,
+    dataIndex: 'clientId_dictText'
+  },
+  {
     title: t("data.invoice.invoiceNumber"),
     align:"center",
     sorter: true,
@@ -115,6 +121,12 @@ const columns: BasicColumn[] = [
     title: t("data.invoice.paidAmount"),
     align:"center",
     dataIndex: 'paidAmount'
+  },
+  {
+    title: t('data.client.currency'),
+    align: "center",
+    fixed:"right",
+    dataIndex: 'currencyId_dictText'
   },
   {
     title: t('common.operation.action'),
@@ -346,5 +358,8 @@ function handleDeleteBatch() {
 <style>
 .alert.ant-alert.ant-alert-info{
   margin: 1em 0;
+}
+.ant-btn-link:hover, .ant-btn-link:focus {
+  color: red;
 }
 </style>
