@@ -55,6 +55,7 @@ export default {
     close: 'Close',
     delete: "Delete",
     deleteConfirmation: "Are you sure you want to delete ?",
+    deleteBatchConfirmation: "Are you sure you want to delete selected data ?",
     details: "Details",
     download: "Download",
     edit: "Edit",

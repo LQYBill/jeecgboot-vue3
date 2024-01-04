@@ -2,6 +2,7 @@ import {BasicColumn} from '/@/components/Table';
 import {FormSchema} from '/@/components/Table';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
+import {duplicateInvoiceNumberCheck} from "/@/views/business/admin/purchasing/PurchaseOrder.api";
 
 const {t} = useI18n();
 const {createMessage} = useMessage();
@@ -130,6 +131,32 @@ export const formSchema: FormSchema[] = [
     label: t('data.invoice.invoiceNumber'),
     field: 'invoiceNumber',
     component: 'Input',
+    dynamicRules: ({model, schema}) => {
+      return [
+        {
+          required: false,
+          validator: (_, value) => {
+            if(!value)
+              return Promise.resolve();
+            if (!/^[0-9]{4}-[0-1][0-9]-[127][0-9]{3}$/g.test(value)) {
+              return Promise.reject(t('component.verify.wrongInvoiceNumberFormat'));
+            }
+            return new Promise((resolve, reject) => {
+              let params = {
+                invoiceNumber: value,
+              };
+              duplicateInvoiceNumberCheck(params)
+                .then(() => {
+                  resolve();
+                })
+                .catch((err) => {
+                  reject(err.message);
+                });
+            });
+          },
+        },
+      ];
+    }
   },
   {
     label: t('common.status.status'),
@@ -166,9 +193,10 @@ export const formSchema: FormSchema[] = [
     label: t('data.invoice.platformOrderID'),
     field: 'platformOrderId',
     component: 'InputTextArea',
+    helpMessage: [t('component.tips.orderNumberSplitComma')],
     componentProps: {
-      placeholder: '1234567890',
-    }
+      placeholder: '1234567890, 234567891, ...',
+    },
   },
   // TODO 主键隐藏字段，目前写死为ID
   {
@@ -194,7 +222,6 @@ export function getBpmFormSchema(_formData): FormSchema[] {
  * @param file
  */
 export function beforeUpload(file) {
-  console.log(`=== Upload file type : ${file.type}`);
   let validExts = [
     'text/csv',
     'application/vnd.ms-excel', // .xls
@@ -207,22 +234,9 @@ export function beforeUpload(file) {
   }
 }
 export function listFormatting(values:string) {
-/*
- "123""456645"
-'456'"4564"
-'12455456'
-
-1234564
-454645    456456
-4'46'4
-5757661446491
-5757658267995
-test string
- */
   let res = values.replace(/['"]/gm,"\n");
   res = res.replace(/[\n\s]+/gm, ",");
   res = res.replace(/(,{2,})/g, ",");
   res = res.replace(/(^,)|(,$)/g, "");
-  console.log(`res : ${res}`);
   return res;
 }

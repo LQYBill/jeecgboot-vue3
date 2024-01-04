@@ -156,9 +156,16 @@ export default {
   verify: {
     error: 'verification failed！',
     time: 'The verification is successful and it takes {time} seconds！',
+
     redoTip: 'Click the picture to refresh',
+
     dragText: 'Hold down the slider and drag',
     successText: 'Verified',
+
+    wrongInvoiceNumberFormat: 'Wrong format : YYYY-MM-XXXX',
+  },
+  tips : {
+    orderNumberSplitComma: 'Seperate order Ids with a comma (",")',
   },
   advancedSearch: "Advanced Search",
 };

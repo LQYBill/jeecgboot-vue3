@@ -31,12 +31,12 @@
           <a-card
             :bordered='false'
             :title='t("data.invoice.estimatedFeesForSelectedOrders")'
-            :loading='!estimatesReady'
-            style="width: 100%">
+            :loading='estimation.length === 0 ? false : !estimatesReady'
+            style="width: 100%;">
             <div class="cardGridContainer">
               <p class="mt-4" style="width: 100%" v-if='estimation.length === 0'>{{t("data.invoice.noOrdersSelected")}}</p>
               <template v-for='item in estimation' style='width:20%;text-align:center'>
-                <div class="fee-card">
+                <div class="fee-card" style="min-height: 170px">
                   <div class="flex flex-col items-center head-info">
                     <h1 class="text-md mt-2">{{item.shop}}</h1>
                     <div class="flex justify-between w-full">
@@ -202,11 +202,9 @@ let ipagination = ref({
   showSizeChanger: true,
   total: 0,
 });
-const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, getSelectRowKeys, collapseAll, setLoading }] = useTable({
+const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, getSelectRowKeys, setLoading }] = useTable({
   columns: getColumns(),
   dataSource: orderList,
-  // isTreeTable: true,
-  // expandIconColumnIndex: 1,
   rowSelection: {
     type: 'checkbox',
     onChange: onSelectChange,
@@ -266,61 +264,38 @@ function loadShopList(clientId) {
 function handleShopChange(shops) {
   // value returned is array of shop
   clearSelectedRowKeys();
+  orderList.value = [];
+  ordersAndStatusList.value = [];
   selectedShopIds.value = shops;
-  if (selectedShopIds.value.length === 0) {
-    makeCompleteDisabled.value = true;
-    searchDisabled.value = true;
-    orderList.value = [];
-    ordersAndStatusList.value = [];
-  }
-  else {
-    searchDisabled.value = false;
-  }
+  makeShippingDisabled.value = true;
+  makeShippingLoading.value = false;
+  makePurchaseDisabled.value = true;
+  makePurchaseLoading.value = false;
+  makeCompleteDisabled.value = true;
+  makeCompleteLoading.value = false;
+  searchDisabled.value = selectedShopIds.value.length === 0;
 }
 function loadOrders() {
+  orderList.value = [];
+  ordersAndStatusList.value = [];
+  makeShippingDisabled.value = true;
+  makeShippingLoading.value = false;
+  makePurchaseDisabled.value = true;
+  makePurchaseLoading.value = false;
+  makeCompleteDisabled.value = true;
+  makeCompleteLoading.value = false;
   clearSelectedRowKeys();
   setLoading(true);
   defHttp.get({url : Api.getOrders, params: {shopIds: selectedShopIds.value}})
     .then(res => {
-      console.log(res);
       ordersAndStatusList.value = res.records;
       res.records.map(
         (entry) => {
-          // console.log(JSON.stringify(entry));
           entry.left.shippingAvailable = entry.middle;
           entry.left.purchaseAvailable = entry.right;
-          // console.log(JSON.stringify(entry.left));
           orderList.value.push(entry.left);
         }
       );
-      // orderList.value.push({
-      //   shopId                : "Roll'ins",
-      //   platformOrderNumber   : "RI123456",
-      //   orderTime             : "2023-09-30 11:59:44",
-      //   shippingTime          : null,
-      //   country               : "France",
-      //   fretFee               : null,
-      //   orderServiceFee       : null,
-      //   shippingInvoiceNumber : null,
-      //   productAvailable      : "1",
-      //   shippingAvailable     : "Error : Test",
-      //   purchaseAvailable     : "Error : Test"
-      // });
-      // orderList.value.push({
-      //   shopId                : "Roll'ins",
-      //   platformOrderNumber   : "RI654321",
-      //   orderTime             : "2023-09-30 19:59:44",
-      //   shippingTime          : null,
-      //   country               : "France",
-      //   fretFee               : null,
-      //   orderServiceFee       : null,
-      //   shippingInvoiceNumber : null,
-      //   productAvailable      : "1",
-      //   shippingAvailable     : "Error : Test",
-      //   purchaseAvailable     : "OK"
-      // });
-      console.log("orderList : ");
-      console.log(JSON.stringify(orderList.value));
     })
     .catch(e => {
       console.error(e);
@@ -330,25 +305,25 @@ function loadOrders() {
     });
 }
 function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
-  estimatesReady.value = false;
   makeShippingDisabled.value = true;
   makePurchaseDisabled.value = true;
   makeCompleteDisabled.value = true;
   if(selectedRowKeys.length == 0) {
+    estimation.value = [];
     return;
   }
+  estimatesReady.value = false;
   // deactivate undesired checked keys and buttons
   let uncheckableRowKeys:any[] = [];
   let shippingInvoiceAvailable = true;
   let purchaseInvoiceAvailable = true;
   for(let row of selectionRows){
     if(row.shippingAvailable != 'OK' && row.purchaseAvailable != 'OK') {
-      // console.log(row.id);
       uncheckableRowKeys.push(row.id);
     }
     if(row.shippingAvailable != 'OK')
       shippingInvoiceAvailable = false;
-    if(row.purchaseAvailable != 'OK')
+    if(row.purchaseAvailable != 'OK' || row.purchaseInvoiceNumber !== null)
       purchaseInvoiceAvailable = false;
     if(row.productAvailable == '1')
       purchaseInvoiceAvailable = false;
@@ -366,22 +341,16 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
     orderIds: getSelectRowKeys(),
     type: "preshipping",
   };
-  console.log(param);
   defHttp.post({url: Api.selfEstimateFees, params: param})
     .then(
       res => {
-        console.log(res);
         estimation.value = [];
         for(let shop in res) {
-          console.log(`shop : ${shop}`);
-          console.log(`shop data : ${JSON.stringify(res[shop])}`);
           let shopName = getShopName(shop);
-          // console.log(shopName);
           let shopEstimation = res[shop];
           shopEstimation.shop = shopName;
           estimation.value.push(shopEstimation);
         }
-        console.log(`Estimation : ${JSON.stringify(estimation.value)}`);
         estimatesReady.value = true;
       }
     ).catch(e => {
@@ -418,8 +387,6 @@ function getPeriod() {
     }
   }
   end = dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
-  console.log(`START : ${start} -->${JSON.stringify(tmpStart)}`);
-  console.log(`END : ${end} --> ${JSON.stringify(tmpEnd)}`);
   return {
     start: start,
     end: end,
@@ -443,12 +410,11 @@ function makeManualShippingInvoice() {
   makeShippingLoading.value = true;
   defHttp.post({url: Api.makeManualShippingInvoice, params})
     .then(res => {
-      createMessage.success("Orders have been invoiced successfully");
-      console.log(`res : ${JSON.stringify(res)}`);
+      createMessage.success(t('sys.invoice.success'));
 
       let filename = res.filename;
       let code = res.invoiceCode;
-      downloadInvoice(filename);
+      downloadInvoice(filename, 'shipping');
       downloadDetailFile(code);
     })
     .catch(e => {
@@ -456,12 +422,11 @@ function makeManualShippingInvoice() {
     })
     .finally(() => {
       clearSelectedRowKeys();
-      shopDisabled.value = true;
-      searchDisabled.value = true;
+      shopDisabled.value = false;
+      searchDisabled.value = false;
       loadOrders();
       makeShippingLoading.value = false;
     });
-
 }
 function makeManualPurchaseInvoice() {
   let period = getPeriod();
@@ -482,21 +447,18 @@ function makeManualPurchaseInvoice() {
   defHttp.post({url: Api.makeManualPurchaseInvoice, params})
     .then(res => {
       createMessage.success("Orders have been invoiced successfully");
-      console.log(`res : ${JSON.stringify(res)}`);
 
       let filename = res.filename;
       let code = res.invoiceCode;
-      downloadInvoice(filename);
-      downloadDetailFile(code);
-
+      downloadInvoice(filename, 'purchase');
     })
     .catch(e => {
       console.error(e);
     })
     .finally(() => {
       clearSelectedRowKeys();
-      shopDisabled.value = true;
-      searchDisabled.value = true;
+      shopDisabled.value = false;
+      searchDisabled.value = false;
       loadOrders();
       makePurchaseLoading.value = false;
     });
@@ -510,7 +472,6 @@ function makeCompleteManualInvoice() {
     start: period.start,
     end: period.end,
   };
-  console.log(`params : ${JSON.stringify(params)}`);
   shopDisabled.value = true;
   searchDisabled.value = true;
   makeShippingDisabled.value = true;
@@ -521,11 +482,10 @@ function makeCompleteManualInvoice() {
   defHttp.post({url: Api.makeCompleteManualInvoice, params})
     .then(res => {
       createMessage.success("Orders have been invoiced successfully");
-      console.log(`res : ${JSON.stringify(res)}`);
 
       let filename = res.filename;
       let code = res.invoiceCode;
-      downloadInvoice(filename);
+      downloadInvoice(filename, 'shipping');
       downloadDetailFile(code);
     })
     .catch(e => {
@@ -533,14 +493,14 @@ function makeCompleteManualInvoice() {
     })
     .finally(() => {
       clearSelectedRowKeys();
-      shopDisabled.value = true;
-      searchDisabled.value = true;
+      shopDisabled.value = false;
+      searchDisabled.value = false;
       loadOrders();
       makeCompleteLoading.value = false;
     });
 }
-function downloadInvoice(invoiceFilename) {
-  const param = {filename: invoiceFilename};
+function downloadInvoice(invoiceFilename, invoiceType) {
+  const param = {filename: invoiceFilename, type: invoiceType};
   downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
     createMessage.info("Download successful.")
   }).catch(e => {
@@ -598,7 +558,9 @@ function downloadDetailFile(invoiceNumber) {
   border: 1px #f0f0f0 solid;
   border-radius: 5px;
   text-align: center;
+  min-height: 170px;
   .fee-card {
+    min-height: 170px;
     width: 20%;
     padding: 1.2rem;
     border-width: 1px;
@@ -610,5 +572,8 @@ function downloadDetailFile(invoiceNumber) {
       border-radius: 5px;
     }
   }
+}
+.ant-card-loading-content {
+  min-height: 170px;
 }
 </style>

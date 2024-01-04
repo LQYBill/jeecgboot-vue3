@@ -15,7 +15,9 @@ import {propTypes} from '/@/utils/propTypes';
 import {getBpmFormSchema, listFormatting} from '../PurchaseOrder.data';
 import {saveOrUpdate} from '../PurchaseOrder.api';
 import {useMessage} from "/@/hooks/web/useMessage";
+import {useI18n} from "/@/hooks/web/useI18n";
 
+const{t} = useI18n();
 const {createMessage} = useMessage();
 
 export default defineComponent({
@@ -58,11 +60,14 @@ export default defineComponent({
     async function submitForm() {
       let data = getFieldsValue();
       let params = Object.assign({}, formData, data);
-      params.platformOrderId = listFormatting(params.platformOrderId);
+      console.log(params)
+      if(!!params.platformOrderId)
+        params.platformOrderId = listFormatting(params.platformOrderId);
       await saveOrUpdate(params, true).then(res => {
-        console.log(`Save or update res : ${JSON.stringify(res)}`);
-        createMessage.success(`Purchase order was successfully attributed to orders [${res.success}]`);
-        createMessage.error(`Error while attributing purchase order to orders [${res.fail}]`);
+        if(!!res.success)
+          createMessage.success(t('data.purchase.orderAttributionSuccess', {var : res.success}));
+        if(!!res.fail)
+          createMessage.error(t(`data.purchase.orderAttributionFail`, {var: res.fail}));
       });
     }
 

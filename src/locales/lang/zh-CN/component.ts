@@ -160,6 +160,11 @@ export default {
 
     dragText: '请按住滑块拖动',
     successText: '验证通过',
+
+    wrongInvoiceNumberFormat: '格式错误 : YYYY-MM-XXXX',
+  },
+  tips : {
+    orderNumberSplitComma: '订单号用逗号分开',
   },
   advancedSearch: "Advanced Search",
 };

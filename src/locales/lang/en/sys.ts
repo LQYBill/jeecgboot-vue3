@@ -65,6 +65,10 @@ export default {
     networkErrorTitle: 'Network Error',
     networkErrorSubTitle: 'Sorry，Your network connection has been disconnected, please check your network!',
   },
+  invoice: {
+    success: 'Orders have been invoiced successfully',
+    fail: 'Error : failed to invoice orders',
+  },
   lock: {
     unlock: 'Click to unlock',
     alert: 'Lock screen password error',

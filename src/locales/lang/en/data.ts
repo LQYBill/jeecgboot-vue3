@@ -153,6 +153,10 @@ export default {
       noShopFoundForClient: "No relevant store information was found for the current customer.",
     },
   },
+  purchase: {
+    orderAttributionFail : "Error while attributing purchase order to orders [%{var}]",
+    orderAttributionSuccess : "Purchase order was successfully attributed to orders [%{var}]",
+  },
   refund: {
     notRefunded: 'Not Settled',
     refunded: 'Settled',

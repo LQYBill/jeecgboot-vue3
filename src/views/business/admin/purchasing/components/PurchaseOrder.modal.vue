@@ -12,7 +12,9 @@ import {BasicForm, useForm} from '/@/components/Form/index';
 import {formSchema, listFormatting} from '../PurchaseOrder.data';
 import {saveOrUpdate} from '../PurchaseOrder.api';
 import {useMessage} from "/@/hooks/web/useMessage";
+import {useI18n} from "/@/hooks/web/useI18n";
 
+const {t} = useI18n();
 const {createMessage} = useMessage();
 // Emits声明
 const emit = defineEmits(['register', 'success']);
@@ -44,20 +46,23 @@ const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) 
   setProps({disabled: !data?.showFooter})
 });
 //设置标题
-const title = computed(() => (!unref(isUpdate) ? '新增' : '编辑'));
+const title = computed(() => (!unref(isUpdate) ? t('common.operation.addNew') : t('common.operation.edit')));
 
 //表单提交事件
 async function handleSubmit(v) {
   try {
     let values = await validate();
     setModalProps({confirmLoading: true});
-    values.platformOrderId = listFormatting(values.platformOrderId);
+    console.log(values)
+    if(!!values.platformOrderId)
+      values.platformOrderId = listFormatting(values.platformOrderId);
     //提交表单
     await saveOrUpdate(values, isUpdate.value)
       .then(res => {
-        console.log(`Save or update res : ${JSON.stringify(res)}`);
-        createMessage.success(`Purchase order was successfully attributed to orders [${res.success}]`);
-        createMessage.error(`Error while attributing purchase order to orders [${res.fail}]`);
+        if(!!res.success)
+          createMessage.success(t('data.purchase.orderAttributionSuccess', {var : res.success}));
+        if(!!res.fail)
+          createMessage.error(t(`data.purchase.orderAttributionFail`, {var: res.fail}));
       });
     //关闭弹窗
     closeModal();

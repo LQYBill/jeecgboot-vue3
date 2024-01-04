@@ -10,7 +10,7 @@
         <a-dropdown v-if="selectedRowKeys.length > 0">
           <template #overlay>
             <a-menu>
-              <a-menu-item key="1" @click="batchHandleDelete">
+              <a-menu-item key="1" @click="handleDeleteBatch">
                 <Icon icon="ant-design:delete-outlined"></Icon>
                 {{ t('common.operation.delete') }}
               </a-menu-item>
@@ -57,7 +57,14 @@ import {useModal} from '/@/components/Modal';
 import {useListPage} from '/@/hooks/system/useListPage'
 import PurchaseOrderModal from './components/PurchaseOrder.modal.vue'
 import {columns, searchFormSchema} from './PurchaseOrder.data';
-import {list, deleteOne, batchDelete, getImportUrl, getExportUrl} from './PurchaseOrder.api';
+import {
+  list,
+  cancelInvoice,
+  batchCancel,
+  getImportUrl,
+  getExportUrl,
+  deleteOne, batchDelete
+} from './PurchaseOrder.api';
 import {downloadFile} from '/@/utils/common/renderUtils';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
@@ -162,15 +169,24 @@ function handleDetail(record: Recordable) {
 /**
  * 删除事件
  */
-async function handleDelete(record) {
+async function handleDeleteOne(record) {
   await deleteOne({id: record.id}, handleSuccess);
+}
+async function handleDeleteBatch(record) {
+  await batchDelete({ids: selectedRowKeys.value}, handleSuccess);
+}
+/**
+ * 删除事件
+ */
+async function handleCancel(record) {
+  await cancelInvoice({id: record.id,invoiceNumber: record.invoiceNumber}, handleSuccess);
 }
 
 /**
  * 批量删除事件
  */
-async function batchHandleDelete() {
-  await batchDelete({ids: selectedRowKeys.value}, handleSuccess);
+async function batchHandleCancel() {
+  await batchCancel({ids: selectedRowKeys.value}, handleSuccess);
 }
 
 /**
@@ -204,13 +220,26 @@ function getDropDownAction(record) {
     },
     {
       icon: 'ant-design:delete-outlined',
-      label: t('common.operation.delete'),
+      label: t('common.operation.cancel'),
+      ifShow: !!record.invoiceNumber && getInvoiceType(record.invoiceNumber) === '1',
       popConfirm: {
         title: t('common.operation.deleteConfirmation'),
-        confirm: handleDelete.bind(null, record),
-      }
+        confirm: handleCancel.bind(null, record),
+      },
+    },
+    {
+      icon: 'ant-design:delete-outlined',
+      label: t('common.operation.delete'),
+      ifShow: true,
+      popConfirm: {
+        title: t('common.operation.deleteConfirmation'),
+        confirm: handleDeleteOne.bind(null, record),
+      },
     }
   ]
+}
+function getInvoiceType(invoiceNumber) {
+  return invoiceNumber.slice(-4,-3);
 }
 
 

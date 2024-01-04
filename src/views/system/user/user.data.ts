@@ -186,6 +186,7 @@ export const formSchema: FormSchema[] = [
   {
     label: '角色',
     field: 'selectedroles',
+    required: true,
     component: 'ApiSelect',
     componentProps: {
       mode: 'multiple',
@@ -197,6 +198,7 @@ export const formSchema: FormSchema[] = [
   {
     label: '所属部门',
     field: 'selecteddeparts',
+    required: true,
     component: 'JSelectDept',
     componentProps: ({ formActionType, formModel }) => {
       return {
@@ -284,7 +286,7 @@ export const formSchema: FormSchema[] = [
     label: '邮箱',
     field: 'email',
     component: 'Input',
-    rules: rules.rule('email', false),
+    rules: rules.rule('email', true),
   },
   {
     label: '手机号码',

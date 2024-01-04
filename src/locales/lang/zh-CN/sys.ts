@@ -61,6 +61,10 @@ export default {
     networkErrorTitle: '网络错误',
     networkErrorSubTitle: '抱歉，您的网络连接已断开，请检查您的网络！',
   },
+  invoice: {
+    success: '发票生成成功',
+    fail: '发票生成失败',
+  },
   lock: {
     unlock: '点击解锁',
     alert: '锁屏密码错误',

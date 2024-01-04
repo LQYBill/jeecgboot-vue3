@@ -636,15 +636,6 @@ export default defineComponent({
           row.children[0].style.borderLeftColor = creditColor;
           row.children[0].style.borderLeftWidth = "5px";
         }
-        // for(let cell of row.children) {
-        //   console.log(row.children[3].textContent);
-        //   if(row.children[3].textContent == 'Debit') {
-        //     cell.style.backgroundColor = "rgba(255, 114, 0, 0.3)";
-        //   }
-        //   if(row.children[3].textContent == 'Credit') {
-        //     cell.style.backgroundColor = "rgba(11, 166, 101, 0.3)";
-        //   }
-        // }
       });
       eurTableLoading.value = false;
       usdTableLoading.value = false;

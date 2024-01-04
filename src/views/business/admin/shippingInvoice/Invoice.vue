@@ -1,5 +1,5 @@
 <template>
-  <a-card :bordered='false'>
+  <a-card :bordered='false' v-if="pageReady">
     <div class="table-operator">
       <!-- button to download invoice -->
       <a-button v-if="downloadReady" type='primary' shape="round" @click='downloadPdf()' preIcon="ant-design:download" size="large">
@@ -12,7 +12,6 @@
       </a-button>
     </div>
     <section>
-<!--      <a-table  v-if="invoice_type === '2'"-->
       <a-table
                 ref='table'
                 size='middle'
@@ -50,33 +49,47 @@
     </section>
     <!-- table区域 end -->
   </a-card>
+  <Result v-else-if="!pageReady" :status="Number(ExceptionEnum.PAGE_NOT_FOUND)" :title="status" :sub-title="t('sys.exception.subTitle404')">
+    <template #extra>
+      <a-button key="console" type="primary" @click="returnHome()"> {{ t('sys.exception.backHome') }} </a-button>
+    </template>
+  </Result>
 </template>
 
 <script lang="ts">
 import {downloadFile} from '/@/api/common/api';
 import { defHttp } from '/@/utils/http/axios';
-import { useUserStore } from "/@/store/modules/user";
 import { useMessage } from '/@/hooks/web/useMessage';
 import {useI18n} from "/@/hooks/web/useI18n";
-import {defineComponent, onMounted, ref} from 'vue';
+import {defineComponent, onBeforeMount, onMounted, ref} from 'vue';
 import {BasicColumn} from "/@/components/Table";
 import { useRoute } from 'vue-router';
-
+import {Result} from "ant-design-vue";
+import {ExceptionEnum} from "/@/enums/exceptionEnum";
+import {useGo} from "/@/hooks/web/usePage";
 
 export default defineComponent({
   name: 'Invoice',
+  computed: {
+    ExceptionEnum() {
+      return ExceptionEnum
+    }
+  },
   components: {
+    Result
   },
   setup() {
-    const userStore = useUserStore();
     const { createMessage } = useMessage();
     const { t } = useI18n();
     const route = useRoute();
+    const go = useGo();
 
-    onMounted(()=> {
+    onBeforeMount(()=> {
       checkInvoice();
     });
-    
+    const pageReady = ref<boolean>();
+    const status = ref<any>();
+
     const dataSource = ref<any[]>([]);
     const index = ref(1);
     const customer = ref('');
@@ -93,10 +106,12 @@ export default defineComponent({
     const downloadReady = ref<boolean>(false);
     const hasEmail = ref();
     const failedPdfList = ref<any[]>([]);
+
     const Api = {
       checkInvoiceValidity: '/shippingInvoice/checkInvoiceValidity',
       downloadInvoice: '/shippingInvoice/download',
       invoiceData: '/shippingInvoice/invoiceData',
+      purchaseInvoiceData: '/shippingInvoice/purchaseInvoiceData',
       downloadCompleteInvoicePdf: "/generated/shippingInvoice/downloadPdf",
       sendDetailsByEmail: "/generated/shippingInvoice/sendDetailsByEmail"
     }
@@ -129,44 +144,36 @@ export default defineComponent({
 
     function checkInvoice() {
       invoiceContentLoading.value = true;
-      let userEmail = userStore.getUserInfo.email;
-      let orgCode = userStore.getUserInfo.orgCode;
-      console.log("User : " + userEmail + " " + orgCode);
-      if(orgCode.includes("A01") || orgCode.includes("A02") || orgCode.includes("A03") || orgCode.includes("A04")) {
-        let param = {
-          invoiceNumber: getInvoiceNum(),
-          email: userEmail,
-          orgCode: orgCode
-        };
-        defHttp.get({url: Api.checkInvoiceValidity, params: param}).then((res)=>{
-          console.log(res);
-          createMessage.success("Permission granted.");
-          invoice_number.value = res.invoiceNumber;
-          customer.value = res.name;
-          email.value = res.email;
-          hasEmail.value = !(email.value === "" || email.value === null);
-          invoice_entity.value = res.invoiceEntity;
-          if(res.currency === 'EUR' || res.currency === 'euro' || res.currency === 'eur' || res.currency === 'EURO') {
-            currency.value = 'EUR';
-            currencySymbol.value = "€"
-          }
-          if(res.currency === "USD" || res.currency === 'usd') {
-            currency.value = 'USD'
-          }
-          if(res.currency === "RMB" || res.currency === "rmb") {
-            currency.value = "RMB";
-            currencySymbol.value = "¥";
-          }
-          loadInvoice();
+      pageReady.value = true;
+      let param = {
+        invoiceNumber: getInvoiceNum(),
+      };
+      defHttp.get({url: Api.checkInvoiceValidity, params: param}).then((res)=>{
+        createMessage.success("Permission granted.");
+        invoice_number.value = res.invoiceNumber;
+        customer.value = res.name;
+        email.value = res.email;
+        hasEmail.value = !(email.value === "" || email.value === null);
+        invoice_entity.value = res.invoiceEntity;
+        if(res.currency === 'EUR' || res.currency === 'euro' || res.currency === 'eur' || res.currency === 'EURO') {
+          currency.value = 'EUR';
+          currencySymbol.value = "€"
+        }
+        if(res.currency === "USD" || res.currency === 'usd') {
+          currency.value = 'USD'
+        }
+        if(res.currency === "RMB" || res.currency === "rmb") {
+          currency.value = "RMB";
+          currencySymbol.value = "¥";
+        }
+        loadInvoice();
 
-        }).catch((e) => {
-          console.error(e);
-          invoiceContentLoading.value = false;
-        });
-      }
-      else {
-        createMessage.error("Not authorized to access this page.");
-      }
+      }).catch((e) => {
+        console.error(e);
+        invoiceContentLoading.value = false;
+        pageReady.value = false;
+        status.value = ExceptionEnum.PAGE_NOT_FOUND;
+      });
     }
     function loadInvoice() {
       const param = {
@@ -176,27 +183,37 @@ export default defineComponent({
       };
       // on identifie le type de facture (1 : purchase, 2: shipping, 7: purchase + shipping
       invoice_type.value = getInvoiceType();
-      // TODO : gérer les complete invoice
-      // if(invoice_type.value == null || invoice_type.value !== '2') {
-      //   createMessage.error("Access refused : Invalid type.")
-      //   return;
-      // }
-      defHttp.get({url: Api.invoiceData, params: param}).then(res=>{
-        if(res !== null) {
+      if(invoice_type.value == null || ['1','2','7'].indexOf(invoice_type.value) == -1) {
+        createMessage.error("Error : Resource not found.");
+        pageReady.value = false;
+        status.value = ExceptionEnum.PAGE_NOT_FOUND;
+        return;
+      }
+      if(invoice_type.value === '1' || invoice_type.value === '7') {
+        loadPurchaseInvoiceData(param);
+      }
+      if(invoice_type.value === '7' || invoice_type.value === '2') {
+        loadInvoiceData(param);
+      }
+      invoiceContentLoading.value = false;
+    } //end of loadInvoice()
+    function loadInvoiceData(param) {
+      defHttp.get({url: Api.invoiceData, params: param}).then(res => {
+        if (res !== null) {
           downloadReady.value = true;
-          for(let i in res.feeAndQtyPerCountry) {
-            for(let key in res.feeAndQtyPerCountry[i]) {
+          for (let i in res.feeAndQtyPerCountry) {
+            for (let key in res.feeAndQtyPerCountry[i]) {
               let subtotal = res.feeAndQtyPerCountry[i][key];
               final_total_euro.value += subtotal;
               total_quantity.value += Number(key);
               dataSource.value.push({
                 key: index.value,
-                description: "Total shipping cost for " + t("location.country."+i),
+                description: "Total shipping cost for " + t("location.country." + i),
                 quantity: key,
                 total_amount: subtotal,
               });
               // incrémente la clé
-              index.value+=1;
+              index.value += 1;
             }
           }
           // VAT
@@ -207,7 +224,7 @@ export default defineComponent({
             total_amount: res.vat
           });
           final_total_euro.value += res.vat;
-          index.value+=1;
+          index.value += 1;
 
           // SERVICE FEE
           dataSource.value.push({
@@ -216,7 +233,7 @@ export default defineComponent({
             quantity: null,
             total_amount: res.serviceFee
           });
-          index.value+=1;
+          index.value += 1;
 
           // PICKING FEE
           dataSource.value.push({
@@ -225,7 +242,7 @@ export default defineComponent({
             quantity: null,
             total_amount: res.pickingFee
           });
-          index.value+=1;
+          index.value += 1;
 
           // PACKAGING MATERIAL FEE
           dataSource.value.push({
@@ -234,10 +251,10 @@ export default defineComponent({
             quantity: null,
             total_amount: res.packagingMaterialFee
           });
-          index.value+=1;
+          index.value += 1;
 
           // REFUND
-          if(res.refund > 0) {
+          if (res.refund > 0) {
             dataSource.value.push({
               key: index.value,
               description: 'Refund',
@@ -245,11 +262,11 @@ export default defineComponent({
               total_amount: res.refund
             })
             final_total_euro.value -= res.refund;
-            index.value+=1;
+            index.value += 1;
           }
 
           // DISCOUNT (not used yet)
-          if(res.discount > 0) {
+          if (res.discount > 0) {
             dataSource.value.push({
               key: index.value,
               description: 'Discount',
@@ -257,22 +274,39 @@ export default defineComponent({
               total_amount: res.discount
             })
             final_total_euro.value -= res.discount;
-            index.value+=1;
+            index.value += 1;
           }
           final_total_euro.value = Number(final_total_euro.value.toFixed(2));
-          if(currency.value !== "EUR") {
+          if (currency.value !== "EUR") {
             final_total_customer_curr.value = res.finalAmount;
           }
-        }
-        else {
+        } else {
           createMessage.error("No data : " + invoice_number.value);
         }
-        invoiceContentLoading.value = false;
       })
         .catch(e => {
           console.error(e);
         })
-    } //end of loadInvoice()
+    }
+    function loadPurchaseInvoiceData(param) {
+      defHttp.get({url: Api.purchaseInvoiceData, params: param}).then(res=> {
+        for(let sku in res.feeAndQtyPerSku) {
+          for(let qty in res.feeAndQtyPerSku[sku]) {
+            let subtotal = res.feeAndQtyPerSku[sku][qty];
+            final_total_euro.value += subtotal;
+            total_quantity.value += Number(qty);
+            dataSource.value.push({
+              key: index.value,
+              description: sku,
+              quantity: qty,
+              total_amount: subtotal,
+            });
+            // incrémente la clé
+            index.value+=1;
+          }
+        }
+      })
+    }
     function downloadPdf() {
       const param = {
         invoiceNumber: invoice_number.value
@@ -288,11 +322,9 @@ export default defineComponent({
       }
       defHttp.get({url: Api.sendDetailsByEmail, params: param})
         .then(res => {
-          console.log(res);
           createMessage.success(res.result);
         })
         .catch((error) => {
-          console.log(error);
           createMessage.error(error);
         });
     }
@@ -303,7 +335,7 @@ export default defineComponent({
         return match[1];
       }
       else {
-        createMessage.error("Invalid invoice number.");
+        createMessage.error("Error : Resource not found.");
         return null;
       }
     } // end of getInvoiceType()
@@ -311,16 +343,23 @@ export default defineComponent({
     function getInvoiceNum() {
       try {
         invoice_number.value = route.query.invoice;
-        console.log("Query : " + invoice_number.value);
         return invoice_number.value;
       } catch (e) {
         createMessage.error("Invoice ID required.");
         console.error("Invoice ID required.");
+        pageReady.value = false;
+        status.value = ExceptionEnum.PAGE_NOT_FOUND;
       }
+    }
+    function returnHome() {
+      go();
     }
     return {
       downloadPdf,
       sendEmail,
+      returnHome,
+      status,
+      pageReady,
       t,
       columns,
       dataSource,
