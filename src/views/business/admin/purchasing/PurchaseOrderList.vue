@@ -69,11 +69,16 @@ import {downloadFile} from '/@/utils/common/renderUtils';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
 import {PageWrapper} from "/@/components/Page";
+import {useGlobSetting} from "/@/hooks/setting";
 
 
 const {t} = useI18n();
 const {createMessage} = useMessage();
-const imgPrefix = "http://localhost:8080/jeecg-boot/sys/common/static/";
+
+const globSetting = useGlobSetting();
+const baseUploadUrl = globSetting.uploadUrl;
+
+const imgPrefix = `${baseUploadUrl}/sys/common/static/`;
 
 const checkedKeys = ref<Array<string | number>>([]);
 let ipagination = ref({
