@@ -92,7 +92,7 @@
               <TableImg
                 v-if="record.type=='Credit' && !!record.paymentProofString"
                 :size="60"
-                :imgList="[imgHost+imgPath+record.paymentProofString]"
+                :imgList="[uploadUrl+record.paymentProofString]"
               />
               <a-button
                 v-else-if="record.type=='Debit' && !!record.invoiceNumber"
@@ -186,7 +186,7 @@
               <TableImg
                 v-if="record.type=='Credit' && !!record.paymentProofString"
                 :size="60"
-                :imgList="[imgHost+imgPath+record.paymentProofString]"
+                :imgList="[uploadUrl+record.paymentProofString]"
               />
               <a-button
                 v-else-if="record.type=='Debit' && !!record.invoiceNumber"
@@ -220,7 +220,7 @@
               <TableImg
                 v-if="!!text"
                 :size="60"
-                :imgList="[imgHost+imgPath+text]"
+                :imgList="[uploadUrl+text]"
               />
             </template>
           </BasicTable>
@@ -246,6 +246,7 @@ import {useMessage} from "/@/hooks/web/useMessage";
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
 import dayjs from "dayjs";
 import {downloadFile} from "/@/api/common/api";
+import {useGlobSetting} from "/@/hooks/setting";
 
 export default defineComponent({
   methods: {dayjs},
@@ -256,6 +257,9 @@ export default defineComponent({
   setup() {
     const { t } = useI18n();
     const { createMessage } = useMessage();
+    const globSetting = useGlobSetting();
+    const baseUploadUrl = globSetting.uploadUrl;
+    const uploadUrl = `${baseUploadUrl}/sys/common/static/`;
 
     const internalUse = ref<boolean>(false);
 
@@ -662,8 +666,7 @@ export default defineComponent({
       completeInvoiceLoading,
       customerSelectList,
       customerListDisabled,
-      imgHost,
-      imgPath,
+      uploadUrl,
       client,
       fullName,
       invoiceEntity,
