@@ -11,6 +11,7 @@ export const columns: BasicColumn[] = [
     dataIndex: 'jobClassName',
     width: 200,
     align: 'left',
+    slots: {customRender: 'jobName'},
   },
   {
     title: t('job.cronExpression'),
