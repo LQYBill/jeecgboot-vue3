@@ -97,6 +97,7 @@ export default {
     generateInvoice7post: "Generate Invoice (Post-Shipping + Purchase)",
     generatePurchaseInvoice: "Generate Purchase Invoice",
     generateShippingInvoice: "Generate Shipping Invoice",
+    invoiced: 'Invoiced',
     invoiceNumber: "Invoice Number",
     invoiceType: "Invoice type",
     invoiceMode: "Invoice mode",

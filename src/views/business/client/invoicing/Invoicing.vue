@@ -1,6 +1,30 @@
 <template>
   <PageWrapper title="Invoicing Page">
     <a-card>
+      <a-form v-if="internalUse" ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
+        <a-row>
+          <a-col>
+            <a-form-item
+              :labelCol="labelCol"
+              :wrapperCol="wrapperCol"
+              v-bind="validateInfos.name"
+              name="customer"
+            >
+              <template #label>
+                <span title="Customer">{{ t('data.invoice.customer') }}</span>
+              </template>
+              <JSearchSelect
+                :placeholder="t('component.searchForm.clientInputSearch')"
+                :dictOptions="customerSelectList"
+                @change="handleClientChange"
+                v-model:value="formState.customer"
+                allowClear
+                :disabled="customerListDisabled"
+              />
+            </a-form-item>
+          </a-col>
+        </a-row>
+      </a-form>
       <a-form ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
         <a-row>
           <a-col :span="6">
@@ -109,9 +133,9 @@
         </template>
         <template v-slot:purchaseAvailability="record">
           <Tag
-            :color="record.record.productAvailable === '1' || record.record.productAvailable === '2' || record.record.purchaseInvoiceNumber != null ? 'blue' : record.record.purchaseAvailable === 'OK' ? 'green' : 'volcano'"
+            :color="['1','2','3'].indexOf(record.record.productAvailable) > -1 ? 'blue' : record.record.productAvailable === '4' ? 'yellow' : record.record.purchaseAvailable === 'OK' ? 'green' : 'volcano'"
           >
-            {{ record.record.productAvailable === '1' || record.record.productAvailable === '2' || record.record.purchaseInvoiceNumber != null ? t("data.invoice.paid") : record.record.purchaseAvailable === 'OK' ? t("common.available") : t("common.unavailable") }}
+            {{ ['1','2','3'].indexOf(record.record.productAvailable) > -1 ? t("data.invoice.paid") : record.record.productAvailable === '4' ? t('data.invoice.invoiced') : record.record.purchaseAvailable === 'OK' ? t("common.available") : t("common.unavailable") }}
           </Tag>
         </template>
       </BasicTable>
@@ -133,6 +157,7 @@ import {Badge, Card, Col, Form, Row, Tag} from "ant-design-vue";
 import dayjs from "dayjs";
 import {downloadFile} from "/@/api/common/api";
 import {PopConfirmButton} from "/@/components/Button";
+import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -155,6 +180,7 @@ const { resetFields, validate, validateInfos } = useForm(formState, validatorRul
 
 const Api = {
   getClient: "/userClient/getClient",
+  getSelfServiceClients: "/userClient/getSelfServiceClients",
   getShops: "/shippingInvoice/shopsByClient",
   getOrders: "/shippingInvoice/preShipping/ordersStatusByShops",
   selfEstimateFees: '/shippingInvoice/selfEstimateFees',
@@ -164,6 +190,12 @@ const Api = {
   downloadInvoice: "/shippingInvoice/download",
   downloadInvoiceDetail: "/shippingInvoice/downloadInvoiceDetail",
 }
+
+const internalUse = ref<boolean>(false);
+
+const customerList = ref<any[]>([]);
+const customerSelectList = ref<any[]>([]);
+const customerListDisabled = ref<boolean>(false);
 
 const client = ref();
 
@@ -231,10 +263,10 @@ function checkUser() {
   defHttp.get({url: Api.getClient})
     .then(res => {
       if(res.internal) {
-        console.log('internal use');
+        internalUse.value = true;
+        loadClientList();
       }
       else {
-        client.value = res.client;
         loadShopList(client.value.id);
       }
       shopDisabled.value = false;
@@ -245,6 +277,30 @@ function checkUser() {
     .finally(()=> {
       setLoading(false);
     });
+}
+function loadClientList() {
+  defHttp.get({url: Api.getSelfServiceClients})
+    .then(res => {
+      console.log(res);
+      customerList.value = res;
+      customerSelectList.value = res.map(
+        client => ({
+          text: `${client.firstName} ${client.surname} (${client.internalCode})`,
+          value: client.id,
+        })
+      );
+    })
+    .catch(e => {
+      console.error(e);
+    })
+}
+function handleClientChange(id: any) {
+  client.value = [];
+  if(id) {
+    let index = customerList.value.map(i => i.id).indexOf(id);
+    client.value = customerList.value[index];
+    loadShopList(id);
+  }
 }
 function loadShopList(clientId) {
   clearSelectedRowKeys();

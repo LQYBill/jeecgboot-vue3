@@ -24,6 +24,9 @@
       <template #action="{ record }">
         <TableAction :actions="getActions(record)" :dropDownActions="getDropDownAction(record)" />
       </template>
+      <template #jobName="{record}">
+        {{ record.jobClassName.substring(record.jobClassName.lastIndexOf('.') +1) }}
+      </template>
     </BasicTable>
     <QuartzModal @register="registerModal" @success="reload" />
   </div>

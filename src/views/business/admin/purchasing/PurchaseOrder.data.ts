@@ -103,9 +103,6 @@ export const formSchema: FormSchema[] = [
     componentProps: {
       dict: "currency,code,id"
     },
-    dynamicDisabled: ({values}) => {
-      return !!values.id;
-    },
     dynamicRules: ({model, schema}) => {
       return [
         {required: true, message: t('component.searchForm.currencyInputSearch')},
@@ -143,7 +140,9 @@ export const formSchema: FormSchema[] = [
             }
             return new Promise((resolve, reject) => {
               let params = {
+                id: model.id,
                 invoiceNumber: value,
+                invoiceType: 'purchase'
               };
               duplicateInvoiceNumberCheck(params)
                 .then(() => {
