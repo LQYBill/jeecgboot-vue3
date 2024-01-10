@@ -44,9 +44,9 @@ export const columns: BasicColumn[] = [
     dataIndex: 'invoiceNumber',
   },
   {
-    title: t('common.status.status'),
+    title: t('data.invoice.paidAmount'),
     align: "center",
-    dataIndex: 'status',
+    dataIndex: 'paidAmount',
   },
   {
     title: t('data.transaction.paymentProof'),
@@ -158,9 +158,9 @@ export const formSchema: FormSchema[] = [
     }
   },
   {
-    label: t('common.status.status'),
-    field: 'status',
-    component: 'Input',
+    label: t('data.invoice.paidAmount'),
+    field: 'paidAmount',
+    component: 'InputNumber',
     dynamicRules: ({model, schema}) => {
       return [
         {required: true, message: '请输入status!'},

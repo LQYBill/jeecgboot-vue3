@@ -3,7 +3,7 @@
     <a-card>
       <a-form v-if="internalUse" ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
         <a-row>
-          <a-col>
+          <a-col :span="6">
             <a-form-item
               :labelCol="labelCol"
               :wrapperCol="wrapperCol"
@@ -25,7 +25,7 @@
           </a-col>
         </a-row>
       </a-form>
-      <a-form ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
+      <a-form v-if="client" ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
         <a-row>
           <a-col :span="6">
             <a-form-item
@@ -82,7 +82,7 @@
           </a-card>
         </a-row>
       </a-form>
-      <BasicTable @register="registerTable">
+      <BasicTable v-if="client" @register="registerTable">
         <template #tableTitle>
           <PopConfirmButton
             type="warning"
@@ -126,16 +126,16 @@
         </template>
         <template v-slot:shippingAvailability="record">
           <Tag
-            :color="record.record.shippingAvailable === 'OK' ? 'green' : 'volcano'"
+            :color="record.record.shippingAvailable === '0' ? 'green' : record.record.shippingAvailable === '1' ? 'yellow' : record.record.shippingAvailable === '2' ? 'blue' : 'volcano'"
           >
-            {{ record.record.shippingAvailable === 'OK' ? t("common.available") : t("common.unavailable") }}
+            {{ record.record.shippingAvailable === '0' ? t("common.available") : record.record.shippingAvailable === '1' ? t('data.invoice.invoiced') : record.record.shippingAvailable === '2' ? t("data.invoice.paid") : t("common.unavailable") }}
           </Tag>
         </template>
         <template v-slot:purchaseAvailability="record">
           <Tag
-            :color="['1','2','3'].indexOf(record.record.productAvailable) > -1 ? 'blue' : record.record.productAvailable === '4' ? 'yellow' : record.record.purchaseAvailable === 'OK' ? 'green' : 'volcano'"
+            :color="record.record.purchaseAvailable === '0' ? 'green' : record.record.purchaseAvailable === '1' ? 'yellow' : record.record.purchaseAvailable === '2' ? 'blue' : 'volcano'"
           >
-            {{ ['1','2','3'].indexOf(record.record.productAvailable) > -1 ? t("data.invoice.paid") : record.record.productAvailable === '4' ? t('data.invoice.invoiced') : record.record.purchaseAvailable === 'OK' ? t("common.available") : t("common.unavailable") }}
+            {{ record.record.purchaseAvailable === '0' ? t("common.available") : record.record.purchaseAvailable === '1' ? t('data.invoice.invoiced') : record.record.purchaseAvailable === '2' ? t("data.invoice.paid") : t("common.unavailable") }}
           </Tag>
         </template>
       </BasicTable>
@@ -258,7 +258,6 @@ const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, getSelectRo
 });
 
 function checkUser() {
-  setLoading(true);
   shopDisabled.value = true;
   defHttp.get({url: Api.getClient})
     .then(res => {
@@ -273,15 +272,11 @@ function checkUser() {
     })
     .catch(e => {
       console.error(e);
-    })
-    .finally(()=> {
-      setLoading(false);
     });
 }
 function loadClientList() {
   defHttp.get({url: Api.getSelfServiceClients})
     .then(res => {
-      console.log(res);
       customerList.value = res;
       customerSelectList.value = res.map(
         client => ({
@@ -294,11 +289,14 @@ function loadClientList() {
       console.error(e);
     })
 }
-function handleClientChange(id: any) {
+async function handleClientChange(id: any) {
   client.value = [];
-  if(id) {
+  if (id) {
     let index = customerList.value.map(i => i.id).indexOf(id);
     client.value = customerList.value[index];
+    await new Promise(resolve => {
+      setTimeout(resolve, 100)
+    });
     loadShopList(id);
   }
 }
@@ -345,13 +343,7 @@ function loadOrders() {
   defHttp.get({url : Api.getOrders, params: {shopIds: selectedShopIds.value}})
     .then(res => {
       ordersAndStatusList.value = res.records;
-      res.records.map(
-        (entry) => {
-          entry.left.shippingAvailable = entry.middle;
-          entry.left.purchaseAvailable = entry.right;
-          orderList.value.push(entry.left);
-        }
-      );
+      orderList.value = res.records;
     })
     .catch(e => {
       console.error(e);
@@ -374,14 +366,14 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
   let shippingInvoiceAvailable = true;
   let purchaseInvoiceAvailable = true;
   for(let row of selectionRows){
-    if(row.shippingAvailable != 'OK' && row.purchaseAvailable != 'OK') {
+    if(['-1','1','2'].indexOf(row.shippingAvailable) > -1 && ['-1', '1', '2'].indexOf(row.purchaseAvailable) > -1) {
       uncheckableRowKeys.push(row.id);
     }
-    if(row.shippingAvailable != 'OK')
+    if(['-1','1','2'].indexOf(row.shippingAvailable) > -1)
       shippingInvoiceAvailable = false;
-    if(row.purchaseAvailable != 'OK' || row.purchaseInvoiceNumber !== null)
+    if(['-1', '1', '2'].indexOf(row.purchaseAvailable) > -1)
       purchaseInvoiceAvailable = false;
-    if(row.productAvailable == '1')
+    if(row.productAvailable == '1') // product already in stock
       purchaseInvoiceAvailable = false;
   }
   makeShippingDisabled.value = !shippingInvoiceAvailable;
@@ -421,7 +413,7 @@ function getShopName(shopId: string) {
   }
 }
 function getCheckboxProps(record: Recordable) {
-  if (record.shippingAvailable != 'OK' && record.purchaseAvailable != 'OK') {
+  if (['-1','1','2'].indexOf(record.shippingAvailable) > -1 && ['-1', '1', '2'].indexOf(record.purchaseAvailable) > -1) {
     return { disabled: true };
   } else {
     return { disabled: false };
