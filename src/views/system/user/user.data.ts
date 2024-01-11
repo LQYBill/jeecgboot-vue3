@@ -186,7 +186,7 @@ export const formSchema: FormSchema[] = [
   {
     label: '角色',
     field: 'selectedroles',
-    required: false,
+    required: true,
     component: 'ApiSelect',
     componentProps: {
       mode: 'multiple',

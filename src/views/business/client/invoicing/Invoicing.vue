@@ -25,7 +25,7 @@
           </a-col>
         </a-row>
       </a-form>
-      <a-form v-if="client" ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
+      <a-form ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
         <a-row>
           <a-col :span="6">
             <a-form-item
@@ -82,7 +82,7 @@
           </a-card>
         </a-row>
       </a-form>
-      <BasicTable v-if="client" @register="registerTable">
+      <BasicTable @register="registerTable">
         <template #tableTitle>
           <PopConfirmButton
             type="warning"
@@ -144,7 +144,7 @@
 </template>
 <script lang="ts" setup>
 
-import {defineComponent, onMounted, reactive, ref} from "vue";
+import {defineComponent, onBeforeMount, onMounted, reactive, ref} from "vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
@@ -162,7 +162,7 @@ import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect
 const { t } = useI18n();
 const { createMessage } = useMessage();
 
-onMounted(() => {
+onBeforeMount(() => {
   checkUser();
 });
 
@@ -266,6 +266,7 @@ function checkUser() {
         loadClientList();
       }
       else {
+        client.value = res.client;
         loadShopList(client.value.id);
       }
       shopDisabled.value = false;
@@ -310,6 +311,7 @@ function loadShopList(clientId) {
           value: shop.id,
         })
       );
+      shopDisabled.value = false;
     })
     .catch(e => {
       console.error(e);
