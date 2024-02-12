@@ -60,8 +60,11 @@ export default {
     //placeholder
     amountInput: 'Enter an amount',
     currencyInputSearch: 'Select a currency',
+    dayAutoPicker1: 'Auto pick quantity for the next :',
+    dayAutoPicker2: 'day(s)',
     proofInput: 'Provide a screenshot as payment proof',
     enterInvoiceNumber: 'Enter an invoice number',
+    enterNumberOfDays: 'Please enter the number of days',
     clientInputSearch: "Select a customer",
     dateInputSearch: "Select a date",
     countryInputSearch: "Select countries",
