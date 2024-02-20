@@ -64,6 +64,7 @@ export default {
   invoice: {
     success: '发票生成成功',
     fail: '发票生成失败',
+    missingMabangUsername: '请联系管理员设置马帮用户名',
   },
   lock: {
     unlock: '点击解锁',

@@ -60,6 +60,7 @@ export default {
     //placeholder
     amountInput: '请输入金额',
     currencyInputSearch: '请选择货币',
+    qtyAutoPicker: '设置所有 SKU 的数量',
     dayAutoPicker1: '按照过去7/28/42天销量，自动计算 :',
     dayAutoPicker2: '天产品采购量',
     proofInput: '请提供付款证明',

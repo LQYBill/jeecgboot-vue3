@@ -1,5 +1,5 @@
 <template>
-  <PageWrapper title="Create Purchase Invoice">
+  <PageWrapper title="Create Purchase Invoice" v-if="hasMabangUsername">
     <a-card>
        <a-form ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
          <a-row>
@@ -56,11 +56,16 @@
     </a-card>
     <ProductOrderModal @register="registerModal" @success="handleModalSuccess"></ProductOrderModal>
   </PageWrapper>
+  <Result v-else-if="!hasMabangUsername" :status="Number(ExceptionEnum.PAGE_NOT_ACCESS)" :title="t('sys.invoice.missingMabangUsername')">
+    <template #extra>
+      <a-button key="console" type="primary" @click="returnHome()"> {{ t('sys.exception.backHome') }} </a-button>
+    </template>
+  </Result>
 </template>
 <script lang="ts">
 
 import {defineComponent, onMounted, reactive, ref} from "vue";
-import {Form} from "ant-design-vue";
+import {Form, Result} from "ant-design-vue";
 import {PageWrapper} from "/@/components/Page";
 import {JSearchSelect, JSelectMultiple} from "/@/components/Form/";
 import {useI18n} from "/@/hooks/web/useI18n";
@@ -68,12 +73,20 @@ import {useMessage} from "/@/hooks/web/useMessage";
 import type {FormActionType} from "/@/components/Form";
 import {useModal} from '/@/components/Modal';
 import {BasicTable, TableImg, useTable} from "/@/components/Table";
-import {downloadInvoice, listCustomers, listSkus} from "./ProductOrder.api";
+import {downloadInvoice, getMabangUsername, listCustomers, listSkus} from "./ProductOrder.api";
 import { columns } from "./ProductOrder.data";
 import ProductOrderModal from "./components/ProductOrder.modal.vue";
+import {ExceptionEnum} from "/@/enums/exceptionEnum";
+import {useGo} from "/@/hooks/web/usePage";
 
 export default defineComponent({
+  computed: {
+    ExceptionEnum() {
+      return ExceptionEnum
+    }
+  },
   components: {
+    Result,
     TableImg,
     BasicTable,
     PageWrapper,
@@ -84,9 +97,10 @@ export default defineComponent({
   setup () {
     const {t} = useI18n();
     const { createMessage } = useMessage();
+    const go = useGo();
 
     onMounted(() => {
-      loadCustomerList();
+      checkUserMabangUsername();
     });
     const useForm = Form.useForm;
     const formRef = ref<Nullable<FormActionType>>(null);
@@ -99,6 +113,8 @@ export default defineComponent({
       customer: '',
     });
     const { resetFields, validate, validateInfos } = useForm(formState, validatorRules, { immediate: false });
+
+    const hasMabangUsername = ref<boolean>(false);
 
     const customerSelectList = ref<any>();
     const customerList = ref<any>();
@@ -149,6 +165,15 @@ export default defineComponent({
       rowKey: 'id',
     });
     const [registerModal, {openModal}] = useModal();
+    async function checkUserMabangUsername() {
+      await getMabangUsername(handleMabangUsername);
+    }
+    function handleMabangUsername(username: string) {
+      hasMabangUsername.value = username !== null;
+      if(hasMabangUsername.value) {
+        loadCustomerList();
+      }
+    }
     async function loadCustomerList() {
       await listCustomers(handleSetCustomer);
     }
@@ -199,12 +224,16 @@ export default defineComponent({
     function handleDownloadSuccess() {
       createMessage.info("Download successful.");
     }
+    function returnHome() {
+      go();
+    }
     return {
       reload, clearSelectedRowKeys, getSelectRows, getSelectRowKeys, setLoading,
       registerTable, registerModal,
       handleModalSuccess,
       handleClientChange,
       orderMenu,
+      returnHome,
       t,
       createMessage,
       formRef,
@@ -213,6 +242,7 @@ export default defineComponent({
       validatorRules,
       formState,
       validateInfos,
+      hasMabangUsername,
       customerSelectList,
       customerListDisabled,
       orderDisabled,

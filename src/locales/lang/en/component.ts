@@ -60,6 +60,7 @@ export default {
     //placeholder
     amountInput: 'Enter an amount',
     currencyInputSearch: 'Select a currency',
+    qtyAutoPicker: 'Set quantity for all Skus',
     dayAutoPicker1: 'Auto pick quantity for the next :',
     dayAutoPicker2: 'day(s)',
     proofInput: 'Provide a screenshot as payment proof',
