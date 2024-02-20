@@ -29,28 +29,35 @@
         </div>
       </template>
     </BasicForm>
-    <BasicForm @register="registerForm1" @change="calculateTotal" id="picker-form">
+    <BasicForm @register="registerForm1" @change="calculateTotal" id="picker-form" style="padding: 6rem">
       <template #autoPicker="{ model, field, schema }">
         <div class="flex w-full">
-          <div class="flex basis-full flex-1 items-center">
+          <div class="flex basis-full flex-1 items-center justify-center">
             <InputNumber class="" style="width: 6rem" v-model:value="model[field]" :min="0" :placeholder="t('component.searchForm.enterNumberOfDays')" @change="handleSetSkuOrderQty"/>
             <span class="pl-2">{{t('component.searchForm.dayAutoPicker2')}}</span>
             <BasicHelp class="text-green-500" :text="t('data.sku.autoPickerHelpMessage')" />
           </div>
-          <div class="total flex text-center basis-full flex-1 items-center text-lg">
-            <div class="block basis-full flex-1 w-full py-4 border border-r-0 rounded-l-full bg-blue-100">
-              <span>Total</span>
-            </div>
-            <div class="block basis-full flex-1 price w-full py-4 border border-l-0 rounded-r-full">
-              <div>
-                <span>{{ !!orderTotal ? orderTotal : 0}}</span>
-                <span> €</span>
-              </div>
-            </div>
+        </div>
+      </template>
+      <template #setQtyToAll="{ model, field, schema }">
+        <div class="flex w-full">
+          <div class="flex basis-full flex-1 items-center justify-center">
+            <InputNumber class="" style="width: 6rem" v-model:value="model[field]" :min="0" :placeholder="t('component.searchForm.qtyAutoPicker')" @change="handleSetQtyToAll"/>
           </div>
         </div>
       </template>
     </BasicForm>
+    <div class="total flex text-center basis-full flex-1 items-center text-lg w-1/2 max-w-2xl m-[auto]">
+      <div class="block basis-full flex-1 w-full py-4 border border-r-0 rounded-l-full bg-blue-100">
+        <span>Total</span>
+      </div>
+      <div class="block basis-full flex-1 price w-full py-4 border border-l-0 rounded-r-full">
+        <div>
+          <span>{{ !!orderTotal ? orderTotal : 0}}</span>
+          <span> €</span>
+        </div>
+      </div>
+    </div>
   </BasicModal>
 </template>
 
@@ -94,7 +101,7 @@ const [registerForm1] = useForm({
       component: "InputNumber",
       label: t('component.searchForm.dayAutoPicker1'),
       colProps: {
-        span: 24,
+        span: 12,
       },
       defaultValue: 0,
       // componentProps: {
@@ -118,7 +125,29 @@ const [registerForm1] = useForm({
         ]
       },
       slot: 'autoPicker',
-    }
+    },
+    {
+      field: 'allQty',
+      component: "InputNumber",
+      label: t('component.searchForm.qtyAutoPicker'),
+      colProps: {
+        span: 12,
+      },
+      defaultValue: 0,
+      dynamicRules: ({ values }) => {
+        return [
+          {
+            validator: (_, value) => {
+              if (value >= 0) {
+                return Promise.resolve();
+              }
+              return Promise.reject('Please enter a valid number');
+            }
+          }
+        ]
+      },
+      slot: 'setQtyToAll',
+    },
   ],
   labelWidth: 'auto',
   showAdvancedButton: false,
@@ -238,6 +267,14 @@ async function handleSetSkuOrderQty(days) {
   for(let i = 0; i < selectedSku.value.length; i++) {
     // (vente 7 jours * 0.6) + (ventes 28 jours * 0.3) + (ventes 42 jours * 0.1) = qty pour 1 jour
     let qty = Math.ceil(((0.6*selectedSku.value[i].salesLastWeek/range1) + (0.3*selectedSku.value[i].salesFourWeeks/range2) + (0.1*selectedSku.value[i].salesSixWeeks/range3)) * days);
+    setFieldsValue({
+      [`${selectedSku.value[i].erpCode}`]: qty
+    });
+  }
+  await calculateTotal();
+}
+async function handleSetQtyToAll(qty) {
+  for(let i = 0; i < selectedSku.value.length; i++) {
     setFieldsValue({
       [`${selectedSku.value[i].erpCode}`]: qty
     });

@@ -6,6 +6,15 @@ enum Api {
   getClientList = '/client/client/all',
   getSkusByClient = '/sku/skusByClient',
   downloadInvoice = '/shippingInvoice/download',
+  getMabangUsername = '/sys/user/getMabangUsername',
+}
+export const getMabangUsername = (handleSuccess:any) => {
+  return defHttp.get({url: Api.getMabangUsername})
+    .then(res => {
+      handleSuccess(res);
+    }).catch(() => {
+      handleSuccess(null);
+    });
 }
 export const listCustomers = (handleSuccess:any) => {
   return defHttp.get({url: Api.getClientList})

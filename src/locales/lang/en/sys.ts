@@ -68,6 +68,7 @@ export default {
   invoice: {
     success: 'Orders have been invoiced successfully',
     fail: 'Error : failed to invoice orders',
+    missingMabangUsername: 'Please contact admin to set up Mabang username',
   },
   lock: {
     unlock: 'Click to unlock',
