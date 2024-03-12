@@ -73,6 +73,7 @@ export default {
     invoiceTypeInputSearch: "Select an invoice type",
     invoiceModeInputSearch: "Select an invoicing mode",
     orderSelectModeInputSearch: "Choose an order selection mode",
+    paidAmountInput: "Please enter the paid amount",
     platformOrderID: 'Select a Platform Order ID',
     platformOrderIDFilter: 'Filter Platform Order ID',
     shopFilter: "Filter by shop",
@@ -170,6 +171,7 @@ export default {
   },
   tips : {
     orderNumberSplitComma: 'Seperate order Ids with a comma (",")',
+    orderStatus: 'This value is set automatically. Only use this if you want to override the value.',
   },
   advancedSearch: "Advanced Search",
 };

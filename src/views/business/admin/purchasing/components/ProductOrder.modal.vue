@@ -5,7 +5,7 @@
       <template #qty="{ model, field, schema }">
         <div class="flex items-center flex-nowrap">
           <div class="flex flex-col basis-full text-sm" style="flex: 1">
-            <span class="qtyPerPeriod flex border border-r-0 rounded-full h-full py-0.5 mr-1 bg-blue-100">
+            <span class="qtyPerPeriod flex border border-r-0 rounded-full h-full py-0.5 mr-1 bg-primary bg-opacity-10">
               <span class="flex-1 basis-full border-r">{{selectedSkuMap.get(field).salesLastWeek == null ? 0 : selectedSkuMap.get(field).salesLastWeek}}</span>
               <span class="flex-1 basis-full border-r">{{selectedSkuMap.get(field).salesFourWeeks == null ? 0 : selectedSkuMap.get(field).salesFourWeeks}}</span>
               <span class="flex-1 basis-full">{{selectedSkuMap.get(field).salesSixWeeks == null ? 0 : selectedSkuMap.get(field).salesSixWeeks}}</span>
@@ -23,13 +23,13 @@
               </template>
             </InputNumber>
           </div>
-          <div class="flex flex-col basis-full px-1 ant-input-number-group-addon bg-blue-100"  style="flex: 1; color: #7294ff;">
+          <div class="flex flex-col basis-full px-1 ant-input-number-group-addon flex-1">
             <span class="pricePerSku">{{ Number((model[field] * selectedSkuMap.get(field).skuPrice).toFixed(2)) }}€</span>
           </div>
         </div>
       </template>
     </BasicForm>
-    <BasicForm @register="registerForm1" @change="calculateTotal" id="picker-form" style="padding: 6rem">
+    <BasicForm @register="registerForm1" @change="calculateTotal" id="picker-form" style="padding: 6rem 6rem 0 6rem">
       <template #autoPicker="{ model, field, schema }">
         <div class="flex w-full">
           <div class="flex basis-full flex-1 items-center justify-center">
@@ -328,13 +328,13 @@ function calculateTotal() {
   color: #9CA3AF;
   text-align: center;
   span:nth-child(1) {
-    color: #F59E0B;
+    color: @warning-color;
   }
   span:nth-child(2) {
-    color: #10B981;
+    color: @success-color;
   }
   span:nth-child(3) {
-    color: #3B82F6;
+    color: @primary-color;
   }
 }
 form {
@@ -353,5 +353,8 @@ span.jeecg-basic-help, .jeecg-basic-table-header-cell__help {
   .ant-row .ant-row.ant-form-item {
     justify-content: center;
   }
+}
+.pricePerSku {
+  color: @primary-color;
 }
 </style>

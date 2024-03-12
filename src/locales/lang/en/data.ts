@@ -229,4 +229,5 @@ export default {
   welcome: "Welcome",
   enName: 'En name',
   zhName: 'Zh name',
+  noData: 'No Data',
 }

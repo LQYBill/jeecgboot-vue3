@@ -17,26 +17,7 @@ export const columns: BasicColumn[] = [
     title: t('data.invoice.clientId'),
     align: "center",
     dataIndex: 'clientId_dictText',
-  },
-  {
-    title: t('data.client.currency'),
-    align: 'center',
-    dataIndex: 'currencyId_dictText',
-  },
-  {
-    title: t('data.invoice.totalAmount'),
-    align: "center",
-    dataIndex: 'totalAmount',
-  },
-  {
-    title: t('data.invoice.discountAmount'),
-    align: "center",
-    dataIndex: 'discountAmount',
-  },
-  {
-    title: t('data.invoice.finalAmount'),
-    align: "center",
-    dataIndex: 'finalAmount',
+    width: 100,
   },
   {
     title: t('data.invoice.invoiceNumber'),
@@ -44,9 +25,38 @@ export const columns: BasicColumn[] = [
     dataIndex: 'invoiceNumber',
   },
   {
+    title: t('data.client.currency'),
+    align: 'center',
+    dataIndex: 'currencyId_dictText',
+    width: 100,
+  },
+  {
+    title: t('data.invoice.totalAmount'),
+    align: "center",
+    dataIndex: 'totalAmount',
+    width: 100,
+    ellipsis: false,
+  },
+  {
+    title: t('data.invoice.discountAmount'),
+    align: "center",
+    dataIndex: 'discountAmount',
+    width: 100,
+    ellipsis: false,
+  },
+  {
+    title: t('data.invoice.finalAmount'),
+    align: "center",
+    dataIndex: 'finalAmount',
+    slots: {customRender: 'finalAmount'},
+
+  },
+  {
     title: t('data.invoice.paidAmount'),
     align: "center",
     dataIndex: 'paidAmount',
+    slots: {customRender: 'paidAmount'},
+    sorter: (a:any, b:any) => a.paidAmount - b.paidAmount,
   },
   {
     title: t('data.transaction.paymentProof'),
@@ -60,6 +70,20 @@ export const columns: BasicColumn[] = [
     dataIndex: 'inventoryDocumentString',
     slots: {customRender: 'fileSlot'},
   },
+  {
+    title: t('data.order.ordered'),
+    align: "center",
+    dataIndex: 'ordered',
+    slots: {customRender: 'ordered'},
+    width: 80,
+    sorter: (a:any, b:any) => a.ordered - b.ordered,
+  },
+  {
+    title: t('data.invoice.platformOrderID'),
+    align: "center",
+    dataIndex: 'platformOrderId',
+    slots: {customRender: 'platformOrderId'},
+  }
 ];
 //查询数据
 export const searchFormSchema: FormSchema[] = [
@@ -90,7 +114,7 @@ export const formSchema: FormSchema[] = [
     dynamicDisabled: ({values}) => {
       return !!values.id;
     },
-    dynamicRules: ({model, schema}) => {
+    dynamicRules: ({}) => {
       return [
         {required: true, message: t('component.searchForm.clientInputSearch')},
       ];
@@ -103,7 +127,7 @@ export const formSchema: FormSchema[] = [
     componentProps: {
       dict: "currency,code,id"
     },
-    dynamicRules: ({model, schema}) => {
+    dynamicRules: ({}) => {
       return [
         {required: true, message: t('component.searchForm.currencyInputSearch')},
       ];
@@ -113,22 +137,32 @@ export const formSchema: FormSchema[] = [
     label: t('data.invoice.totalAmount'),
     field: 'totalAmount',
     component: 'InputNumber',
+    componentProps :{
+      precision: 2
+    },
   },
   {
     label: t('data.invoice.discountAmount'),
     field: 'discountAmount',
     component: 'InputNumber',
+    componentProps :{
+      min: 0,
+      precision: 2
+    },
   },
   {
     label: t('data.invoice.finalAmount'),
     field: 'finalAmount',
     component: 'InputNumber',
+    componentProps :{
+      precision: 2
+    },
   },
   {
     label: t('data.invoice.invoiceNumber'),
     field: 'invoiceNumber',
     component: 'Input',
-    dynamicRules: ({model, schema}) => {
+    dynamicRules: ({model}) => {
       return [
         {
           required: false,
@@ -160,10 +194,26 @@ export const formSchema: FormSchema[] = [
   {
     label: t('data.invoice.paidAmount'),
     field: 'paidAmount',
+    slot: 'paidAmount',
     component: 'InputNumber',
-    dynamicRules: ({model, schema}) => {
+    componentProps :{
+      min: 0,
+      precision: 2
+    },
+    dynamicRules: ({model}) => {
       return [
-        {required: true, message: '请输入status!'},
+        {
+          required: true,
+          validator: (_, value) => {
+            console.log(value, 'value')
+            console.log(model, 'model')
+            if(value >= 0 && value <= model.finalAmount) {
+              return Promise.resolve();
+            }
+            return Promise.reject(t('component.searchForm.paidAmountInput'))
+          }
+        },
+        // message: t('component.searchForm.paidAmountInput')
       ];
     },
   },
@@ -195,6 +245,21 @@ export const formSchema: FormSchema[] = [
     helpMessage: [t('component.tips.orderNumberSplitComma')],
     componentProps: {
       placeholder: '1234567890, 234567891, ...',
+    },
+  },
+  {
+    label: t('data.order.ordered'),
+    field: 'ordered',
+    component: 'Switch',
+    helpMessage: [t('component.tips.orderStatus')],
+    componentProps: {
+      checkedChildren: t('common.yes'),
+      unCheckedChildren: t('common.no'),
+    },
+    defaultValue: false,
+    required: true,
+    itemProps: {
+      extra: t('component.tips.orderStatus'),
     },
   },
   // TODO 主键隐藏字段，目前写死为ID

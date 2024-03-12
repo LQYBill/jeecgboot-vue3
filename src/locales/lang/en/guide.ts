@@ -27,6 +27,11 @@ export default {
     tip7: "\"Shipping Invoice\" : to generate 2xxx type invoice<br/>" +
   "\"Complete Invoice\" : to generate 7xxx type invoice.",
   },
+  purchaseInvoice: {
+    line1 :"All the purchase orders are listed here.",
+    line2: "You can create an entry for manually created purchase orders, using the following button : ",
+    line3: "You can also create an order on Mabang if the selected orders have already been paid with proofs deposited with the following button : ",
+  }
 }
 
 

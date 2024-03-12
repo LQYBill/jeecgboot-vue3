@@ -75,6 +75,7 @@ export default {
     invoiceTypeInputSearch: "请选择发票类型",
     invoiceModeInputSearch: "请选择发票模式",
     orderSelectModeInputSearch: "请选择订单选择模式",
+    paidAmountInput: "请输入已付金额",
     platformOrderID: '请选择平台订ID',
     platformOrderIDFilter: '按平台订ID查看',
     skuSelectSearch: "输入sku选择",
@@ -169,6 +170,7 @@ export default {
   },
   tips : {
     orderNumberSplitComma: '订单号用逗号分开',
+    orderStatus: '此值是自动设置的。只有在您想要覆盖该值时才使用。',
   },
   advancedSearch: "Advanced Search",
 };
