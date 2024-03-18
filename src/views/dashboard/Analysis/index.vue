@@ -2,23 +2,23 @@
   <a-divider>
     <img :src="avatarUrl + userStore.getUserInfo.avatar" alt="avatar" class="w-32">
   </a-divider>
-  <h1 class="text-center text-2xl font-normal">Welcome back to <span class="text-yellow-500">WIA App</span><br/> <span class="text-blue-600">{{userStore.getUserInfo.realname}}</span></h1>
-<!--  <IndexDef v-if="indexStyle === 0"></IndexDef>-->
-<!--  <IndexChart v-if="indexStyle === 1"></IndexChart>-->
-<!--  <IndexBdc v-if="indexStyle == 2"></IndexBdc>-->
-<!--  <IndexTask v-if="indexStyle == 3"></IndexTask>-->
-<!--  <div style="width: 100%; text-align: right; margin-top: 20px">-->
-<!--    {{ t('common.data.selectHomePageStyle') }}:-->
-<!--    <a-radio-group v-model:value="indexStyle">-->
-<!--      <a-radio :value="0">{{ t('common.default') }}</a-radio>-->
-<!--      <a-radio :value="1">{{ t('common.data.salesStatistics') }}</a-radio>-->
-<!--      <a-radio :value="2">{{ t('common.data.businessStatistics') }}</a-radio>-->
-<!--      <a-radio :value="3">{{ t('common.data.myTasks') }}</a-radio>-->
-<!--    </a-radio-group>-->
-<!--  </div>-->
+  <h1 class="text-center text-2xl font-normal">Welcome back to <span class="text-yellow-500">WIA App</span><br/> <span class="text-primary">{{userStore.getUserInfo.realname}}</span></h1>
+  <IndexDef v-if="indexStyle === 0" :isEmployee="isEmployee"></IndexDef>
+  <IndexChart v-if="indexStyle === 1"></IndexChart>
+  <IndexBdc v-if="indexStyle == 2"></IndexBdc>
+  <IndexTask v-if="indexStyle == 3"></IndexTask>
+  <div style="width: 100%; text-align: right; margin-top: 20px">
+    {{ t('common.data.selectHomePageStyle') }}:
+    <a-radio-group v-model:value="indexStyle">
+      <a-radio :value="0">{{ t('common.default') }}</a-radio>
+      <a-radio :value="1">{{ t('common.data.salesStatistics') }}</a-radio>
+      <a-radio :value="2">{{ t('common.data.businessStatistics') }}</a-radio>
+      <a-radio :value="3">{{ t('common.data.myTasks') }}</a-radio>
+    </a-radio-group>
+  </div>
 </template>
 <script lang="ts" setup>
-  import { ref } from 'vue';
+  import {onBeforeMount, onMounted, ref} from 'vue';
   import IndexDef from './homePage/IndexDef.vue';
   import IndexChart from './homePage/IndexChart.vue';
   import IndexBdc from './homePage/IndexBdc.vue';
@@ -26,6 +26,8 @@
   import { useI18n } from '/@/hooks/web/useI18n';
   import {useUserStore} from "/@/store/modules/user";
   import {useGlobSetting} from "/@/hooks/setting";
+  import {fetchIsEmployee} from "/@/views/dashboard/Analysis/api";
+  import WiaIcon from "./components/Icons/WiaIcon.vue";
 
   const globSetting = useGlobSetting();
   const baseUploadUrl = globSetting.uploadUrl;
@@ -34,4 +36,17 @@
   const { t } = useI18n();
   const userStore = useUserStore();
   const indexStyle = ref(0);
+
+  const isEmployee = ref(false);
+
+  onBeforeMount(() => {
+    checkIsEmployee();
+  })
+  async function checkIsEmployee() {
+    await fetchIsEmployee(handleIsEmployee);
+  }
+
+  async function handleIsEmployee(res:any) {
+    isEmployee.value = res;
+  }
 </script>

@@ -1,4 +1,4 @@
-.number {
+table .number {
   display: flex;
   position: absolute;
   top: 0;
@@ -12,18 +12,28 @@
   //border: 1px solid;
   //border-radius: 5px;
   &--ok {
-    color: @success-color;
     background-color: fade(@success-color, 10%);
   }
 
   &--warning {
-    color: @warning-color;
     background-color: fade(@warning-color, 10%);
   }
 
   &--error {
-    color: @error-color;
     background-color: fade(@error-color, 10%);
+  }
+}
+.number {
+  &--ok {
+    color: @success-color;
+  }
+
+  &--warning {
+    color: @warning-color;
+  }
+
+  &--error {
+    color: @error-color;
   }
 }
 .jeecg-basic-table .ant-table .alert {

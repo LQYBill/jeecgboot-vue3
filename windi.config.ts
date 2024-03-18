@@ -11,6 +11,11 @@ export default defineConfig({
       },
       colors: {
         primary: primaryColor,
+        success: 'var(--success-color)',
+        error: 'var(--error-color)',
+        warning: 'var(--warning-color)',
+        duck: 'var(--duck-color)',
+        growth: 'var(--growth-color)',
       },
       screens: {
         sm: '576px',
@@ -19,6 +24,12 @@ export default defineConfig({
         xl: '1200px',
         '2xl': '1600px',
       },
+      lineHeight: {
+        'full': '100%',
+      },
+    },
+    flex: {
+      2: '2 2 0%',
     },
   },
 });

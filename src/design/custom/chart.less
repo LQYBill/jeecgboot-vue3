@@ -1,0 +1,24 @@
+@import (reference) "font.less";
+@import (reference) "color.less";
+
+.kpi {
+  .jetbrainsMono400
+}
+.kpi-number {
+  .jetbrainsMono400;
+  &-main {
+    font-weight: 700;
+  }
+}
+.kpi-growth {
+  @apply text-xs relative pl-1 before:content-['']  before:w-2.5 before:h-2.5 before:absolute;
+  &-pos {
+    @apply before:border-growth before:-rotate-45 before:-right-4 before:bottom-0 before:border-t-2 before:border-r-2 before:border-b-0 before:border-l-0 before:transform;
+  }
+  &-neg {
+    @apply before:border-error before:rotate-45 before:-right-4 before:top-0 before:border-t-0 before:border-r-2 before:border-b-2 before:border-l-0 before:transform;
+  }
+  &-small {
+    @apply leading-full before before:w-2 before:h-2;
+  }
+}

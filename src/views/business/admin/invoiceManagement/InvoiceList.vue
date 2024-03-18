@@ -1,11 +1,26 @@
 <template>
+  <PageWrapper title="Invoice Management">
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
+      <template #tableTitle>
+        <PopConfirmButton
+          v-if="checkedKeys && checkedKeys.length > 0"
+          type="success"
+          :title="t('component.popConfirm.setInvoicesPaid')"
+          preIcon="ant-design:dollar-outlined"
+          @confirm="setPaid(checkedKeys, handleSetPaid)"
+          :disabled="paidDisabled"
+          okText="ok" :loading="paidLoading"
+          cancelText="Cancel"
+        >
+          {{ t("data.invoice.paid") }}
+        </PopConfirmButton>
+      </template>
       <template #toolbar>
         <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('Invoice List', Api.exportXls, exportParams)"> {{ t("common.operation.export") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('detail')" :disabled = 'downloadDetailDisabled'> {{ t("data.invoice.downloadDetails") }}</a-button>
         <PopConfirmButton
-            v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin')"
+            v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin' || username === 'Gauthier')"
             type="error"
             title="Confirm cancelling invoice ?"
             preIcon="ant-design:delete-outlined"
@@ -32,11 +47,16 @@
           ]"
         />
       </template>
+      <template #type="{record}">
+        <span v-if="record?.type == 'Purchase Invoice'" class="inline-block"><BasketIcon color="var(--success-color)" width="16px" height="16px" title="purchase"/></span>
+        <span v-else class="inline-block"><PlainIcon color="var(--primary-color)" width="24px" height="24px" title="shipping"/></span>
+      </template>
     </BasicTable>
+  </PageWrapper>
 </template>
 <script async setup lang="ts">
-import {BasicTable, FormSchema, TableAction, useTable} from "/@/components/Table/";
-import {BasicColumn} from '/@/components/Table/src/types/table';
+import {BasicTable, FormSchema, TableAction, useTable} from "/@/components/Table";
+import {BasicColumn} from '/@/components/Table';
 import {downloadFile, getUserList} from '/@/api/common/api';
 import {defHttp} from '/@/utils/http/axios';
 import {useMessage} from '/@/hooks/web/useMessage';
@@ -47,6 +67,13 @@ import {filterObj} from "/@/utils/common/compUtils";
 import {useUserStore} from "/@/store/modules/user";
 import {usePermissionStore} from "/@/store/modules/permission";
 import {PopConfirmButton} from "/@/components/Button";
+import {Modal} from "ant-design-vue";
+import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
+import {columns, fetchUserList, searchFormSchema} from "./data/InvoiceList.data";
+import {list, Api, setPaid} from "./api/invoiceList.api";
+import PackagesIcon from "/@/views/business/admin/invoiceManagement/components/PackagesIcon.vue";
+import PlainIcon from "/@/views/business/admin/invoiceManagement/components/PlainIcon.vue";
+import BasketIcon from "/@/views/business/admin/invoiceManagement/components/BasketIcon.vue";
 
 const userStore = useUserStore();
 const permissionStore = usePermissionStore();
@@ -55,133 +82,23 @@ const { t } = useI18n();
 const { handleExportXls } = useMethods();
 const username = ref<string>();
 
-// options of the select menu in search menu
-const userList = ref([]);
 onMounted(async () => {
   fetchUserList();
   username.value = userStore.getUserInfo.username;
 })
 // urls
-enum Api {
-  cancelInvoice = '/generated/shippingInvoice/cancelInvoice',
-  cancelBatchInvoice = '/generated/shippingInvoice/cancelBatchInvoice',
-  exportXls = '/generated/shippingInvoice/exportXls',
-  list = "/generated/shippingInvoice/list",
-  getClient = "/generated/shippingInvoice/getClient",
-  downloadCompleteInvoiceExcel = "/generated/shippingInvoice/downloadCompleteInvoiceExcel",
-}
+
 
 const deleteBatchDisabled = ref(true);
 const downloadInvoiceDisabled = ref(true);
 const downloadDetailDisabled = ref(true);
+const paidDisabled = ref(false);
 
 const deleteBatchLoading = ref<boolean>(false);
+const paidLoading = ref<boolean>(false);
 
-const columns: BasicColumn[] = [
-  {
-    title: t("data.invoice.createBy"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'createBy'
-  },
-  {
-    title: t("data.invoice.createDate"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'createTime'
-  },
-  {
-    title: t("data.Client"),
-    align: "center",
-    sorter: true,
-    dataIndex: 'clientId_dictText'
-  },
-  {
-    title: t("data.invoice.invoiceNumber"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'invoiceNumber'
-  },
-  {
-    title: t("data.invoice.totalAmountDue"),
-    align:"center",
-    dataIndex: 'totalAmount'
-  },
-  {
-    title: t("data.invoice.discountAmount"),
-    align:"center",
-    dataIndex: 'discountAmount'
-  },
-  {
-    title: t("data.invoice.finalAmount"),
-    align:"center",
-    dataIndex: 'finalAmount'
-  },
-  {
-    title: t("data.invoice.paidAmount"),
-    align:"center",
-    dataIndex: 'paidAmount'
-  },
-  {
-    title: t('data.client.currency'),
-    align: "center",
-    fixed:"right",
-    dataIndex: 'currencyId_dictText'
-  },
-  {
-    title: t('common.operation.action'),
-    dataIndex: 'action',
-    align:"center",
-    fixed:"right",
-    width:147,
-    slots: { customRender: 'action' }
-  }
-];
-const searchFormSchema: FormSchema[] = [
-  {
-    field: "createBy",
-    label: t("data.invoice.createBy"),
-    labelWidth: 20,
-    component: 'JSearchSelect',
-    componentProps: {
-        placeholder: t('component.searchForm.userSelect'),
-        dictOptions: userList
-    },
-    disabledLabelWidth:true,
-    itemProps: {
-      labelCol: {
-        span: 6
-      },
-      wrapperCol: {
-        span: 18
-      }
-    },
-    colProps: { span: 5 },
-  },
-  {
-    field: "invoiceNumber",
-    label: " " + t("data.invoice.invoiceNumber"),
-    component: 'Input',
-    componentProps: {
-      placeholder: t('component.searchForm.enterInvoiceNumber'),
-    },
-    disabledLabelWidth:true,
-    itemProps: {
-      labelCol: {
-        span: 6,
-        offset: 1
-      },
-      wrapperCol: {
-        span: 12
-      }
-    },
-    colProps: { span: 6 },
-  }
-];
 // get the list of all shipping invoice
-const list = (params) => {
-  return defHttp.get({ url: Api.list, params });
-}
+
 // creating table
 const [registerTable, { reload, clearSelectedRowKeys, setLoading }] = useTable({
   title: 'Invoice List',
@@ -231,37 +148,7 @@ const exportParams = computed(()=>{
   paramsForm['selections'] = list;
   return filterObj(paramsForm)
 });
-function fetchUserList() {
-  let param = {
-    pageNo: 1,
-    pageSize: 50
-  };
-  getUserList(param).then(res => {
-    userList.value = res.records.map(
-      user => ({
-        text: user.username,
-        value: user.username,
-      })
-    );
-    if (res.pages > 1) {
-      for (let i = 2; i <= res.pages; i++) {
-        getUserList({pageNo: i, pageSize: 50}).then(r => {
-          let oldUserList = userList.value;
-          let newUserList = r.records.map(
-            user => ({
-              text: user.username,
-              value: user.username,
-            })
-          );
-          for(let item of oldUserList) {
-            newUserList.push(item);
-          }
-          userList.value = newUserList;
-        });
-      }
-    }
-  });
-}
+
 function downloadExcelInvoice(type) {
   if(checkedKeys.value.length === 0) {
     downloadInvoiceDisabled.value = true;
@@ -354,12 +241,19 @@ function handleDeleteBatch() {
       deleteBatchLoading.value = false;
     });
 }
+function handleSetPaid() {
+  console.log("Set paid");
+  // reload();
+}
 </script>
-<style>
+<style lang="less">
 .alert.ant-alert.ant-alert-info{
-  margin: 1em 0;
+  margin: 0.5rem 0;
 }
 .ant-btn-link:hover, .ant-btn-link:focus {
-  color: red;
+  color: @error-color;
+}
+.jeecg-basic-table-header__tableTitle > * {
+  margin: 0;
 }
 </style>
