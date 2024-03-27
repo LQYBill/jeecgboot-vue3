@@ -1,9 +1,10 @@
 import { defHttp } from '/@/utils/http/axios';
+import {ComputedRef} from "vue";
 
 enum Api {
   loginfo = '/sys/loginfo',
   visitInfo = '/sys/visitInfo',
-  clienKpi = '/client/client/kpi',
+  clientKpi = '/client/client/kpi',
   employeeKpi = '/admin/kpis',
 }
 /**
@@ -17,9 +18,11 @@ export const getLoginfo = (params) => defHttp.get({ url: Api.loginfo, params }, 
  */
 export const getVisitInfo = (params) => defHttp.get({ url: Api.visitInfo, params }, { isTransformResponse: false });
 
-export const fetchIsEmployee = (handleSucess) => {
-  return defHttp.get({ url: '/security/isEmployee' }).then((res) => {handleSucess(res);});
+export const fetchIsEmployee = async (handleSuccess: (arg0: any) => void) => {
+  const res = await defHttp.get({url: '/security/isEmployee'});
+  handleSuccess(res);
 }
-export const fetchKpis = (isEmployee, handleSuccess) => {
-  return defHttp.get({ url: isEmployee ? Api.employeeKpi : Api.clienKpi }).then((res) => {handleSuccess(res);});
+export const fetchKpis = async (isEmployee: ComputedRef<boolean>, period:string, handleSuccess: (arg0: any) => void) => {
+  const res = await defHttp.get({url: isEmployee ? Api.employeeKpi : Api.clientKpi, params: {period: period}});
+  handleSuccess(res);
 }

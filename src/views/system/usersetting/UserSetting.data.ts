@@ -99,33 +99,33 @@ export const formSchema: FormSchema[] = [
 //密码弹窗
 export const formPasswordSchema: FormSchema[] = [
   {
-    label: '用户账号',
+    label: t('sys.login.username'),
     field: 'username',
     component: 'Input',
     componentProps: { readOnly: true },
   },
   {
-    label: '旧密码',
+    label: t('sys.profile.oldPassword'),
     field: 'oldpassword',
     component: 'InputPassword',
     required: true,
   },
   {
-    label: '新密码',
+    label: t('sys.profile.newPassword'),
     field: 'password',
     component: 'StrengthMeter',
     componentProps: {
-      placeholder: '请输入新密码',
+      placeholder: t('sys.profile.newPasswordPlaceholder'),
     },
     rules: [
       {
         required: true,
-        message: '请输入新密码',
+        message: t('sys.profile.newPasswordPlaceholder'),
       },
     ],
   },
   {
-    label: '确认新密码',
+    label: t('sys.profile.confirmPassword'),
     field: 'confirmpassword',
     component: 'InputPassword',
     dynamicRules: ({ values }) => rules.confirmPassword(values, true),

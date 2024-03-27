@@ -18,7 +18,23 @@
   &-neg {
     @apply before:border-error before:rotate-45 before:-right-4 before:top-0 before:border-t-0 before:border-r-2 before:border-b-2 before:border-l-0 before:transform;
   }
+  &-neutral {
+    @apply before:border-gray before:-right-4 before:top-1.5 before:border-t-2 before:transform;
+  }
   &-small {
     @apply leading-full before before:w-2 before:h-2;
+  }
+}
+
+.custom-period(@color: @primary-color) {
+  background-color: fade(@color, 10%);
+  color: @color;
+  border-color: @color;
+}
+.ant-select.kpi-period, .kpi-period,.ant-select:not(.ant-select-customize-input).kpi-period {
+  @apply text-xs w-32;
+  &--duck > .ant-select-selector {
+    .custom-period(@duck-color);
+    @apply relative rounded-md;
   }
 }

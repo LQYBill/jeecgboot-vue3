@@ -4,7 +4,10 @@ export default {
   purchaseInvoiceCreated : 'Purchase Invoice Created',
   orders: 'Orders',
   period: {
-    past12Months: 'Past 12 Months',
+    past12Months: '12 Months',
+    currentYear: 'Current Year',
+    currentQuarter: 'Current Quarter',
+    currentMonth: 'Current Month',
   },
   created: 'Created',
   beingProcessed: 'Being Processed',

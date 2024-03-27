@@ -31,6 +31,10 @@ export default {
     entryEditSuccess: 'Entry edited successfully !',
     entryDeleteSuccess: 'Entry deleted successfully !',
     entryBatchDeleteSuccess: 'Entries deleted successfully !',
+
+    invoiceCancelSuccess: 'Invoice(s) Cancelled Successfully',
+    invoiceCancelFail: 'Failed to cancel invoice(s)',
+    invoiceCancelSuccessFileDeleteFail: 'Invoice(s) cancelled but failed to delete multiple files.',
   },
   app: {
     logoutTip: 'Reminder',
@@ -115,6 +119,7 @@ export default {
     policyPlaceholder: 'Register after checking',
     diffPwd: 'The two passwords are inconsistent',
 
+    username: 'Username',
     userName: 'Username',
     password: 'Password',
     inputCode: 'Verification code',
@@ -149,7 +154,16 @@ export default {
     websiteLoginPassword: 'Password used for logging in.',
     newPassword: 'New Password',
     passwordRequirements: '8 à 20 caractères, doit inclure des lettres et des chiffres.',
+    oldPassword: 'Old Password',
+    confirmNewPassword: 'Confirm Password',
+    //placeholder
+    newPasswordPlaceholder: 'Please enter a new password',
+    changePassword: 'Change Password',
 
     editProfile: 'Edit Profile',
-  }
+  },
+  cacheCleared: 'Cache cleared',
+  cacheClearFailed: 'Failed to clear cache',
+
+  bd: 'Happy Birthday to You !',
 };

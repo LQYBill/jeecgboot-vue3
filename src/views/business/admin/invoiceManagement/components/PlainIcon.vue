@@ -2,7 +2,7 @@
   <svg :fill="color" :width="width" :height="height" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
        xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 511.999 511.999"
        xml:space="preserve">
-    <title>{{title}}</title>
+    <title>{{ t(title) }}</title>
     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
     <g id="SVGRepo_iconCarrier">
@@ -19,6 +19,8 @@
   </svg>
 </template>
 <script>
+import {useI18n} from "/@/hooks/web/useI18n";
+
 export default {
   name: "PlainIcon",
   props: {
@@ -41,11 +43,13 @@ export default {
     }
   },
   setup(props) {
+    const {t} = useI18n();
     return {
       width: props.width,
       height: props.height,
       color: props.color,
       title: props.title,
+      t,
     }
   }
 }

@@ -16,6 +16,7 @@ export default defineConfig({
         warning: 'var(--warning-color)',
         duck: 'var(--duck-color)',
         growth: 'var(--growth-color)',
+        gray: 'var(--gray-color)',
       },
       screens: {
         sm: '576px',
@@ -29,6 +30,7 @@ export default defineConfig({
       },
     },
     flex: {
+      1: '1 1 0%',
       2: '2 2 0%',
     },
   },

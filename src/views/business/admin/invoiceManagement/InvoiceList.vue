@@ -7,7 +7,7 @@
           type="success"
           :title="t('component.popConfirm.setInvoicesPaid')"
           preIcon="ant-design:dollar-outlined"
-          @confirm="setPaid(checkedKeys, handleSetPaid)"
+          @confirm="setPaid(selectRows, handleSetPaid)"
           :disabled="paidDisabled"
           okText="ok" :loading="paidLoading"
           cancelText="Cancel"
@@ -48,8 +48,10 @@
         />
       </template>
       <template #type="{record}">
-        <span v-if="record?.type == 'Purchase Invoice'" class="inline-block"><BasketIcon color="var(--success-color)" width="16px" height="16px" title="purchase"/></span>
-        <span v-else class="inline-block"><PlainIcon color="var(--primary-color)" width="24px" height="24px" title="shipping"/></span>
+        <div v-if="record?.type == 'purchase'" class="flex justify-evenly items-center"><BasketIcon color="var(--success-color)" width="16px" height="16px" title="data.invoice.purchaseInvoice"/></div>
+        <div v-else-if="record?.type == 'shipping'" class="flex justify-evenly items-center"><PlainIcon color="var(--primary-color)" width="24px" height="24px" title="data.invoice.shippingInvoice"/></div>
+        <div v-else-if="record?.type == 'complete'" class="flex justify-evenly items-center"><BasketIcon color="var(--success-color)" width="16px" height="16px" title="data.invoice.purchaseInvoice"/> + <PlainIcon color="var(--primary-color)" width="24px" height="24px" title="data.invoice.shippingInvoice"/></div>
+        <div v-else class="flex justify-evenly items-center text-error"> ?? </div>
       </template>
     </BasicTable>
   </PageWrapper>
@@ -86,8 +88,6 @@ onMounted(async () => {
   fetchUserList();
   username.value = userStore.getUserInfo.username;
 })
-// urls
-
 
 const deleteBatchDisabled = ref(true);
 const downloadInvoiceDisabled = ref(true);
@@ -126,7 +126,7 @@ const [registerTable, { reload, clearSelectedRowKeys, setLoading }] = useTable({
   },
   tableSetting: { fullScreen: true },
   canResize: false,
-  rowKey: 'invoiceNumber',
+  rowKey: 'id',
 });
 
 const checkedKeys = ref<Array<string | number>>([]);
@@ -160,7 +160,8 @@ function downloadExcelInvoice(type) {
   let day = today.getDate() < 10 ? '0'+today.getDate() : today.getDate();
   let date = today.getFullYear()+'-'+ month +'-'+ day;
 
-  for( let invoiceNum of checkedKeys.value) {
+  for( let row of selectRows.value) {
+    let invoiceNum = row.invoiceNumber
     const param = {
       invoiceNumber: invoiceNum,
       filetype: type
@@ -179,6 +180,17 @@ function downloadExcelInvoice(type) {
         }).catch((err) => {
           console.error(err);
           createMessage.error(invoiceNum + " : " + err);
+
+          if(type === "detail") {
+            createMessage.info("Generating a new detail file ...");
+            let params = {invoiceNumber: invoiceNum, invoiceEntity: res.invoiceEntity, internalCode: res.internalCode};
+            downloadFile(Api.downloadInvoiceDetail, filename, params).then(() => {
+              createMessage.info("Download successful.")
+            }).catch((err) => {
+              console.error(err);
+              createMessage.error("Download invoice detail fail " + invoiceNum + " : " + err);
+            });
+          }
         });
       }).catch((e) => {
         console.error("Failed to find the shop owner ! Check if invoice is valid : " + invoiceNum);
@@ -201,7 +213,7 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
   }
 }
 function handleDelete(record: Recordable) {
-  defHttp.post({ url: Api.cancelInvoice, data: { id: record.id, invoiceNumber: record.invoiceNumber, clientId: record.clientId } }, { joinParamsToUrl: true }).then(()=> {
+  defHttp.delete({ url: Api.cancelInvoice, data: { id: record.id, invoiceNumber: record.invoiceNumber, clientId: record.clientId } }, { joinParamsToUrl: true }).then(()=> {
     checkedKeys.value = [];
     selectRows.value = [];
     clearSelectedRowKeys();
@@ -210,40 +222,31 @@ function handleDelete(record: Recordable) {
     console.error(e);
   });
 }
-function handleDeleteBatch() {
-  let ids:any[] = [];
-  let invoiceNumbers:any[] = [];
-  let clientIds:any[] = [];
-  for(let row of selectRows.value) {
-    ids.push(row.id);
-    invoiceNumbers.push(row.invoiceNumber);
-    clientIds.push(row.clientId);
-  }
-  let data = {
-    ids: ids,
-    invoiceNumbers: invoiceNumbers,
-    clientIds: clientIds,
-  };
+async function handleDeleteBatch() {
   deleteBatchLoading.value = true;
   setLoading(true);
-  defHttp.post({url: Api.cancelBatchInvoice, data: data }, { joinParamsToUrl: true })
-    .then(res=> {
-      checkedKeys.value = [];
-      selectRows.value = [];
-      clearSelectedRowKeys();
-      reload();
-    })
-    .catch(e=> {
-      console.error(e);
-    })
-    .finally(() => {
-      setLoading(false);
-      deleteBatchLoading.value = false;
+  let invoices:any = [];
+  for (let row of selectRows.value) {
+    invoices.push({
+      id: row.id,
+      invoiceNumber: row.invoiceNumber,
+      clientId: row.clientId
     });
+  }
+  defHttp.delete({url: Api.cancelBatchInvoice, data: invoices}, { joinParamsToUrl: true }).then(() => {
+    checkedKeys.value = [];
+    selectRows.value = [];
+    clearSelectedRowKeys();
+    reload();
+  }).catch(e => {
+    console.error(e);
+  }).finally(() => {
+    deleteBatchLoading.value = false;
+    setLoading(false);
+  });
 }
 function handleSetPaid() {
-  console.log("Set paid");
-  // reload();
+  reload();
 }
 </script>
 <style lang="less">

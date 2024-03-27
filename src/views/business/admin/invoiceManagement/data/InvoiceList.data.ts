@@ -9,6 +9,14 @@ const {t} = useI18n()
 const userList = ref([]);
 export const columns: BasicColumn[] = [
   {
+    title: 'id',
+    dataIndex: 'id',
+    width: 80,
+    align:"center",
+    sorter: true,
+    ifShow: false,
+  },
+  {
     title: t("data.invoice.createBy"),
     align:"center",
     sorter: true,
@@ -55,9 +63,10 @@ export const columns: BasicColumn[] = [
   {
     title: t('data.client.currency'),
     align: "center",
+    dataIndex: 'currencyId_dictText',
     fixed:"right",
     width: 100,
-    dataIndex: 'currencyId_dictText'
+    sorter: true,
   },
   {
     title: t('data.invoice.invoiceType'),
@@ -65,6 +74,7 @@ export const columns: BasicColumn[] = [
     dataIndex: 'type',
     fixed: "right",
     width: 100,
+    sorter: true,
     slots: {customRender: 'type'}
   },
   {
@@ -94,10 +104,10 @@ export const searchFormSchema: FormSchema[] = [
       }),
       wrapperCol: reactive({
         xs: { span: 16 },
-        sm: { span: 18 },
+        lg: { span: 18 },
       }),
     },
-    colProps: { span: 8 },
+    colProps: { span: 6 },
   },
   {
     field: "invoiceNumber",
@@ -107,6 +117,30 @@ export const searchFormSchema: FormSchema[] = [
       placeholder: t('component.searchForm.enterInvoiceNumber'),
     },
     disabledLabelWidth:true,
+    itemProps: {
+      labelCol: reactive({
+        xs: { span: 12 },
+        lg: { span: 12 },
+      }),
+      wrapperCol: reactive({
+        xs: { span: 12 },
+        lg: { span: 12 },
+      }),
+    },
+    colProps: { span: 6 },
+  },
+  {
+    field: "type",
+    label: " " + t("data.invoice.invoiceType"),
+    component: 'Select',
+    componentProps: {
+      placeholder: t("data.invoice.invoiceType"),
+      options: [
+        {label: t('data.invoice.shippingInvoice'), value: 'shipping'},
+        {label: t('data.invoice.purchaseInvoice'), value: 'purchase'},
+        {label: t('data.invoice.completeInvoice'), value: 'complete'},
+      ]
+    },
     itemProps: {
       labelCol: reactive({
         xs: { span: 12 },

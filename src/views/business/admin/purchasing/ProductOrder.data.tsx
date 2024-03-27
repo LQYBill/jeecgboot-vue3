@@ -8,11 +8,47 @@ export const columns: BasicColumn[] = [
     title: t('data.sku.erpCode'),
     align: 'center',
     dataIndex: 'erpCode',
+    customFilterDropdown: true,
+    onFilter: (value, record:any) => {
+      for (let i = 0; i < value.length; i++) {
+        if (record.product.toString().toLowerCase().includes(value[i].toLowerCase())) {
+          return true;
+        }
+      }
+    },
   },
   {
     title: t('data.product.product'),
     align: 'center',
-    dataIndex: 'product',
+    children: [
+      {
+        title: t('data.zhName'),
+        dataIndex: 'product',
+        align: 'center',
+        customFilterDropdown: true,
+        onFilter: (value, record:any) => {
+          for (let i = 0; i < value.length; i++) {
+            if (record.product.toString().toLowerCase().includes(value[i].toLowerCase())) {
+              return true;
+            }
+          }
+        },
+
+      },
+      {
+        title: t('data.enName'),
+        dataIndex: 'productEn',
+        align: 'center',
+        customFilterDropdown: true,
+        onFilter: (value, record:any) => {
+          for (let i = 0; i < value.length; i++) {
+            if (record.productEn.toString().toLowerCase().includes(value[i].toLowerCase())) {
+              return true;
+            }
+          }
+        },
+      },
+    ]
   },
   {
     title: t('data.sku.availableAmount'),
@@ -76,7 +112,7 @@ export const columns: BasicColumn[] = [
     sorter: (a:any, b:any) => a.salesLastWeek - b.salesLastWeek,
   },
   {
-    title: t('data.sku.skuPrice'),
+    title: `${t('data.sku.skuPrice')} (€)`,
     align: 'center',
     dataIndex: 'skuPrice',
     slots: {customRender: 'skuPrice'},

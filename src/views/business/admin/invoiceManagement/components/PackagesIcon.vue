@@ -22,6 +22,8 @@
   </svg>
 </template>
 <script>
+import {useI18n} from "vue-i18n";
+
 export default {
   name: "PackagesIcon",
   props: {
@@ -43,11 +45,13 @@ export default {
     }
   },
   setup(props) {
+    const {t} = useI18n();
     return {
       width: props.width,
       height: props.height,
       color: props.color,
       title: props.title,
+      t,
     }
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <BasicModal v-bind="$attrs" @register="registerModal" title="修改密码" @ok="handleSubmit" width="600px">
+  <BasicModal v-bind="$attrs" @register="registerModal" :title="t('sys.profile.changePassword')" @ok="handleSubmit" width="600px">
     <BasicForm @register="registerForm" />
   </BasicModal>
 </template>
@@ -10,8 +10,10 @@
   import { BasicModal, useModalInner } from '/@/components/Modal';
   import { BasicForm, useForm } from '/@/components/Form/index';
   import { useMessage } from '/@/hooks/web/useMessage';
+  import {useI18n} from "/@/hooks/web/useI18n";
   // 声明Emits
   const emit = defineEmits(['register']);
+  const {t} = useI18n();
   const $message = useMessage();
   const formRef = ref();
   const username = ref('');
@@ -19,27 +21,27 @@
   const [registerForm, { resetFields, validate, clearValidate }] = useForm({
     schemas: [
       {
-        label: '旧密码',
+        label: t('sys.profile.oldPassword'),
         field: 'oldpassword',
         component: 'InputPassword',
         required: true,
       },
       {
-        label: '新密码',
+        label: t('sys.profile.newPassword'),
         field: 'password',
         component: 'StrengthMeter',
         componentProps: {
-          placeholder: '请输入新密码',
+          placeholder: t('sys.profile.newPasswordPlaceholder'),
         },
         rules: [
           {
             required: true,
-            message: '请输入新密码',
+            message: t('sys.profile.newPasswordPlaceholder'),
           },
         ],
       },
       {
-        label: '确认新密码',
+        label: t('sys.profile.confirmNewPassword'),
         field: 'confirmpassword',
         component: 'InputPassword',
         dynamicRules: ({ values }) => rules.confirmPassword(values, true),

@@ -11,10 +11,8 @@ enum Api {
   save='/purchaseOrder/addPurchaseAndOrder',
   // edit='/purchaseOrder/edit',
   edit='/purchaseOrder/editPurchaseAndOrder',
-  cancelInvoice = '/purchaseOrder/cancelInvoice',
-  cancelBatchInvoice = '/purchaseOrder/cancelBatchInvoice',
-  deleteOne = '/purchaseOrder/delete',
-  deleteBatch = '/purchaseOrder/deleteBatch',
+  cancelInvoice = '/invoice/cancelInvoice',
+  cancelBatchInvoice = '/invoice/cancelBatchInvoice',
   importExcel = '/purchaseOrder/importExcel',
   exportXls = '/purchaseOrder/exportXls',
   duplicateInvoiceNumberCheck = '/shippingInvoice/duplicateInvoiceNumberCheck',
@@ -39,68 +37,43 @@ export const list = (params) =>
 /**
  * 删除单个
  */
-export const deleteOne = (params,handleSuccess) => {
-  return defHttp.delete({url: Api.deleteOne, params}, {joinParamsToUrl: true}).then(() => {
-    handleSuccess();
-  });
+export const cancelInvoice = async (params: any, handleSuccess: () => void) => {
+  await defHttp.delete({url: Api.cancelInvoice, params}, {joinParamsToUrl: true});
+  handleSuccess();
 }
 /**
  * 批量删除
  * @param params
+ * @param handleSuccess
  */
-export const batchDelete = (params, handleSuccess) => {
+export const batchCancel = (params:any, handleSuccess: () => void) => {
   createConfirm({
     iconType: 'warning',
     title: t('common.operation.deleteConfirmation'),
     content: t('common.operation.deleteBatchConfirmation'),
     okText: t('common.okText'),
     cancelText: t('common.operation.cancel'),
-    onOk: () => {
-      return defHttp.delete({url: Api.deleteBatch, data: params}, {joinParamsToUrl: true}).then(() => {
-        handleSuccess();
-      });
-    }
-  });
-}
-/**
- * 删除单个
- */
-export const cancelInvoice = (params,handleSuccess) => {
-  return defHttp.delete({url: Api.cancelInvoice, params}, {joinParamsToUrl: true}).then(() => {
-    handleSuccess();
-  });
-}
-/**
- * 批量删除
- * @param params
- */
-export const batchCancel = (params, handleSuccess) => {
-  createConfirm({
-    iconType: 'warning',
-    title: t('common.operation.deleteConfirmation'),
-    content: t('common.operation.deleteBatchConfirmation'),
-    okText: t('common.okText'),
-    cancelText: t('common.operation.cancel'),
-    onOk: () => {
-      return defHttp.delete({url: Api.cancelBatchInvoice, data: params}, {joinParamsToUrl: true}).then(() => {
-        handleSuccess();
-      });
+    onOk: async () => {
+      await defHttp.delete({ url: Api.cancelBatchInvoice, params }, { joinParamsToUrl: true });
+      handleSuccess();
     }
   });
 }
 /**
  * 保存或者更新
  * @param params
+ * @param isUpdate
  */
-export const saveOrUpdate = (params, isUpdate) => {
+export const saveOrUpdate = (params: Recordable, isUpdate: boolean) => {
   let url = isUpdate ? Api.edit : Api.save;
   return defHttp.post({url: url, params});
 }
 
-export const duplicateInvoiceNumberCheck = (params) => {
+export const duplicateInvoiceNumberCheck = (params: { id: any; invoiceNumber: any; invoiceType: string; }) => {
   return defHttp.get({url: Api.duplicateInvoiceNumberCheck, params});
 }
 
-export const createMabangPurchaseOrder = (params) => {
-  return defHttp.get({url: Api.createMabangPurchaseOrder, params: params});
+export const createMabangPurchaseOrder = async (params: any, handleSuccess: (arg0: any) => void) => {
+  const res = await defHttp.get({url: Api.createMabangPurchaseOrder, params: params});
+  handleSuccess(res);
 }

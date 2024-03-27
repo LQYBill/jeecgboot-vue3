@@ -41,23 +41,25 @@
   //ts语法
   import { ref, computed, unref } from 'vue';
   import { BasicTable, TableAction } from '/src/components/Table';
-  import { useDrawer } from '/src/components/Drawer';
-  import { useModal } from '/src/components/Modal';
+  import { useDrawer } from '/@/components/Drawer';
+  import { useModal } from '/@/components/Modal';
   import DictItemList from './components/DictItemList.vue';
   import DictModal from './components/DictModal.vue';
   import DictRecycleBinModal from './components/DictRecycleBinModal.vue';
-  import { useMessage } from '/src/hooks/web/useMessage';
-  import { removeAuthCache, setAuthCache } from '/src/utils/auth';
+  import { useMessage } from '/@/hooks/web/useMessage';
+  import { removeAuthCache, setAuthCache } from '/@/utils/auth';
   import { columns, searchFormSchema } from './dict.data';
   import { list, deleteDict, batchDeleteDict, getExportUrl, getImportUrl, refreshCache, queryAllDictItems } from './dict.api';
-  import { DB_DICT_DATA_KEY } from '/src/enums/cacheEnum';
+  import { DB_DICT_DATA_KEY } from '/@/enums/cacheEnum';
 
   const { createMessage } = useMessage();
+  const {t} = useI18n();
   //字典model
   const [registerModal, { openModal }] = useModal();
   //字典配置drawer
   const [registerDrawer, { openDrawer }] = useDrawer();
   import { useListPage } from '/@/hooks/system/useListPage';
+  import {useI18n} from "/@/hooks/web/useI18n";
 
   //回收站model
   const [registerModal1, { openModal: openRecycleModal }] = useModal();
@@ -147,9 +149,9 @@
       const res = await queryAllDictItems();
       removeAuthCache(DB_DICT_DATA_KEY);
       setAuthCache(DB_DICT_DATA_KEY, res.result);
-      createMessage.success('刷新缓存完成！');
+      createMessage.success(t('sys.cacheCleared'));
     } else {
-      createMessage.error('刷新缓存失败！');
+      createMessage.error(t('sys.cacheClearFailed'));
     }
   }
   /**

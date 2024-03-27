@@ -6,6 +6,9 @@ export default {
   platformOrders: 'Platform Orders',
   period: {
     past12Months: '过去12个月',
+    currentYear: '当前年',
+    currentQuarter: '当前季度',
+    currentMonth: '当前月',
   },
   created: '已创建',
   beingProcessed: '正在处理',

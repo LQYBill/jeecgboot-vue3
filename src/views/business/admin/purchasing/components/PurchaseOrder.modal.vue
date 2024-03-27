@@ -93,7 +93,6 @@ async function submitPurchaseOrder() {
   try {
     let values = await validate();
     setModalProps({confirmLoading: true});
-    console.log(values)
     if(!!values.platformOrderId)
       values.platformOrderId = listFormatting(values.platformOrderId);
     //提交表单
@@ -115,7 +114,6 @@ async function submitPurchaseOrder() {
 async function submitMabangPurchaseOrder() {
   try {
     setModalProps({confirmLoading: true});
-    console.log(`creating mabang order for :  ${JSON.stringify(selectedRows.value)}`)
     // params = selectedRows value concat invoiceNumbers
     let invoiceNumbers = "";
     for(let i = 0; i < selectedRows.value.length; i++) {
@@ -124,7 +122,7 @@ async function submitMabangPurchaseOrder() {
         invoiceNumbers += ",";
     }
     // await createMabangPurchaseOrder([invoiceNumbers]);
-    await createMabangPurchaseOrder({invoiceNumbers: invoiceNumbers});
+    await createMabangPurchaseOrder({invoiceNumbers: invoiceNumbers}, handleCreateMabangPurchaseOrder);
     //关闭弹窗
     closeModal();
     //刷新列表
@@ -132,6 +130,12 @@ async function submitMabangPurchaseOrder() {
   } finally {
     setModalProps({confirmLoading: false});
   }
+}
+function handleCreateMabangPurchaseOrder(data:any) {
+  if(data.success.length > 0)
+    createMessage.success(t('data.purchase.mabangOrderCreateSuccessForInvoices', {var: data.success}));
+  if(data.fail.length > 0)
+    createMessage.error(t('data.purchase.mabangOrderCreateFailForInvoices', {var: data.fail}));
 }
 function autofill(model) {
   setFieldsValue({

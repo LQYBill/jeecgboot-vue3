@@ -1,0 +1,16 @@
+.avatar {
+  @apply border-8 border-white border-solid rounded-full;
+}
+.infinite-rotate {
+  animation-name: infinite-rotate;
+  animation-duration: 0.5s;
+  animation-iteration-count: infinite;
+}
+@keyframes infinite-rotate {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(-1);
+  }
+}

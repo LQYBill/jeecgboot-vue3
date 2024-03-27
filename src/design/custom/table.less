@@ -44,3 +44,21 @@ table .number {
 .jeecg-basic-table .ant-table-thead > tr > th {
   background-color: lighten(@primary-color,25%);
 }
+.searchForm {
+  @apply bg-white px-5 py-3 mb-0;
+  form.ant-form.jeecg-basic-form > .ant-row {
+    @apply items-center;
+  }
+  .jeecg-basic-form--compact .ant-form-item {
+    @apply mb-0!important;
+  }
+}
+.jeecg-page-wrapper-content > .searchForm {
+  @apply mb-0;
+}
+.jeecg-basic-table-form-container form.ant-form, .searchForm {
+  @apply shadow-sm mb-8 rounded-full;
+}
+.jeecg-page-wrapper-content .jeecg-basic-table div.ant-table-wrapper {
+  @apply py-5 px-2.5 shadow-sm rounded-3xl;
+}
