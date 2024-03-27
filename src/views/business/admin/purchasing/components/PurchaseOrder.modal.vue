@@ -11,7 +11,7 @@
     </BasicForm>
     <div v-else class="">
       <ul class="flex flex-col rounded-md overflow-hidden">
-        <li v-for="item in selectedRows" :key="item" class=" even:bg-gray-100 odd:bg-white flex py-4">
+        <li v-for="item in selectedRows" :key="item" class=" even:bg-lightGray odd:bg-white flex py-4">
           <span class="flex-1 text-center">{{ item?.clientId_dictText }}</span><span class="flex-1 text-center">{{ item?.invoiceNumber }}</span><span class="flex-1 text-center">{{ item?.finalAmount }} {{ item?.currencyId_dictText }}</span>
         </li>
       </ul>

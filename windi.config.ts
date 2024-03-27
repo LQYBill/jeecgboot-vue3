@@ -17,6 +17,7 @@ export default defineConfig({
         duck: 'var(--duck-color)',
         growth: 'var(--growth-color)',
         gray: 'var(--gray-color)',
+        lightGray: 'var(--light-gray-color)',
       },
       screens: {
         sm: '576px',
