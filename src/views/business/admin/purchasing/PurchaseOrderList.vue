@@ -1,11 +1,20 @@
 <template>
-  <PageWrapper title="Register Purchase Order">
+  <PageWrapper
+    title="Purchase Order Management."
+  >
+    <template #headerContent>
+      {{t('guide.purchaseInvoice.line1')}}<br/>
+      {{t('guide.purchaseInvoice.line2')}}<a-button type="primary" @click="" preIcon="ant-design:plus-outlined">{{ t('common.operation.addNew') }}</a-button><br/>
+      {{t('guide.purchaseInvoice.line3')}}<a-button type="warning" @click="" preIcon="ant-design:shopping-cart-outlined"></a-button>
+    </template>
     <!--引用表格-->
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
       <!--插槽:table标题-->
       <template #tableTitle>
         <a-button type="primary" @click="handleAdd" preIcon="ant-design:plus-outlined">
           {{ t('common.operation.addNew') }}
+        </a-button>
+        <a-button type="warning" @click="handleCreateOrder" preIcon="ant-design:shopping-cart-outlined" :disabled="createOrderDisabled">
         </a-button>
         <a-dropdown v-if="selectedRowKeys.length > 0">
           <template #overlay>
@@ -32,17 +41,32 @@
       </template>
       <!-- documents -->
       <template #fileSlot="{text}">
-        <span v-if="!text"
-              style="font-size: 12px;font-style: italic;">{{ t("data.upload.noDocument") }}</span>
+        <span v-if="!text" class="text-xs italic text-gray-300">{{ t("data.upload.noDocument") }}</span>
         <a-button v-else :ghost="true" type="primary" preIcon="ant-design:download-outlined"
-                  size="small" @click="downloadFile(text)">下载
+                  size="small" @click="downloadFile(text)">
+          {{ t('common.operation.download') }}
         </a-button>
       </template>
       <!-- images -->
       <template #img="{ text }">
-        <span v-if="!text"
-              style="font-size: 12px;font-style: italic;">{{ t("data.upload.noDocument") }}</span>
+        <span v-if="!text" class="text-xs italic text-gray-300">{{ t("data.upload.noDocument") }}</span>
         <TableImg v-else :size="60" :imgList="[text]" :src-prefix="imgPrefix"/>
+      </template>
+      <template #finalAmount="{record}">
+        <span class="font-bold">{{record?.finalAmount}}</span>
+      </template>
+      <template #paidAmount="{record}">
+        <span :class="record?.paidAmount <= 0 ? 'number--error' : (record?.paidAmount) < (record?.finalAmount) ? 'number--warning' : 'number--ok'" class="number">
+          {{ record?.paidAmount }}
+        </span>
+      </template>
+      <template #ordered="{record}">
+        <Icon v-if="record?.ordered" icon="ant-design:shopping-cart-outlined" class="success--color"></Icon>
+        <Icon v-else icon="ant-design:close-outlined" class="error--color"></Icon>
+      </template>
+      <template #platformOrderId="{record}">
+        <a-tag v-if="!!record?.platformOrderId" class="ant-tag-primary" v-for="order in record?.platformOrderId.split(',')">{{ order }}</a-tag>
+        <span v-else class="text-xs italic text-gray-300">{{t('data.noData')}}</span>
       </template>
     </BasicTable>
     <!-- 表单区域 -->
@@ -70,6 +94,7 @@ import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
 import {PageWrapper} from "/@/components/Page";
 import {useGlobSetting} from "/@/hooks/setting";
+import Icon from "/@/components/Icon";
 
 
 const {t} = useI18n();
@@ -105,10 +130,28 @@ const {prefixCls, tableContext, onExportXls, onImportXls} = useListPage({
     title: 'Register Purchase Order',
     api: list,
     columns,
-    canResize: false,
+    canResize: true,
     defSort: iSorter.value,
     pagination: ipagination,
     showIndexColumn: true,
+    striped: true,
+    bordered: false,
+    rowSelection: {
+      onChange: (selectedRowKeys, selectedRows) => {
+        if(selectedRows.length === 0) {
+          createOrderDisabled.value = true;
+          return;
+        }
+        for(let i = 0; i < selectedRows.length; i++) {
+          let row = selectedRows[i];
+          if(row.paidAmount !== row.finalAmount || !row.paymentDocumentString || row.ordered) {
+            createOrderDisabled.value = true;
+            return;
+          }
+        }
+        createOrderDisabled.value = false;
+      }
+    },
     indexColumnProps: {
       width: 60,
       title: "#"
@@ -137,7 +180,9 @@ const {prefixCls, tableContext, onExportXls, onImportXls} = useListPage({
   },
 })
 
-const [registerTable, {reload}, {rowSelection, selectedRowKeys}] = tableContext
+const [registerTable, {reload}, {rowSelection, selectedRowKeys, selectedRows}] = tableContext;
+
+const createOrderDisabled = ref<boolean>(true);
 
 /**
  * 新增事件
@@ -246,10 +291,16 @@ function getDropDownAction(record) {
 function getInvoiceType(invoiceNumber) {
   return invoiceNumber.slice(-4,-3);
 }
-
-
+function handleCreateOrder() {
+  openModal(true, {
+    isUpdate: false,
+    isOrder: true,
+    showFooter: true,
+    selectedRows: selectedRows.value,
+  })
+}
 </script>
 
-<style scoped>
+<style lang="less" scoped>
 
 </style>

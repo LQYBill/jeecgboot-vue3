@@ -303,7 +303,7 @@ export default defineComponent({
   }
 });
 </script>
-<style>
+<style lang="less">
 .ant-table-expanded-row.ant-table-expanded-row-level-1 {
   table {
     border: 1px solid #ddd !important;
@@ -314,7 +314,7 @@ export default defineComponent({
 }
 
 .ant-checkbox-disabled .ant-checkbox-inner{
-  background-color: #fff2e8;
-  border-color: #ffbb96!important;
+  background-color: fade(@error-color, 10%);
+  border-color: @error-color!important;
 }
 </style>

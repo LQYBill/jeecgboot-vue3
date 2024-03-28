@@ -659,7 +659,7 @@ function handleExpand(expanded, record) {
   }
 }
 </script>
-<style>
+<style lang="less">
 .head-info {
   span {
     color: rgba(0, 0, 0, 0.45);
@@ -677,8 +677,8 @@ function handleExpand(expanded, record) {
   }
 }
 .ant-checkbox-disabled .ant-checkbox-inner{
-  background-color: #fff2e8;
-  border-color: #ffbb96!important;
+  background-color: fade(@error-color, 10%);
+  border-color: @error-color!important;
 }
 .emptyCell {
   display:flex;

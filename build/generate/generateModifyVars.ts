@@ -25,9 +25,9 @@ export function generateModifyVars(dark = false) {
     ...primaryColorObj,
     'info-color': primary,
     'processing-color': primary,
-    'success-color': '#55D187', //  Success color
-    'error-color': '#ED6F6F', //  False color
-    'warning-color': '#EFBD47', //   Warning color
+    'success-color': '#77ba9f', //  Success color
+    'error-color': '#eb7b7b', //  False color
+    'warning-color': '#ebb76b', //   Warning color
     //'border-color-base': '#EEEEEE',
     'font-size-base': '14px', //  Main font size
     'border-radius-base': '2px', //  Component/float fillet

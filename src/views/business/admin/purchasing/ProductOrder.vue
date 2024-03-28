@@ -252,7 +252,7 @@ export default defineComponent({
 </script>
 <style lang="less">
 .ant-checkbox-disabled .ant-checkbox-inner{
-  background-color: #fff2e8;
-  border-color: #ffbb96!important;
+  background-color: fade(@error-color, 10%);
+  border-color: @error-color!important;
 }
 </style>

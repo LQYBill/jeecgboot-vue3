@@ -18,6 +18,7 @@ enum Api {
   importExcel = '/purchaseOrder/importExcel',
   exportXls = '/purchaseOrder/exportXls',
   duplicateInvoiceNumberCheck = '/shippingInvoice/duplicateInvoiceNumberCheck',
+  createMabangPurchaseOrder = '/purchaseOrder/createMabangPurchaseOrder',
 }
 /**
  * 导出api
@@ -98,4 +99,8 @@ export const saveOrUpdate = (params, isUpdate) => {
 
 export const duplicateInvoiceNumberCheck = (params) => {
   return defHttp.get({url: Api.duplicateInvoiceNumberCheck, params});
+}
+
+export const createMabangPurchaseOrder = (params) => {
+  return defHttp.get({url: Api.createMabangPurchaseOrder, params: params});
 }

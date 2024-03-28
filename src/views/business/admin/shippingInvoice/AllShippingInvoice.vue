@@ -1367,7 +1367,7 @@ function handleExpand(expanded, record) {
   }
 }
 </script>
-<style>
+<style lang="less">
 .invoice-type-radio-group {
 
 }
@@ -1388,21 +1388,21 @@ function handleExpand(expanded, record) {
   }
 }
 .ant-checkbox-disabled .ant-checkbox-inner{
-  background-color: #fff2e8;
-  border-color: #ffbb96!important;
+  background-color: fade(@error-color, 10%);
+  border-color: @error-color!important;
 }
 .emptyCell {
   display:flex;
   height: 100%;
   width: 100%;
-  background-color: #fff2e8;
+  background-color: fade(@error-color, 10%);
   justify-content: center;
   position: absolute;
   top: 0;
   left: 0;
-  border: 1px solid #ffbb96;
-  .emptyCellText {
-    color: #d4380d;
+  border: 1px solid @error-color;
+  & .emptyCellText {
+    color: @error-color;
     align-self: center;
     margin: 0;
   }
@@ -1430,9 +1430,9 @@ function handleExpand(expanded, record) {
   }
 }
 .instructionMessageBubble {
-  background-color: #e0f4ff;
+  background-color: fade(@primary-color, 10%);
   position: relative;
-  border: 2px solid #1890ff ;
+  border: 2px solid @primary-color;
   border-radius: 5px;
   padding: 1em;
   margin-left: 10px;
@@ -1448,7 +1448,7 @@ function handleExpand(expanded, record) {
     border-top: 10px solid transparent;
     border-bottom: 10px solid transparent;
     border-left: 10px solid transparent;
-    border-right: 10px solid #1890ff;
+    border-right: 10px solid @primary-color;
   }
   p {
     margin: 0;

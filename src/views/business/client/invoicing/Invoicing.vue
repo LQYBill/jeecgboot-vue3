@@ -65,15 +65,15 @@
                     <h1 class="text-md mt-2">{{item.shop}}</h1>
                     <div class="flex justify-between w-full">
                       <span class="text-md mt-2">{{ t('data.invoice.shippingFee')}} : </span>
-                      <span class="text-md mt-2">{{item.shippingFeesEstimation}} €</span>
+                      <span class="text-md mt-2">{{item?.shippingFeesEstimation}} €</span>
                     </div>
                     <div class="flex justify-between w-full">
                       <span class="text-md mt-2">{{ t('data.invoice.purchaseFee')}} : </span>
-                      <span class="text-md mt-2">{{item.purchaseEstimation}} €</span>
+                      <span class="text-md mt-2">{{item?.purchaseEstimation}} €</span>
                     </div>
                     <div class="flex justify-between w-full">
                       <span class="text-md mt-2">{{ t('data.invoice.total')}} : </span>
-                      <span class="text-md mt-2">{{item.totalEstimation}} €</span>
+                      <span class="text-md mt-2">{{item?.totalEstimation}} €</span>
                     </div>
                   </div>
                 </div>
@@ -118,24 +118,24 @@
             {{ t("data.invoice.generateInvoice7pre") }}
           </PopConfirmButton>
         </template>
-        <template v-slot:productAvailability="record">
+        <template #productAvailability="{record}">
           <Badge
-            :status="record.record.productAvailable === '1' ? 'success' : record.record.productAvailable === '2' ? 'processing' : 'error'"
-            :text="record.record.productAvailable === '1' ? t('data.order.inStock') : record.record.productAvailable === '2' ? t('data.order.ordered') : t('data.order.outOfStock')"
+            :status="record?.productAvailable === '1' ? 'success' : record?.productAvailable === '2' ? 'processing' : 'error'"
+            :text="record?.productAvailable === '1' ? t('data.order.inStock') : record?.productAvailable === '2' ? t('data.order.ordered') : t('data.order.outOfStock')"
           />
         </template>
-        <template v-slot:shippingAvailability="record">
+        <template #shippingAvailability="{record}">
           <Tag
-            :color="record.record.shippingAvailable === '0' ? 'green' : record.record.shippingAvailable === '1' ? 'yellow' : record.record.shippingAvailable === '2' ? 'blue' : 'volcano'"
+            :color="record?.shippingAvailable === '0' ? 'green' : record?.shippingAvailable === '1' ? 'yellow' : record?.shippingAvailable === '2' ? 'blue' : 'volcano'"
           >
-            {{ record.record.shippingAvailable === '0' ? t("common.available") : record.record.shippingAvailable === '1' ? t('data.invoice.invoiced') : record.record.shippingAvailable === '2' ? t("data.invoice.paid") : t("common.unavailable") }}
+            {{ record?.shippingAvailable === '0' ? t("common.available") : record?.shippingAvailable === '1' ? t('data.invoice.invoiced') : record?.shippingAvailable === '2' ? t("data.invoice.paid") : t("common.unavailable") }}
           </Tag>
         </template>
-        <template v-slot:purchaseAvailability="record">
+        <template #purchaseAvailability="{record}">
           <Tag
-            :color="record.record.purchaseAvailable === '0' ? 'green' : record.record.purchaseAvailable === '1' ? 'yellow' : record.record.purchaseAvailable === '2' ? 'blue' : 'volcano'"
+            :color="record?.purchaseAvailable === '0' ? 'green' : record?.purchaseAvailable === '1' ? 'yellow' : record?.purchaseAvailable === '2' ? 'blue' : 'volcano'"
           >
-            {{ record.record.purchaseAvailable === '0' ? t("common.available") : record.record.purchaseAvailable === '1' ? t('data.invoice.invoiced') : record.record.purchaseAvailable === '2' ? t("data.invoice.paid") : t("common.unavailable") }}
+            {{ record?.purchaseAvailable === '0' ? t("common.available") : record?.purchaseAvailable === '1' ? t('data.invoice.invoiced') : record?.purchaseAvailable === '2' ? t("data.invoice.paid") : t("common.unavailable") }}
           </Tag>
         </template>
       </BasicTable>
@@ -415,6 +415,7 @@ function getShopName(shopId: string) {
   }
 }
 function getCheckboxProps(record: Recordable) {
+  // -1 : unavailable, 0 : available, 1 : invoiced, 2 : paid
   if (['-1','1','2'].indexOf(record.shippingAvailable) > -1 && ['-1', '1', '2'].indexOf(record.purchaseAvailable) > -1) {
     return { disabled: true };
   } else {
@@ -590,8 +591,8 @@ function downloadDetailFile(invoiceNumber) {
   }
 }
 .ant-checkbox-disabled .ant-checkbox-inner{
-  background-color: #fff2e8;
-  border-color: #ffbb96!important;
+  background-color: fade(@error-color, 10%);
+  border-color: @error-color!important;
 }
 .ant-tag {
   border-radius: 1em;

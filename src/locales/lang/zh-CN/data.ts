@@ -229,4 +229,5 @@ export default {
   welcome: "欢迎",
   enName: '英文名称',
   zhName: '中文名称',
+  noData: '无数据',
 }

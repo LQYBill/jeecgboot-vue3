@@ -5,7 +5,7 @@ export const prefixCls = 'jeecg';
 export const darkMode = ThemeEnum.LIGHT;
 
 // app theme preset color
-export const APP_PRESET_COLOR_LIST: string[] = ['#0960bd', '#1890ff', '#009688', '#536dfe', '#ff5c93', '#ee4f12', '#0096c7', '#9c27b0', '#ff9800'];
+export const APP_PRESET_COLOR_LIST: string[] = ['#799ee2','#0960bd', '#1890ff', '#009688', '#536dfe', '#ff5c93', '#ee4f12', '#0096c7', '#9c27b0', '#ff9800'];
 
 // header preset color
 export const HEADER_PRESET_BG_COLOR_LIST: string[] = [
