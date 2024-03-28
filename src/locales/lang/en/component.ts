@@ -56,6 +56,9 @@ export default {
     maximize: 'Maximize',
     restore: 'Restore',
   },
+  popConfirm: {
+    setInvoicesPaid: 'Confirm setting invoices to paid ?'
+  },
   searchForm: {
     //placeholder
     amountInput: 'Enter an amount',

@@ -11,7 +11,7 @@
       />
       <LayoutBreadcrumb v-if="getShowContent && getShowBread" :theme="getHeaderTheme" />
       <!-- 欢迎语 -->
-      <span v-if="getShowContent && getShowBreadTitle && !getIsMobile" :class="[prefixCls, `${prefixCls}--${getHeaderTheme}`,'headerIntroductionClass']"> 欢迎进入 {{ title }} </span>
+      <span v-if="getShowContent && getShowBreadTitle && !getIsMobile" :class="[prefixCls, `${prefixCls}--${getHeaderTheme}`,'headerIntroductionClass']"> {{ t('common.welcomeTo')}} {{ title }} </span>
     </div>
     <!-- left end -->
 
@@ -71,6 +71,7 @@
 
   import LoginSelect from '/@/views/sys/login/LoginSelect.vue';
   import { useUserStore } from '/@/store/modules/user';
+  import {useI18n} from "/@/hooks/web/useI18n";
 
   export default defineComponent({
     name: 'LayoutHeader',
@@ -98,6 +99,7 @@
     setup(props) {
       const { prefixCls } = useDesign('layout-header');
       const userStore = useUserStore();
+      const {t} = useI18n();
       const { getShowTopMenu, getShowHeaderTrigger, getSplit, getIsMixMode, getMenuWidth, getIsMixSidebar } = useMenuSetting();
       const { getUseErrorHandle, getShowSettingButton, getSettingButtonPosition } = useRootSetting();
       const { title } = useGlobSetting();
@@ -208,7 +210,8 @@
         getUseLockPage,
         loginSelectOk,
         loginSelectRef,
-        title
+        title,
+        t,
       };
     },
   });

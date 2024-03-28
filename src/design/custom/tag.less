@@ -1,22 +1,23 @@
-.jeecg-basic-table .ant-tag {
+.custom-tag (@color: @primary-color) {
+  background-color: fade(@color, 10%);
+  color: @color;
+  border-color: @color;
+}
+
+.jeecg-basic-table .ant-tag, .ant-tag{
   &.ant-tag-green {
-    background-color: fade(@success-color, 10%);
-    color: @success-color;
-    border-color: @success-color;
+    .custom-tag(@success-color);
   }
   &.ant-tag-volcano {
-    background-color: fade(@error-color, 10%);
-    color: @error-color;
-    border-color: @error-color;
+    .custom-tag(@error-color);
   }
   &.ant-tag-warning {
-    background-color: fade(@warning-color, 10%);
-    color: @warning-color;
-    border-color: @warning-color;
+    .custom-tag(@warning-color);
   }
   &.ant-tag-primary {
-    background-color: fade(@primary-color, 10%);
-    color: @primary-color;
-    border-color: @primary-color;
+    .custom-tag(@primary-color);
+  }
+  &.ant-tag-duck {
+    .custom-tag(@duck-color);
   }
 }

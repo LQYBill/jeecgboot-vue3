@@ -56,6 +56,9 @@ export default {
     maximize: '最大化',
     restore: '还原',
   },
+  popConfirm: {
+    setInvoicesPaid: '确认设置发票为已付款？',
+  },
   searchForm: {
     //placeholder
     amountInput: '请输入金额',

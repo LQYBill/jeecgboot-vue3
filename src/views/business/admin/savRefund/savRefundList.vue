@@ -1,24 +1,14 @@
 <template>
-  <a-card>
-    <BasicForm
-      @register="registerForm"
-      @submit="handleFilter"
-      @reset="handleReset"
-    />
-
-  </a-card>
-  <BasicTable
-    :columns="columns"
-    :dataSource="dataSource"
-    :rowSelection="rowSelection"
-    :pagination="iPagination"
-    :ellipsis="false"
-    striped="striped"
-    :click-to-row-select="false"
-    :def-sort="iSorter"
-    @change="handleTableChange"
-    :loading="loading"
-  >
+  <PageWrapper title="SAV Refunds">
+    <div class="searchForm">
+      <BasicForm
+        @register="registerForm"
+        @submit="handleFilter"
+        @reset="handleReset"
+      />
+    </div>
+  </PageWrapper>
+  <BasicTable @register="registerTable">
     <template #toolbar>
       <a-button type="primary" preIcon="ant-design:plus-outlined" @click="handleAdd">{{ t('common.operation.addNew') }}</a-button>
       <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('SAV Refund List', Api.exportXls, exportParams)"> {{ t("common.operation.export") }}</a-button>
@@ -34,11 +24,14 @@
       <a-tag v-if="record.text === 'Y'" color="green">{{ t('common.yes') }}</a-tag>
       <a-tag v-else color="red">{{ t('common.no') }}</a-tag>
     </template>
+    <template v-slot:createTime="record">
+      <time :datetime="record.text"><span>{{ record.text.split(' ')[0] }}</span><br/><span class="font-extralight">{{ record.text.split(' ')[1] }}</span></time>
+    </template>
     <template v-slot:action="{ record, column }">
       <TableAction
         :actions="[
           {
-            label: t('common.operation.edit'),
+            icon: 'clarity:note-edit-line',
             onClick: handleEdit.bind(null, record),
           },
         ]"
@@ -59,6 +52,28 @@
         ]"
       />
     </template>
+    <template #filterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
+      <div class="p-2 flex flex-col items-center justify-between w-32 min-h-20 mb-1">
+        <a-select
+          v-model:value="formState.invoiceNumber"
+          ref="searchInput"
+          mode="multiple"
+          @change="handleChange"
+          allowClear
+          class="w-full"
+        >
+          <a-select-option value="Y">{{ t('data.refund.refunded') }}</a-select-option>
+          <a-select-option value="N">{{ t('data.refund.notRefunded') }}</a-select-option>
+        </a-select>
+        <div class="flex justify-between w-full">
+          <a-button type="primary" @click="handleSearch" preIcon="ant-design:search-outlined" class="flex-2"/>
+          <a-button @click="handleReset" preIcon="ic:baseline-restart-alt" class="flex-1"/>
+        </div>
+      </div>
+    </template>
+    <template #filterIcon="filtered">
+      <SearchOutlined :style="{ color: filtered ? 'var(--primary-color)' : undefined }" />
+    </template>
   </BasicTable>
   <SavRefundModal @register="registerModal" @success="loadList" :isDisabled="isDisabled"/>
 </template>
@@ -76,6 +91,10 @@ import SavRefundModal from './modules/SavRefundModal.vue';
 import BasicForm from "/@/components/Form/src/BasicForm.vue";
 import {useForm} from "/@/components/Form";
 import {toUpper} from "lodash-es";
+import {SearchOutlined} from "@ant-design/icons-vue";
+import {Select as ASelect} from "ant-design-vue";
+import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
+import {columns, searchFormSchema} from "/@/views/business/admin/savRefund/data/savRefundList.data";
 
 const { createMessage:msg } = useMessage();
 const { t } = useI18n();
@@ -98,165 +117,14 @@ enum Api {
 const isDisabled = ref(false);
 
 const dictOptions = ref<Object>({});
-const columns: BasicColumn[] = [
-  {
-    title: t('data.invoice.createBy'),
-    align:"center",
-    sorter: true,
-    dataIndex: 'createBy',
-    fixed: 'left',
-    width: 150,
-  },
-  {
-    title: t('data.invoice.createDate'),
-    align:"center",
-    sorter: true,
-    dataIndex: 'createTime',
-    fixed: 'left'
-  },
-  {
-    title:t('data.invoice.shop'),
-    align:"center",
-    sorter: true,
-    dataIndex: 'erpCode',
-    fixed: 'left',
-    width: 80,
-  },
-  {
-    title: t('data.invoice.platformOrderIDMabang'),
-    align:"center",
-    sorter: true,
-    dataIndex: 'platformOrderId_dictText',
-    fixed: 'left',
-    width: 200,
-  },
-  {
-    title: t('data.invoice.platformOrderNumber'),
-    align:"center",
-    sorter: true,
-    dataIndex: 'platformOrderNumber',
-    fixed: 'left'
-  },
-  {
-    title: t("data.refund.refundStatus"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'invoiceNumber',
-    fixed: 'left',
-    slots: { customRender : 'refundStatus' }
-  },
-  {
-    title: t('data.refund.purchaseRefund'),
-    align:"center",
-    sorter: true,
-    dataIndex: 'purchaseRefund',
-    width: 100,
-    slots: { customRender : 'yesno'},
-  },
-  {
-    title: t('data.refund.purchaseRefundAmount'),
-    align:"center",
-    dataIndex: 'purchaseRefundAmount',
-    editComponent: 'InputNumber',
-    width: 150,
-  },
-  {
-    title: t('data.refund.shippingRefund'),
-    align:"center",
-    sorter: true,
-    dataIndex: 'shippingRefund',
-    width: 100,
-    slots: { customRender : 'yesno'},
-  },
-  {
-    title: t('data.refund.fretFeeRefundAmount'),
-    align:"center",
-    dataIndex: 'fretFee',
-  },
-  {
-    title: t('data.refund.shippingRefundAmount'),
-    align:"center",
-    dataIndex: 'shippingFee',
-  },
-  {
-    title: t('data.refund.tvaRefundAmount'),
-    align:"center",
-    dataIndex: 'vat',
-  },
-  {
-    title: t('data.refund.serviceFeeRefundAmount'),
-    align:"center",
-    dataIndex: 'serviceFee',
-  },
-  {
-    title: t('data.refund.totalRefundAmount'),
-    align:"center",
-    sorter: true,
-    dataIndex: 'totalRefundAmount',
-  },
-  {
-    title:  t('data.refund.refundReason'),
-    align: "center",
-    dataIndex: 'refundReason',
-    editRow: true,
-  },
-  {
-    title: t('data.refund.refundDate'),
-    align:"center",
-    sorter: true,
-    dataIndex: 'refundDate',
-  },
-  {
-    title: t('common.operation.action'),
-    dataIndex: 'action',
-    align:"center",
-    fixed:"right",
-    width:147,
-    slots: { customRender: 'action' }
-  }
-];
-const searchFormSchema: FormSchema[] = [
-  {
-    field: "erpCode",
-    label: t("data.invoice.shop"),
-    labelWidth: 20,
-    component: 'Input',
-    componentProps: {
-      placeholder: t('component.searchForm.shopFilter'),
-    },
-    disabledLabelWidth:true,
-    itemProps: {
-      labelCol: {
-        span: 4,
-      },
-      wrapperCol: {
-        span: 18
-      }
-    },
-    colProps: { span: 5 },
-  },
-  {
-    field: "platformOrderId",
-    label: t("data.invoice.platformOrderID"),
-    component: 'Input',
-    componentProps: {
-      placeholder: t('component.searchForm.platformOrderIDFilter'),
-    },
-    disabledLabelWidth:true,
-    itemProps: {
-      labelCol: {
-        span: 8,
-      },
-      wrapperCol: {
-        span: 16,
-      }
-    },
-    colProps: { span: 5 },
-  },
-];
+
 const [registerForm, { resetFields, setFieldsValue, validate }] = useForm({
+  actionColOptions: {
+    span: 6,
+  },
   schemas: searchFormSchema,
   showActionButtonGroup: true,
+  compact: true,
 });
 const iPagination = ref<any>({
   current: 1,
@@ -290,8 +158,25 @@ const exportParams = computed(()=>{
   return filterObj(paramsForm)
 });
 const dataSource = ref<Recordable<any>[]>();
-const filters = ref({});
+const filters = ref<any>({invoiceNumber: 'null'});
 const loading = ref<boolean>(false);
+const [registerTable, {reload}] = useTable({
+  rowSelection,
+  columns,
+  dataSource,
+  pagination: iPagination,
+  defSort: iSorter,
+  striped: false,
+  clickToRowSelect: false,
+  ellipsis: false,
+  onChange: handleTableChange,
+  loading: loading,
+  showIndexColumn: true,
+  indexColumnProps: {
+    width: 60,
+    title: "#"
+  },
+});
 function handleAdd() {
   openModal(true, {
     isUpdate: false,
@@ -328,11 +213,16 @@ function onEditChange({ column, value, record }) {
     record.editValueRefs.name4.value = `${value}`;
   }
 }
+function handleSearch() {
+  loadList(1);
+}
 function handleFilter(values) {
   filters.value = values;
   loadList(1);
 }
 function handleReset() {
+  searchInput.value = [];
+  formState.invoiceNumber = [];
   filters.value = {};
   loadList(1);
 }
@@ -352,6 +242,7 @@ function getQueryParams() {
   params.column = iSorter.value.column;
   params.shop = filters.value.erpCode;
   params.orderID = filters.value.platformOrderId;
+  params.invoiceNumber = filters.value.invoiceNumber;
   return filterObj(params);
 }
 function loadList(arg?) {
@@ -372,6 +263,25 @@ function loadList(arg?) {
   }).finally(()=> {
     loading.value = false;
   });
+}
+const searchInput = ref();
+const formState = reactive<Record<string, any>>({
+  invoiceNumber: ['N'],
+});
+
+function handleChange(value:any[]) {
+  if((value.length > 1 || value.length === 0) && filters.value.hasOwnProperty('invoiceNumber')) {
+    delete filters.value.invoiceNumber;
+    return;
+  }
+  if(value[0] === 'N') {
+    filters.value['invoiceNumber'] = 'null';
+    return;
+  }
+  else {
+    filters.value['invoiceNumber'] = 'notNull';
+    return;
+  }
 }
 </script>
 <style>

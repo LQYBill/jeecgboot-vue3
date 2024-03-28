@@ -12,7 +12,8 @@
             </span>
           </div>
           <div class="flex basis-full items-center" style="flex: 0.5;">
-            <Icon icon="ant-design:gold-outlined" :color="selectedSkuMap.get(field).stock > 0 ? 'black' : 'red'" class="basis-2/4 w-full" style="display: block!important;text-align: right!important;"></Icon>
+            <StockIcon :status="selectedSkuMap.get(field).stock > 0 ? 'normal' : 'error'" class="basis-2/4 w-full block!important text-right!important"></StockIcon>
+<!--            <Icon icon="ant-design:gold-outlined" :color="selectedSkuMap.get(field).stock > 0 ? 'black' : 'red'" class="basis-2/4 w-full block!important text-right!important"></Icon>-->
             <span v-if="selectedSkuMap.get(field).stock <= 0" class="text-center basis-full text-red-500">{{selectedSkuMap.get(field).stock}}</span>
             <span v-else class="text-center basis-full">{{selectedSkuMap.get(field).stock}}</span>
           </div>
@@ -73,6 +74,7 @@ import {Modal} from "ant-design-vue";
 import {defHttp} from "/@/utils/http/axios";
 import {InputNumber} from "ant-design-vue";
 import BasicHelp from "/@/components/Basic/src/BasicHelp.vue";
+import StockIcon from "/@/views/business/admin/purchasing/components/Icons/StockIcon.vue";
 
 const {t} = useI18n();
 const {createMessage} = useMessage();
@@ -86,7 +88,7 @@ const orderQty = ref<number>(0);
 const [registerForm, {appendSchemaByField, removeSchemaByFiled, setProps, resetFields, setFieldsValue, validate, getFieldsValue}] = useForm({
   //labelWidth: 150,
   schemas: formSchema,
-  labelWidth: 300,
+  labelWidth: 250,
   showActionButtonGroup: false,
   baseColProps: {span: 24},
   showAdvancedButton: false,

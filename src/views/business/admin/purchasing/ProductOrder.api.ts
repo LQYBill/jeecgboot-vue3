@@ -6,6 +6,7 @@ enum Api {
   getClientList = '/client/client/all',
   getSkusByClient = '/sku/skusByClient',
   downloadInvoice = '/shippingInvoice/download',
+  downloadInventory = '/shippingInvoice/downloadInventory',
   getMabangUsername = '/sys/user/getMabangUsername',
 }
 export const getMabangUsername = (handleSuccess:any) => {
@@ -63,5 +64,16 @@ export const downloadInvoice = (invoiceFilename:string, handleSuccess:any) => {
     handleSuccess();
   }).catch(e => {
     console.error(`Download invoice fail : ${e}`);
+  });
+}
+export const downloadInventory = (invoiceMetaData:any, handleSuccess:any) => {
+  const filename = invoiceMetaData.internalCode
+    + '_(' + invoiceMetaData.invoiceEntity
+    + ')_' + invoiceMetaData.invoiceCode
+    + '_Inventaire_SKU.xlsx';
+  downloadFile(Api.downloadInventory, filename, invoiceMetaData).then(() => {
+    handleSuccess();
+  }).catch(e => {
+    console.error(`Download inventory fail : ${e}`);
   });
 }

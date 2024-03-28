@@ -31,6 +31,9 @@ export default {
     entryEditSuccess: '编辑成功!',
     entryDeleteSuccess: '删除成功!',
     entryBatchDeleteSuccess: '批量删除成功!',
+    invoiceCancelSuccess: '发票取消成功',
+    invoiceCancelFail: '发票取消失败',
+    invoiceCancelSuccessFileDeleteFail: '发票取消成功但删除多个文件失败',
   },
   app: { logoutTip: '温馨提醒', logoutMessage: '是否确认退出系统?', menuLoading: '菜单加载中...' },
   errorLog: {
@@ -113,6 +116,7 @@ export default {
     policyPlaceholder: '勾选后才能注册',
     diffPwd: '两次输入密码不一致',
 
+    username: '用户账号',
     userName: '账号',
     password: '密码',
     inputCode: '验证码',
@@ -148,7 +152,16 @@ export default {
     websiteLoginPassword: '进入网站的登录密码',
     newPassword: '新密码',
     passwordRequirements: '8-20位，需包含字母和数字',
+    oldPassword: '旧密码',
+    confirmNewPassword: '确认新密码',
+    //placeholder
+    newPasswordPlaceholder: '请输入新密码',
+    changePassword: '修改密码',
 
     editProfile: '编辑个人资料',
-  }
+  },
+  cacheCleared: '刷新缓存完成',
+  cacheClearFailed: '刷新缓存失败',
+
+  bd: '生日快乐!',
 };

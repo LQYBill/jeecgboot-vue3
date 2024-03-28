@@ -107,7 +107,6 @@ export default {
     invoiceNumber: "Invoice Number",
     invoiceType: "Invoice type",
     invoiceMode: "Invoice mode",
-    invoicingPage: "Invoicing page",
     logisticChannel:"Logistic Channel",
     logisticChannelCode: "Logistic Channel Code",
     logisticChannelName: "Logistic Channel Name",
@@ -163,6 +162,8 @@ export default {
   purchase: {
     orderAttributionFail : "Error while attributing purchase order to orders [%{var}]",
     orderAttributionSuccess : "Purchase order was successfully attributed to orders [%{var}]",
+    mabangOrderCreateFailForInvoices : "Error while creating Mabang order for invoice(s) %{var}, please delete the orders corresponding to the invoices in Mabang.",
+    mabangOrderCreateSuccessForInvoices : "Mabang order was successfully created for invoice(s) %{var}",
   },
   refund: {
     notRefunded: 'Not Settled',
@@ -223,11 +224,16 @@ export default {
                     "All Shipping Invoice: shipped, pending and in preparation orders",
     orderSelectModeTip: "You can manually select orders to invoice, or automatically select all available orders",
   },
+  pageTitle: {
+    invoicingPage: "Invoicing page",
+    productOrderPage: "Product Order Page",
+    purchaseOrderManagementPage : "Purchase Order Management",
+  },
   Client: "Client",
   Invoice: "Invoice",
   abbreviation: "Abbreviation",
   welcome: "Welcome",
-  enName: 'En name',
-  zhName: 'Zh name',
-  noData: 'No Data',
+  enName: "En name",
+  zhName: "Zh name",
+  noData: "No Data",
 }

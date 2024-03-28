@@ -107,7 +107,6 @@ export default {
     invoiceNumber: "发票号码",
     invoiceType: "发票类型",
     invoiceMode: "发票模式",
-    invoicingPage: "生成发票页",
     logisticChannel: "物流渠道",
     logisticChannelCode: "渠道代码",
     logisticChannelName: "渠道名称",
@@ -162,6 +161,8 @@ export default {
     purchase: {
       orderAttributionFail : "记录订单采购发票号时出错 : [%{var}]",
       orderAttributionSuccess : "订单采购发票号记录成功 : [%{var}]",
+      mabangOrderCreateFailForInvoices : "马帮订单创建失败，请在马帮上删除采购订单对应发票号 : %{var}",
+      mabangOrderCreateSuccessForInvoices : "马帮订单创建成功 : %{var}",
     },
   },
   refund: {
@@ -222,6 +223,11 @@ export default {
                     "预收物流发票: 待处理和配货中的订单<br/>"+
                     "按店铺开发票: 待处理，配货中和已发货的订单",
     orderSelectModeTip: "从列表中勾选订单或自动选所有符合条件的订单",
+  },
+  pageTitle: {
+    invoicingPage: "生成发票页",
+    productOrderPage: "商品采购页",
+    purchaseOrderManagementPage : "采购订单管理",
   },
   Client: "客户",
   Invoice: "发票",

@@ -1,5 +1,5 @@
 <template>
-  <PageWrapper title="Create Purchase Invoice" v-if="hasMabangUsername">
+  <PageWrapper :title="t('data.pageTitle.productOrderPage')" v-if="hasMabangUsername">
     <a-card>
        <a-form ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
          <a-row>
@@ -52,6 +52,59 @@
           <span v-if="record?.skuPrice === null" class="italic text-red-500">{{ t('data.sku.missingPrice') }}</span>
           <span v-else>{{ record?.skuPrice }}</span>
         </template>
+
+        <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
+          <div class="p-2 flex flex-col items-center justify-between w-48 min-h-20 mb-1 gap-4">
+            <div class="w-full flex flex-nowrap gap-1">
+              <a-select
+                v-model:value="formState[column?.dataIndex]"
+                ref="searchInput"
+                mode="tags"
+                :placeholder="`${t('common.operation.search')} ${column?.dataIndex}`"
+                @change="e => handleFilterSelectChange(e, setSelectedKeys)"
+                @pressEnter="handleSearch(selectedKeys, confirm, column?.dataIndex)"
+                allowClear
+                class="flex-1"
+              >
+                <a-select-opt-group>
+                  <template #label>{{ !!column?.customTitle ? column?.customTitle : !!column?.title ? column?.title : column?.dataIndex }}</template>
+                  <a-select-option v-if="column?.dataIndex === 'product'" v-for="optionZh in productListZh" :key="optionZh" :value="optionZh">
+                    {{ optionZh }}
+                  </a-select-option>
+                  <a-select-option v-else-if="column?.dataIndex==='productEn'" v-for="optionEn in productListEn" :key="optionEn" :value="optionEn">
+                    {{ optionEn }}
+                  </a-select-option>
+                  <a-select-option v-else-if="column?.dataIndex==='erpCode'" v-for="erpCode in erpCodes" :key="erpCode" :value="erpCode">
+                    {{ erpCode }}
+                  </a-select-option>
+                </a-select-opt-group>
+              </a-select>
+              <a-button type="primary" @click="handleSearch(selectedKeys, confirm, column?.dataIndex)" preIcon="ant-design:search-outlined" class=""/>
+            </div>
+            <div class="flex justify-between w-full">
+              <a-button @click="handleReset(clearFilters)" preIcon="ic:baseline-restart-alt" class="flex-1"/>
+            </div>
+          </div>
+        </template>
+        <template #filterIcon="filtered">
+          <SearchOutlined :style="{ color: filtered ? 'var(--primary-color)' : undefined }" />
+        </template>
+        <template #bodyCell="{ text, column }">
+          <span v-if="state.searchText.length > 0 && state.searchedColumn === column?.dataIndex">
+            <template
+              v-for="(fragment, i) in splitText(text)"
+            >
+              <mark
+                v-if="state.searchText[0].some(item => fragment.toLowerCase().includes(item.toLowerCase()))"
+                :key="i"
+                class="highlight px-0"
+              >
+                {{ fragment }}
+              </mark>
+              <template v-else>{{ fragment }}</template>
+            </template>
+          </span>
+        </template>
       </BasicTable>
     </a-card>
     <ProductOrderModal @register="registerModal" @success="handleModalSuccess"></ProductOrderModal>
@@ -73,11 +126,18 @@ import {useMessage} from "/@/hooks/web/useMessage";
 import type {FormActionType} from "/@/components/Form";
 import {useModal} from '/@/components/Modal';
 import {BasicTable, TableImg, useTable} from "/@/components/Table";
-import {downloadInvoice, getMabangUsername, listCustomers, listSkus} from "./ProductOrder.api";
+import {
+  downloadInventory,
+  downloadInvoice,
+  getMabangUsername,
+  listCustomers,
+  listSkus
+} from "./ProductOrder.api";
 import { columns } from "./ProductOrder.data";
 import ProductOrderModal from "./components/ProductOrder.modal.vue";
 import {ExceptionEnum} from "/@/enums/exceptionEnum";
 import {useGo} from "/@/hooks/web/usePage";
+import {SearchOutlined} from "@ant-design/icons-vue";
 
 export default defineComponent({
   computed: {
@@ -86,6 +146,7 @@ export default defineComponent({
     }
   },
   components: {
+    SearchOutlined,
     Result,
     TableImg,
     BasicTable,
@@ -111,6 +172,8 @@ export default defineComponent({
     });
     const formState = reactive<Record<string, any>>({
       customer: '',
+      product: [],
+      productEn: [],
     });
     const { resetFields, validate, validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
@@ -120,11 +183,23 @@ export default defineComponent({
     const customerList = ref<any>();
     const customerListDisabled = ref<boolean>(false);
 
+    const productListZh = ref<any>();
+    const productListEn = ref<any>();
+    const erpCodes = ref<any>();
+    const productListDisabled = ref<boolean>(true);
+    const productListVisible = ref<boolean>(false);
+
     const client = ref<any>();
 
     const skuList = ref<any>([]);
 
     const orderDisabled = ref<boolean>(true);
+
+    const state = reactive({
+      searchText: Array<any>(),
+      searchedColumn: '',
+    });
+    const searchInput = ref();
 
     const iSorter = ref({
       field: 'erpCode',
@@ -199,6 +274,10 @@ export default defineComponent({
     }
     function handleSetSkus(skus) {
       skuList.value = skus;
+      productListZh.value = skuList.value.map(i=> i.product);
+      productListEn.value = skuList.value.map(i=> i.productEn);
+      erpCodes.value = skuList.value.map(i=> i.erpCode);
+      productListVisible.value = skuList.value.length > 0;
     }
     function orderMenu() {
       openModal(true, {
@@ -218,6 +297,7 @@ export default defineComponent({
     }
     function handleModalSuccess (result:{filename: string, invoiceCode: string, invoiceEntity: string, internalCode: string, errorMsg: string}) {
       downloadInvoice(result.filename, handleDownloadSuccess);
+      downloadInventory(result, handleDownloadSuccess);
       clearSelectedRowKeys();
       reload();
     }
@@ -227,13 +307,38 @@ export default defineComponent({
     function returnHome() {
       go();
     }
+    const handleFilterSelectChange = (e, setSelectedKeys) => {
+      setSelectedKeys(e ? [e] : [])
+    }
+    const handleSearch = (selectedKeys, confirm, dataIndex) => {
+      confirm();
+      state.searchText = selectedKeys;
+      state.searchedColumn = dataIndex;
+    };
+    const handleReset = (clearFilters) => {
+      clearFilters({ confirm: true });
+      state.searchText = [];
+      formState.product = [];
+      formState.productEn = [];
+    };
+    const splitText = (text) => {
+      const regexPattern = new RegExp(
+        state.searchText[0].map(keyword => `(?<=${keyword})|(?=${keyword})`).join('|'),
+        'i'
+      );
+      return text.split(regexPattern);
+    };
     return {
       reload, clearSelectedRowKeys, getSelectRows, getSelectRowKeys, setLoading,
       registerTable, registerModal,
       handleModalSuccess,
       handleClientChange,
+      handleFilterSelectChange,
       orderMenu,
       returnHome,
+      handleReset,
+      handleSearch,
+      splitText,
       t,
       createMessage,
       formRef,
@@ -244,8 +349,15 @@ export default defineComponent({
       validateInfos,
       hasMabangUsername,
       customerSelectList,
+      productListZh,
+      productListEn,
+      erpCodes,
       customerListDisabled,
+      productListDisabled,
       orderDisabled,
+      productListVisible,
+      searchInput,
+      state,
     }
   }
 });

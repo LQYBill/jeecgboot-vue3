@@ -1,5 +1,5 @@
 <template>
-  <PageWrapper :title="t('data.invoice.invoicingPage')">
+  <PageWrapper :title="t('data.pageTitle.invoicingPage')">
     <div style="display:flex;justify-content: space-between;align-items: center">
       <div style="display:flex; justify-content: flex-start; align-items: flex-start;">
         <div style="border-radius: 100%;overflow: hidden;width: 80px;height: 80px;">
@@ -223,8 +223,8 @@
               <template v-for='item in shippingFeesEstimates' style='width:20%;text-align:center'>
                 <div class="fee-card">
                   <div class="flex flex-col items-center head-info">
-                    <span class="text-md mt-2">{{item.shop}}</span>
-                    <p class="text-md mt-2">{{item.dueForProcessedOrders}} €</p>
+                    <span class="text-md mt-2">{{item?.shop}}</span>
+                    <p class="text-md mt-2">{{item?.dueForProcessedOrders}} €</p>
                   </div>
                 </div>
               </template>
@@ -247,35 +247,35 @@
             <platform-order-content-sub-table :record='record' />
           </template>
 
-          <template v-slot:logisticChannelName="record">
+          <template #logisticChannelName="{record}">
             <span class="emptyCell"
-                  v-if="record.record.logisticChannelName==='' ||
-                  record.record.logisticChannelName===null ||
-                  record.record.logisticChannelName===undefined"
+                  v-if="record?.logisticChannelName==='' ||
+                  record?.logisticChannelName===null ||
+                  record?.logisticChannelName===undefined"
             ><span class="emptyCellText">---</span></span>
-            <template v-else>{{record.record.logisticChannelName}}</template>
+            <template v-else>{{record?.logisticChannelName}}</template>
           </template>
-          <template v-slot:erpStatus="record">
+          <template #erpStatus="{record}">
             <Tag
-              :color="record.record.erpStatus === '1' ? 'volcano' : 'green'"
+              :color="record?.erpStatus === '1' ? 'volcano' : 'green'"
             >
-              {{ record.record.erpStatus === '1' ? t("data.order.pending") : t("data.order.preparing") }}
+              {{ record?.erpStatus === '1' ? t("data.order.pending") : t("data.order.preparing") }}
             </Tag>
           </template>
 
-          <template v-slot:productAvailability="record">
+          <template #productAvailability="{record}">
             <Tag
-              :color="record.record.productAvailable === '1' ? 'green' : 'volcano'"
+              :color="record?.productAvailable === '1' ? 'green' : 'volcano'"
             >
-              {{ record.record.productAvailable=== '1' ? t("data.order.inStock") : t("data.order.outOfStock") }}
+              {{ record?.productAvailable=== '1' ? t("data.order.inStock") : t("data.order.outOfStock") }}
             </Tag>
           </template>
 
-          <template v-slot:toReview="record">
+          <template #toReview="{record}">
             <Tag
-              :color="record.record.canSend === '2' ? 'volcano' : 'green'"
+              :color="record?.canSend === '2' ? 'volcano' : 'green'"
             >
-              {{ record.record.canSend === '2' ? t("data.order.abnormalOrder") : t("data.order.normalOrder")}}
+              {{ record?.canSend === '2' ? t("data.order.abnormalOrder") : t("data.order.normalOrder")}}
             </Tag>
           </template>
         </BasicTable>
@@ -356,7 +356,7 @@ const erpStatus = ref<string>();
 const invoiceModeDisabled = ref<boolean>(false);
 
 const customerId = ref<string>();
-const customerInfo = ref<string>();
+const customerInfo = ref<any>();
 const customerSelectList = ref<any[]>([]);
 const customerList = ref<any[]>([]);
 const customerDisabled = ref<boolean>(true);
@@ -622,6 +622,7 @@ function handleClientChange(id) {
   let index = customerList.value.map(i => i.id).indexOf(id);
   customerId.value = id;
   customerInfo.value = customerList.value[index];
+  console.log(`customer info : ${JSON.stringify(customerInfo.value)}`);
   //clear selected shops
   shopDisabled.value = true;
   searchDisabled.value = true;
@@ -1202,8 +1203,8 @@ function downloadDetailFile(invoiceNumber) {
  *   })
  * @param field
  */
-function clearField(field) {
-  let fields = {};
+function clearField(field:any) {
+  let fields:any = {};
   switch (field) {
     // case "country":
     //   selectedCountries.value = [];
