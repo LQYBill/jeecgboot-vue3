@@ -5,14 +5,14 @@
       <template #qty="{ model, field, schema }">
         <div class="flex items-center flex-nowrap">
           <div class="flex flex-col basis-full text-sm" style="flex: 1">
-            <span class="qtyPerPeriod flex border border-r-0 rounded-full h-full py-0.5 mr-1 bg-primary bg-opacity-10">
+            <span class="qtyPerPeriod flex border rounded-full h-full py-0.5 mr-1 bg-primary bg-opacity-10">
               <span class="flex-1 basis-full border-r">{{selectedSkuMap.get(field).salesLastWeek == null ? 0 : selectedSkuMap.get(field).salesLastWeek}}</span>
               <span class="flex-1 basis-full border-r">{{selectedSkuMap.get(field).salesFourWeeks == null ? 0 : selectedSkuMap.get(field).salesFourWeeks}}</span>
               <span class="flex-1 basis-full">{{selectedSkuMap.get(field).salesSixWeeks == null ? 0 : selectedSkuMap.get(field).salesSixWeeks}}</span>
             </span>
           </div>
           <div class="flex basis-full items-center" style="flex: 0.5;">
-            <StockIcon :status="selectedSkuMap.get(field).stock > 0 ? 'normal' : 'error'" class="basis-2/4 w-full block!important text-right!important"></StockIcon>
+            <StockIcon :status="selectedSkuMap.get(field).stock > 0 ? 'normal' : 'error'" class="basis-2/4 w-full block!important text-right!important" width="24px" height="24px"></StockIcon>
 <!--            <Icon icon="ant-design:gold-outlined" :color="selectedSkuMap.get(field).stock > 0 ? 'black' : 'red'" class="basis-2/4 w-full block!important text-right!important"></Icon>-->
             <span v-if="selectedSkuMap.get(field).stock <= 0" class="text-center basis-full text-red-500">{{selectedSkuMap.get(field).stock}}</span>
             <span v-else class="text-center basis-full">{{selectedSkuMap.get(field).stock}}</span>
@@ -32,12 +32,15 @@
     </BasicForm>
     <BasicForm @register="registerForm1" @change="calculateTotal" id="picker-form" style="padding: 6rem 6rem 0 6rem">
       <template #autoPicker="{ model, field, schema }">
-        <div class="flex w-full">
-          <div class="flex basis-full flex-1 items-center justify-center">
+        <div class="flex w-full justify-start gap-4">
+          <div class="flex items-center justify-center">
             <InputNumber class="" style="width: 6rem" v-model:value="model[field]" :min="0" :placeholder="t('component.searchForm.enterNumberOfDays')" @change="handleSetSkuOrderQty"/>
             <span class="pl-2">{{t('component.searchForm.dayAutoPicker2')}}</span>
             <BasicHelp class="text-green-500" :text="t('data.sku.autoPickerHelpMessage')" />
           </div>
+          <a-button v-if="!isAdjusted" class="" type="primary" @click="handleAdjustQty">Adjust</a-button>
+          <a-button v-else class="" type="warning" @click="handleRevertQty">Revert</a-button>
+
         </div>
       </template>
       <template #setQtyToAll="{ model, field, schema }">
@@ -84,6 +87,9 @@ const selectedSku = ref<any>([]);
 const selectedSkuMap = ref(new Map());
 const orderTotal = ref<number>(0);
 const orderQty = ref<number>(0);
+const isAdjusted = ref<boolean>(false);
+const skuQtyToOrder = ref<any>({});
+const skuQtyToOrderBeforeAdjust = ref<any>({});
 //表单配置
 const [registerForm, {appendSchemaByField, removeSchemaByFiled, setProps, resetFields, setFieldsValue, validate, getFieldsValue}] = useForm({
   //labelWidth: 150,
@@ -103,7 +109,7 @@ const [registerForm1] = useForm({
       component: "InputNumber",
       label: t('component.searchForm.dayAutoPicker1'),
       colProps: {
-        span: 12,
+        span: 10,
       },
       defaultValue: 0,
       // componentProps: {
@@ -133,7 +139,7 @@ const [registerForm1] = useForm({
       component: "InputNumber",
       label: t('component.searchForm.qtyAutoPicker'),
       colProps: {
-        span: 12,
+        span: 10,
       },
       defaultValue: 0,
       dynamicRules: ({ values }) => {
@@ -218,7 +224,7 @@ const [registerModal, {setModalProps, closeModal}, ] = useModalInner(async (data
         ''
       );
       setFieldsValue({
-        [`${selectedSku.value[i].erpCode}`]: 0
+        [`${selectedSku.value[i].erpCode}`]: !!skuQtyToOrder.value[selectedSku.value[i].erpCode] ? skuQtyToOrder.value[selectedSku.value[i].erpCode] : 0
       })
     }
     await calculateTotal();
@@ -246,8 +252,7 @@ async function handleSubmit(v) {
         let result = {};
         setModalProps({confirmLoading: true});
         for (let i in values) {
-          if (values[i] > 0)
-            params[i] = values[i];
+          params[i] = values[i];
         }
         await createPurchaseInvoice(params)
           .then(res => {
@@ -305,9 +310,32 @@ function calculateTotal() {
         setModalProps({okButtonProps: {disabled: false}});
       else
         setModalProps({okButtonProps: {disabled: true}});
+      skuQtyToOrder.value = skuQtyObj;
       resolve(true);
     }, 100);
   })
+}
+async function handleAdjustQty() {
+  skuQtyToOrderBeforeAdjust.value = getFieldsValue();
+  for(let i = 0; i < selectedSku.value.length; i++) {
+    let sku = selectedSku.value[i];
+    let qty = skuQtyToOrderBeforeAdjust.value[sku.erpCode] - (sku.stock < 0 ? 0 : sku.stock);
+    setFieldsValue({
+      [`${sku.erpCode}`]: qty < 0 ? 0 : qty
+    });
+  }
+  await calculateTotal();
+  isAdjusted.value = true;
+}
+async function handleRevertQty() {
+  for(let i = 0; i < selectedSku.value.length; i++) {
+    let sku = selectedSku.value[i];
+    setFieldsValue({
+      [`${sku.erpCode}`]: skuQtyToOrderBeforeAdjust.value[sku.erpCode]
+    });
+  }
+  await calculateTotal();
+  isAdjusted.value = false;
 }
 </script>
 

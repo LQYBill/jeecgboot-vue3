@@ -1,8 +1,9 @@
 <template>
   <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
        xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 485 485" xml:space="preserve"
-       fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+       fill="#000000" :width="width" :height="height">
     <title>{{ t(title) }}</title>
+    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
     <g id="SVGRepo_iconCarrier"> <g> <g id="XMLID_31_"> <g> <rect x="62.5" y="147.5" :style="status === 'normal' ? 'fill:#A67C52;' : 'fill:red'" width="150" height="35"></rect>
       <rect x="312.5" y="142.5" :style="status === 'normal' ? 'fill:#E7ECED;' : 'fill:#e09494'" width="50" height="90"></rect>
