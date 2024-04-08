@@ -41,34 +41,28 @@
           splitNumber: 8,
           indicator: [
             {
-              text: t('common.data.computer'),
-              max: 100,
+              name: t('common.data.computer'),
             },
             {
-              text: t('common.data.charger'),
-              max: 100,
+              name: t('common.data.charger'),
             },
             {
-              text: t('common.data.earphone'),
-              max: 100,
+              name: t('common.data.earphone'),
             },
             {
-              text: t('common.data.phone'),
-              max: 100,
+              name: t('common.data.phone'),
             },
             {
-              text: 'Ipad',
-              max: 100,
+              name: 'Ipad',
             },
             {
-              text: t('common.data.earphone'),
-              max: 100,
+              name: t('common.data.earphone'),
             },
           ],
         },
         series: [
           {
-            type: 'radar',
+            type: 'radar' as 'custom',
             symbolSize: 0,
             areaStyle: {
               shadowBlur: 0,

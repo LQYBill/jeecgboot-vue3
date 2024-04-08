@@ -1,4 +1,4 @@
-import type { NamePath, RuleObject } from 'ant-design-vue/lib/form/interface';
+import type { NamePath, RuleObject, ValidateOptions } from 'ant-design-vue/lib/form/interface';
 import type { VNode, ComputedRef } from 'vue';
 import type { ButtonProps as AntdButtonProps } from '/@/components/Button';
 import type { FormItem } from './formItem';
@@ -37,7 +37,7 @@ export interface FormActionType {
   getProps: ComputedRef<Partial<FormProps>>;
   removeSchemaByFiled: (field: string | string[]) => Promise<void>;
   appendSchemaByField: (schema: FormSchema, prefixField: string | undefined, first?: boolean | undefined) => Promise<void>;
-  validateFields: (nameList?: NamePath[]) => Promise<any>;
+  validateFields: (nameList?: NamePath[], options?: ValidateOptions) => Promise<any>;
   validate: (nameList?: NamePath[]) => Promise<any>;
   scrollToField: (name: NamePath, options?: ScrollOptions) => Promise<void>;
 }
@@ -59,9 +59,9 @@ export interface FormProps {
   // Submit form on reset
   submitOnReset?: boolean;
   // Col configuration for the entire form
-  labelCol?: Partial<ColEx>;
+  labelCol?: Partial<ColEx> | null;
   // Col configuration for the entire form
-  wrapperCol?: Partial<ColEx>;
+  wrapperCol?: Partial<ColEx> | null;
 
   // General row style
   baseRowStyle?: CSSProperties;
@@ -192,6 +192,11 @@ export interface FormSchema {
   dynamicDisabled?: boolean | ((renderCallbackParams: RenderCallbackParams) => boolean);
 
   dynamicRules?: (renderCallbackParams: RenderCallbackParams) => Rule[];
+  // update-begin--author:liaozhiyang---date:20240308---for：【QQYUN-8377】formSchema props支持动态修改
+  // 设置组件props的key
+  dynamicPropskey?: string;
+  dynamicPropsVal?: ((renderCallbackParams: RenderCallbackParams) => any);
+  // update-end--author:liaozhiyang---date:20240308---for：【QQYUN-8377】formSchema props支持动态修改
 
   // 这个属性自定义的 用于自定义的业务 比如在表单打开的时候修改表单的禁用状态，但是又不能重写componentProps，因为他的内容太多了，所以使用dynamicDisabled和buss实现
   buss?: any;

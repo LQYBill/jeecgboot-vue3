@@ -25,7 +25,6 @@ enum Api {
   changePassword = '/sys/user/changePassword',
   frozenBatch = '/sys/user/frozenBatch',
   getUserAgent = '/sys/sysUserAgent/queryByUserName',
-  syncUser = '/act/process/extActProcess/doSyncUser',
   userQuitAgent = '/sys/user/userQuitAgent',
   getQuitList = '/sys/user/getQuitList',
   putCancelQuit = '/sys/user/putCancelQuit',
@@ -97,6 +96,29 @@ export const saveOrUpdateUser = (params, isUpdate) => {
  * @param params
  */
 export const duplicateCheck = (params) => defHttp.get({ url: Api.duplicateCheck, params }, { isTransformResponse: false });
+
+/**
+ * 20231215
+ * liaozhiyang
+ * 唯一校验（ 延迟【防抖】）
+ * @param params
+ */
+let timer;
+export const duplicateCheckDelay = (params) => {
+  return new Promise((resove, rejected) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      defHttp
+        .get({ url: Api.duplicateCheck, params }, { isTransformResponse: false })
+        .then((res: any) => {
+          resove(res as any);
+        })
+        .catch((error) => {
+          rejected(error);
+        });
+    }, 500);
+  });
+};
 /**
  * 获取全部角色（租户隔离）
  * @param params
@@ -179,12 +201,6 @@ export const saveOrUpdateAgent = (params) => {
 };
 
 /**
- * 用户同步流程
- * @param params
- */
-export const syncUser = () => defHttp.put({ url: Api.syncUser });
-
-/**
  * 用户离职(新增代理人和用户状态变更操作)
  * @param params
  */
@@ -213,14 +229,14 @@ export const putCancelQuit = (params, handleSuccess) => {
 /**
  * 待审批获取列表数据
  */
-export const getUserTenantPageList = (params)=>{
-  return defHttp.get({url:Api.getUserTenantPageList,params})
-}
+export const getUserTenantPageList = (params) => {
+  return defHttp.get({ url: Api.getUserTenantPageList, params });
+};
 
 /**
  * 更新租户状态
  * @param params
  */
-export const updateUserTenantStatus = (params)=>{
-  return defHttp.put({ url: Api.updateUserTenantStatus, params }, { joinParamsToUrl: true,isTransformResponse: false });
-}
+export const updateUserTenantStatus = (params) => {
+  return defHttp.put({ url: Api.updateUserTenantStatus, params }, { joinParamsToUrl: true, isTransformResponse: false });
+};

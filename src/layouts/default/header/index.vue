@@ -11,7 +11,7 @@
       />
       <LayoutBreadcrumb v-if="getShowContent && getShowBread" :theme="getHeaderTheme" />
       <!-- 欢迎语 -->
-      <span v-if="getShowContent && getShowBreadTitle && !getIsMobile" :class="[prefixCls, `${prefixCls}--${getHeaderTheme}`,'headerIntroductionClass']"> {{ t('common.welcomeTo')}} {{ title }} </span>
+      <span v-if="getShowContent && getShowBreadTitle && !getIsMobile" :class="[prefixCls, `${prefixCls}--${getHeaderTheme}`,'headerIntroductionClass']"> {{t('layout.header.welcomeIn')}} {{ title }} </span>
     </div>
     <!-- left end -->
 
@@ -38,6 +38,8 @@
       <UserDropDown :theme="getHeaderTheme" />
 
       <SettingDrawer v-if="getShowSetting" :class="`${prefixCls}-action__item`" />
+      <!-- ai助手 -->
+      <Aide></Aide>
     </div>
   </Header>
   <LoginSelect ref="loginSelectRef" @success="loginSelectOk"></LoginSelect>
@@ -71,7 +73,9 @@
 
   import LoginSelect from '/@/views/sys/login/LoginSelect.vue';
   import { useUserStore } from '/@/store/modules/user';
-  import {useI18n} from "/@/hooks/web/useI18n";
+  import { useI18n } from '/@/hooks/web/useI18n';
+  import Aide from "@/views/dashboard/ai/components/aide/index.vue"
+  const { t } = useI18n();
 
   export default defineComponent({
     name: 'LayoutHeader',
@@ -92,6 +96,7 @@
       SettingDrawer: createAsyncComponent(() => import('/@/layouts/default/setting/index.vue'), {
         loading: true,
       }),
+      Aide
     },
     props: {
       fixed: propTypes.bool,
@@ -99,7 +104,6 @@
     setup(props) {
       const { prefixCls } = useDesign('layout-header');
       const userStore = useUserStore();
-      const {t} = useI18n();
       const { getShowTopMenu, getShowHeaderTrigger, getSplit, getIsMixMode, getMenuWidth, getIsMixSidebar } = useMenuSetting();
       const { getUseErrorHandle, getShowSettingButton, getSettingButtonPosition } = useRootSetting();
       const { title } = useGlobSetting();
@@ -221,19 +225,20 @@
   //update-begin---author:scott ---date:2022-09-30  for：默认隐藏顶部菜单面包屑-----------
   //顶部欢迎语展示样式
   @prefix-cls: ~'@{namespace}-layout-header';
-
-  .@{prefix-cls} {
+  
+  .ant-layout .@{prefix-cls} {
     display: flex;
     padding: 0 8px;
+    height: 48px;
     align-items: center;
-
+    
     .headerIntroductionClass {
       margin-right: 4px;
       margin-bottom: 2px;
       border-bottom: 0px;
       border-left: 0px;
     }
-
+    
     &--light {
       .headerIntroductionClass {
         color: @breadcrumb-item-normal-color;
@@ -244,7 +249,7 @@
       .headerIntroductionClass {
         color: rgba(255, 255, 255, 0.6);
       }
-      .anticon {
+      .anticon, .truncate {
         color: rgba(255, 255, 255, 0.8);
       }
     }

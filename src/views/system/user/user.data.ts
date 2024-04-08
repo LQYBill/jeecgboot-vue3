@@ -89,13 +89,13 @@ export const searchFormSchema: FormSchema[] = [
     label: '账号',
     field: 'username',
     component: 'JInput',
-    colProps: { span: 6 },
+    //colProps: { span: 6 },
   },
   {
     label: '名字',
     field: 'realname',
     component: 'JInput',
-    colProps: { span: 6 },
+   //colProps: { span: 6 },
   },
   {
     label: '性别',
@@ -106,13 +106,13 @@ export const searchFormSchema: FormSchema[] = [
       placeholder: '请选择性别',
       stringToNumber: true,
     },
-    colProps: { span: 6 },
+    //colProps: { span: 6 },
   },
   {
     label: '手机号码',
     field: 'phone',
     component: 'Input',
-    colProps: { span: 6 },
+    //colProps: { span: 6 },
   },
   {
     label: '用户状态',
@@ -123,7 +123,7 @@ export const searchFormSchema: FormSchema[] = [
       placeholder: '请选择状态',
       stringToNumber: true,
     },
-    colProps: { span: 6 },
+   //colProps: { span: 6 },
   },
 ];
 
@@ -152,6 +152,10 @@ export const formSchema: FormSchema[] = [
         required: true,
         message: '请输入登录密码',
       },
+      {
+        pattern: /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";'<>?,./]).{8,}$/,
+        message: '密码由8位数字、大小写字母和特殊符号组成!',
+      },
     ],
   },
   {
@@ -179,7 +183,6 @@ export const formSchema: FormSchema[] = [
     required: false,
     component: 'JSelectPosition',
     componentProps: {
-      rowKey: 'code',
       labelKey: 'name',
     },
   },
@@ -193,6 +196,7 @@ export const formSchema: FormSchema[] = [
       api: getAllRolesListNoByTenant,
       labelField: 'roleName',
       valueField: 'id',
+      immediate: false,
     },
   },
   {
@@ -231,6 +235,7 @@ export const formSchema: FormSchema[] = [
       numberToString: true,
       labelField: 'name',
       valueField: 'id',
+      immediate: false,
     },
   },
   {
@@ -286,7 +291,12 @@ export const formSchema: FormSchema[] = [
     label: '邮箱',
     field: 'email',
     component: 'Input',
-    rules: rules.rule('email', true),
+    dynamicRules: ({ model, schema }) => {
+      return [
+        { ...rules.duplicateCheckRule('sys_user', 'email', model, schema, true)[0], trigger: 'blur' },
+        { ...rules.rule('email', false)[0], trigger: 'blur' },
+      ];
+    },
   },
   {
     label: '手机号码',
@@ -294,8 +304,8 @@ export const formSchema: FormSchema[] = [
     component: 'Input',
     dynamicRules: ({ model, schema }) => {
       return [
-        { ...rules.duplicateCheckRule('sys_user', 'phone', model, schema, false)[0] },
-        { pattern: /^1[3456789]\d{9}$/, message: '手机号码格式有误' },
+        { ...rules.duplicateCheckRule('sys_user', 'phone', model, schema, true)[0], trigger: 'blur' },
+        { pattern: /^1[3456789]\d{9}$/, message: '手机号码格式有误', trigger: 'blur' },
       ];
     },
   },
@@ -336,6 +346,10 @@ export const formPasswordSchema: FormSchema[] = [
       {
         required: true,
         message: '请输入登录密码',
+      },
+      {
+        pattern: /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[~!@#$%^&*()_+`\-={}:";'<>?,./]).{8,}$/,
+        message: '密码由8位数字、大小写字母和特殊符号组成!',
       },
     ],
   },
@@ -383,6 +397,7 @@ export const formAgentSchema: FormSchema[] = [
       showTime: true,
       valueFormat: 'YYYY-MM-DD HH:mm:ss',
       placeholder: '请选择代理开始时间',
+      getPopupContainer: () => document.body,
     },
   },
   {
@@ -394,6 +409,7 @@ export const formAgentSchema: FormSchema[] = [
       showTime: true,
       valueFormat: 'YYYY-MM-DD HH:mm:ss',
       placeholder: '请选择代理结束时间',
+      getPopupContainer: () => document.body,
     },
   },
   {

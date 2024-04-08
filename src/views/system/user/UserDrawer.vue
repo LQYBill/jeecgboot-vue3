@@ -69,7 +69,9 @@
       //负责部门/赋值
       data.record.departIds && !Array.isArray(data.record.departIds) && (data.record.departIds = data.record.departIds.split(','));
       //update-begin---author:zyf   Date:20211210  for：避免空值显示异常------------
-      data.record.departIds = data.record.departIds == '' ? [] : data.record.departIds;
+      //update-begin---author:liusq   Date:20231008  for：[issues/772]避免空值显示异常------------
+      data.record.departIds =  (!data.record.departIds || data.record.departIds == '') ? [] : data.record.departIds;
+      //update-end-----author:liusq   Date:20231008  for：[issues/772]避免空值显示异常------------
       //update-begin---author:zyf   Date:20211210  for：避免空值显示异常------------
     }
     //处理角色用户列表情况(和角色列表有关系)
@@ -78,7 +80,8 @@
     updateSchema([
       {
         field: 'password',
-        show: !unref(isUpdate),
+        // 【QQYUN-8324】
+        ifShow: !unref(isUpdate),
       },
       {
         field: 'confirmPassword',
@@ -113,7 +116,15 @@
     //update-end-author:taoyan date:2022-5-24 for: VUEN-1117【issue】0523周开源问题
   });
   //获取标题
-  const getTitle = computed(() => (!unref(isUpdate) ? '新增用户' : '编辑用户'));
+  const getTitle = computed(() => {
+    // update-begin--author:liaozhiyang---date:20240306---for：【QQYUN-8389】系统用户详情抽屉title更改
+    if (!unref(isUpdate)) {
+      return '新增用户';
+    } else {
+      return unref(showFooter) ? '编辑用户' : '用户详情';
+    }
+    // update-end--author:liaozhiyang---date:20240306---for：【QQYUN-8389】系统用户详情抽屉title更改
+  });
   const { adaptiveWidth } = useDrawerAdaptiveWidth();
 
   //提交事件

@@ -18,7 +18,8 @@
     useWrapper: { type: Boolean, default: true },
     modalHeaderHeight: { type: Number, default: 57 },
     modalFooterHeight: { type: Number, default: 74 },
-    minHeight: { type: Number, default: 200 },
+    minHeight: { type: Number, default: null },
+    maxHeight: { type: Number, default: null },
     height: { type: Number },
     footerOffset: { type: Number, default: 0 },
     visible: { type: Boolean },
@@ -60,10 +61,34 @@
       });
 
       const spinStyle = computed((): CSSProperties => {
-        return {
-          minHeight: `${props.minHeight}px`,
-          [props.fullScreen ? 'height' : 'maxHeight']: `${unref(realHeightRef)}px`,
-        };
+        // update-begin--author:liaozhiyang---date:20231205---for：【QQYUN-7147】Model的高度设置不生效
+        if (props.fullScreen) {
+          return {
+            height: `${unref(realHeightRef)}px`,
+          };
+        } else {
+          const defaultMiniHeight = 200;
+          if (props.height != undefined) {
+            let height: number = props.height;
+            if (props.minHeight === null) {
+              return {
+                height: `${height}px`,
+              };
+            } else {
+              return {
+                height: `${props.minHeight > height ? props.minHeight : height}px`,
+              };
+            }
+          } else {
+            return {
+              minHeight: `${props.minHeight === null ? defaultMiniHeight : props.minHeight}px`,
+              // update-begin--author:liaozhiyang---date:20231219---for：【QQYUN-7641】basicModal组件添加MaxHeight属性
+              maxHeight: `${props.maxHeight ? props.maxHeight : unref(realHeightRef)}px`,
+              // update-end--author:liaozhiyang---date:20231219---for：【QQYUN-7641】basicModal组件添加MaxHeight属性
+            };
+          }
+        }
+        // update-end--author:liaozhiyang---date:20231205---for：【QQYUN-7147】Model的高度设置不生效
       });
 
       watchEffect(() => {
@@ -105,10 +130,11 @@
         if (!props.visible) return;
         const wrapperRefDom = unref(wrapperRef);
         if (!wrapperRefDom) return;
-
-        const bodyDom = wrapperRefDom.$el.parentElement;
+        // update-begin--author:liaozhiyang---date:20240320---for：【QQYUN-8573】BasicModal组件在非全屏的情况下最大高度获取异常，不论内容高度是否超出屏幕高度，都等于内容高度
+        const bodyDom = wrapperRefDom.$el.parentElement?.parentElement?.parentElement;
+        // update-end--author:liaozhiyang---date:20240320---for：BasicModal组件在非全屏的情况下最大高度获取异常，不论内容高度是否超出屏幕高度，都等于内容高度
         if (!bodyDom) return;
-        bodyDom.style.padding = '0';
+        // bodyDom.style.padding = '0';
         await nextTick();
 
         try {

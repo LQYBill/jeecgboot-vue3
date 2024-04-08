@@ -27,9 +27,9 @@
       </Menu>
     </template>
   </Dropdown>
-  <LockAction @register="register" />
+  <LockAction v-if="lockActionVisible" ref="lockActionRef" @register="register" />
   <DepartSelect ref="loginSelectRef" />
-  <UpdatePassword ref="updatePasswordRef" />
+  <UpdatePassword v-if="passwordVisible" ref="updatePasswordRef" />
 </template>
 <script lang="ts">
   // components
@@ -56,6 +56,7 @@
   import { DB_DICT_DATA_KEY } from '/src/enums/cacheEnum';
   import { removeAuthCache, setAuthCache } from '/src/utils/auth';
   import { getFileAccessHttpUrl } from '/@/utils/common/compUtils';
+  import { getRefPromise } from '/@/utils/index';
 
   type MenuEvent = 'logout' | 'doc' | 'lock' | 'cache' | 'depart';
   const { createMessage } = useMessage();
@@ -79,6 +80,9 @@
       const { getShowDoc, getUseLockPage } = useHeaderSetting();
       const userStore = useUserStore();
       const go = useGo();
+      const passwordVisible = ref(false);
+      const lockActionVisible = ref(false);
+      const lockActionRef = ref(null);
 
       const getUserInfo = computed(() => {
         const { realname = '', avatar, desc } = userStore.getUserInfo || {};
@@ -99,10 +103,12 @@
        * 多部门弹窗逻辑
        */
       const loginSelectRef = ref();
-      function handleLock() {
+      // update-begin--author:liaozhiyang---date:20230901---for：【QQYUN-6333】空路由问题—首次访问资源太大
+      async function handleLock() {
+        await getRefPromise(lockActionRef);
         openModal(true);
       }
-
+      // update-end--author:liaozhiyang---date:20230901---for：【QQYUN-6333】空路由问题—首次访问资源太大
       //  login out
       function handleLoginOut() {
         userStore.confirmLoginOut();
@@ -120,9 +126,13 @@
           const res = await queryAllDictItems();
           removeAuthCache(DB_DICT_DATA_KEY);
           setAuthCache(DB_DICT_DATA_KEY, res.result);
-          createMessage.success(t('sys.cacheCleared'));
+          // update-begin--author:liaozhiyang---date:20240124---for：【QQYUN-7970】国际化
+          createMessage.success(t('layout.header.refreshCacheComplete'));
+          // update-end--author:liaozhiyang---date:20240124---for：【QQYUN-7970】国际化
         } else {
-          createMessage.error(t('sys.cacheClearFailed'));
+          // update-begin--author:liaozhiyang---date:20240124---for：【QQYUN-7970】国际化
+          createMessage.error(t('layout.header.refreshCacheFailure'));
+          // update-end--author:liaozhiyang---date:20240124---for：【QQYUN-7970】国际化
         }
       }
       // 切换部门
@@ -131,10 +141,13 @@
       }
       // 修改密码
       const updatePasswordRef = ref();
-      function updatePassword() {
+      // update-begin--author:liaozhiyang---date:20230901---for：【QQYUN-6333】空路由问题—首次访问资源太大
+      async function updatePassword() {
+        passwordVisible.value = true;
+        await getRefPromise(updatePasswordRef);
         updatePasswordRef.value.show(userStore.getUserInfo.username);
       }
-
+      // update-end--author:liaozhiyang---date:20230901---for：【QQYUN-6333】空路由问题—首次访问资源太大
       function handleMenuClick(e: { key: MenuEvent }) {
         switch (e.key) {
           case 'logout':
@@ -174,6 +187,8 @@
         getUseLockPage,
         loginSelectRef,
         updatePasswordRef,
+        passwordVisible,
+        lockActionVisible,
       };
     },
   });
@@ -225,6 +240,9 @@
     }
 
     &-dropdown-overlay {
+      // update-begin--author:liaozhiyang---date:20231226---for：【QQYUN-7512】顶部账号划过首次弹出时位置会变更一下
+      width: 160px;
+      // update-end--author:liaozhiyang---date:20231226---for：【QQYUN-7512】顶部账号划过首次弹出时位置会变更一下
       .ant-dropdown-menu-item {
         min-width: 160px;
       }

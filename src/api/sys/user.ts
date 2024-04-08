@@ -53,7 +53,17 @@ export function getUserInfo() {
       const userStore = useUserStoreWithOut();
       userStore.setToken('');
       setAuthCache(TOKEN_KEY, null);
-      router.push(PageEnum.BASE_LOGIN);
+
+      // update-begin-author:sunjianlei date:20230306 for: 修复登录成功后，没有正确重定向的问题
+      router.push({
+        path: PageEnum.BASE_LOGIN,
+        query: {
+          // 传入当前的路由，登录成功后跳转到当前路由
+          redirect: router.currentRoute.value.fullPath,
+        }
+      });
+      // update-end-author:sunjianlei date:20230306 for: 修复登录成功后，没有正确重定向的问题
+
     }
     // update-end--author:zyf---date:20220425---for:【VUEN-76】捕获接口超时异常,跳转到登录界面
   });
@@ -83,6 +93,6 @@ export const passwordChange = (params) => defHttp.get({ url: Api.passwordChange,
  * SSO登录校验
  */
 export async function validateCasLogin(params) {
-  const url = Api.validateCasLogin;
+  let url = Api.validateCasLogin;
   return defHttp.get({ url: url, params });
 }

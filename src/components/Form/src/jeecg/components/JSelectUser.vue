@@ -1,8 +1,8 @@
 <!--用户选择组件-->
 <template>
   <div>
-    <JSelectBiz @handleOpen="handleOpen" :loading="loadingEcho" v-bind="attrs"></JSelectBiz>
-    <UserSelectModal :rowKey="rowKey" @register="regModal" @getSelectResult="setValue" v-bind="getBindValue"></UserSelectModal>
+    <JSelectBiz @change="handleChange" @handleOpen="handleOpen" :loading="loadingEcho" v-bind="attrs"></JSelectBiz>
+    <UserSelectModal :rowKey="rowKey" @register="regModal" @getSelectResult="setValue" v-bind="getBindValue" :excludeUserIdList="excludeUserIdList"></UserSelectModal>
   </div>
 </template>
 <script lang="ts">
@@ -37,6 +37,13 @@
         type: Object,
         default: () => {},
       },
+      //update-begin---author:wangshuai ---date:20230703  for：【QQYUN-5685】5、离职人员可以选自己------------
+      //排除用户id的集合
+      excludeUserIdList:{
+        type: Array,
+        default: () => [],
+      }
+      //update-end---author:wangshuai ---date:20230703  for：【QQYUN-5685】5、离职人员可以选自己------------
     },
     emits: ['options-change', 'change', 'update:value'],
     setup(props, { emit }) {
@@ -84,6 +91,17 @@
         }
       });
 
+      //update-begin---author:wangshuai ---date:20230703  for：【QQYUN-5685】5、离职人员可以选自己------------
+      const excludeUserIdList = ref<any>([]);
+
+      /**
+       * 需要监听一下excludeUserIdList，否则modal获取不到
+       */
+      watch(()=>props.excludeUserIdList,(data)=>{
+        excludeUserIdList.value = data;
+      },{ immediate: true })
+      //update-end---author:wangshuai ---date:20230703  for：【QQYUN-5685】5、离职人员可以选自己------------
+
       /**
        * 打卡弹出框
        */
@@ -119,6 +137,17 @@
         emit('update:value', values.join(','));
       }
       const getBindValue = Object.assign({}, unref(props), unref(attrs));
+
+      //update-begin---author:wangshuai ---date:20230711  for：换成异步组件加载，否则会影响到其他页面描述------------
+      /**
+       * 下拉框值改变回调事件
+       * @param values
+       */
+      function handleChange(values) {
+        emit('update:value', values);
+      }
+      //update-end---author:wangshuai ---date:20230711  for：换成异步组件加载，否则会影响到其他页面描述------------
+      
       return {
         state,
         attrs,
@@ -130,6 +159,8 @@
         regModal,
         setValue,
         handleOpen,
+        excludeUserIdList,
+        handleChange,
       };
     },
   });

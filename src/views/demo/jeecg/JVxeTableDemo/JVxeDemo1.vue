@@ -3,7 +3,7 @@
     <a-button @click="onToggleLoading">切换加载</a-button>
     <a-button @click="onToggleDisabled">切换禁用</a-button>
   </a-space>
-
+  <!--这种使用场景得用height，用maxHeight底层有问题-->
   <JVxeTable
     ref="tableRef"
     stripe
@@ -14,14 +14,16 @@
     resizable
     asyncRemove
     clickSelectRow
-    :maxHeight="480"
+    :height="480"
     :checkboxConfig="{ range: true }"
     :disabledRows="{ input: ['text--16', 'text--18'] }"
     :loading="loading"
     :disabled="disabled"
     :columns="columns"
     :dataSource="dataSource"
-    @remove="onJVxeRemove"
+    @removed="onJVxeRemove"
+    @valueChange="handleValueChange"
+    @blur="handleBlur"
   >
     <template #toolbarSuffix>
       <a-button @click="handleTableCheck">表单验证</a-button>
@@ -214,7 +216,7 @@
       key: 'action',
       type: JVxeTypes.slot,
       fixed: 'right',
-      minWidth: 100,
+      minWidth: 120,
       align: 'center',
       slotName: 'myAction',
     },
@@ -289,18 +291,29 @@
     console.log('查看: ', { props });
   }
 
+  // async function onDeleteRow(props) {
+  //   // 同步调用删除方法
+  //   const res = await tableRef.value?.removeRows(props.row);
+  //   if (res && res.rows.length > 0) {
+  //     createMessage.success('删除成功');
+  //   }
+  // }
+
   async function onDeleteRow(props) {
-    // 调用删除方法
-    const res = await tableRef.value?.removeRows(props.row);
-    if (res && res.rows.length > 0) {
-      createMessage.success('删除成功');
-    }
+    // 异步调用删除方法
+    const res = await tableRef.value?.removeRows(props.row, true);
+    console.log('删除成功~', res);
   }
 
   function handleValueChange(event) {
     console.log('handleValueChange.event: ', event);
   }
 
+  // update-begin--author:liaozhiyang---date:20230817---for：【issues/636】JVxeTable加上blur事件
+  function handleBlur(event){
+    console.log("blur",event);
+  }
+  // update-end--author:liaozhiyang---date:20230817---for：【issues/636】JVxeTable加上blur事件
   /** 表单验证 */
   function handleTableCheck() {
     tableRef.value!.validateTable().then((errMap) => {
@@ -354,8 +367,13 @@
   }
 
   function doDelete(deleteRows) {
+    let rowId;
     return new Promise((resolve) => {
-      let rowId = deleteRows.map((row) => row.id);
+      if (Array.isArray(deleteRows)) {
+        rowId = deleteRows.filter((row) => row.id);
+      } else {
+        rowId = deleteRows.id;
+      }
       console.log('删除 rowId: ', rowId);
       setTimeout(() => resolve(true), 1500);
     });
@@ -370,8 +388,8 @@
       if (flag) {
         // 注：如果启用了表格的 loading 状态，则必须先停止再删除，否则会导致无法从表格上删除数据
         // 2. 调用 event.confirmRemove 方法确认删除成功
-        await tableRef.value!.removeSelection();
-        // await event.confirmRemove()
+        // await tableRef.value!.removeSelection();
+        await event.confirmRemove()
         createMessage.success('删除成功！');
       } else {
         // 3. 若删除失败，不调用 event.confirmRemove() 方法就不会删除数据

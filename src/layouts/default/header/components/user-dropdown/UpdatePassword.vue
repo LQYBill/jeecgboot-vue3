@@ -1,54 +1,62 @@
 <template>
-  <BasicModal v-bind="$attrs" @register="registerModal" :title="t('sys.profile.changePassword')" @ok="handleSubmit" width="600px">
+  <BasicModal v-bind="$attrs" @register="registerModal" :title="title" @ok="handleSubmit" width="600px">
     <BasicForm @register="registerForm" />
   </BasicModal>
 </template>
 <script lang="ts" setup>
-  import { ref, unref, defineExpose } from 'vue';
+  import { ref, unref } from 'vue';
   import { rules } from '/@/utils/helper/validator';
   import { defHttp } from '/@/utils/http/axios';
   import { BasicModal, useModalInner } from '/@/components/Modal';
-  import { BasicForm, useForm } from '/@/components/Form/index';
+  import BasicForm from '/@/components/Form/src/BasicForm.vue';
+  import { useForm } from '/@/components/Form/src/hooks/useForm';
   import { useMessage } from '/@/hooks/web/useMessage';
-  import {useI18n} from "/@/hooks/web/useI18n";
+  import { useLocaleStore } from '/@/store/modules/locale';
+  import { useI18n } from '/@/hooks/web/useI18n';
+  const localeStore = useLocaleStore();
+  const { t } = useI18n();
   // 声明Emits
   const emit = defineEmits(['register']);
-  const {t} = useI18n();
   const $message = useMessage();
   const formRef = ref();
   const username = ref('');
+  // update-begin--author:liaozhiyang---date:20240124---for：【QQYUN-7970】国际化
+  const title = ref(t('layout.changePassword.changePassword'));
   //表单配置
   const [registerForm, { resetFields, validate, clearValidate }] = useForm({
     schemas: [
       {
-        label: t('sys.profile.oldPassword'),
+        label: t('layout.changePassword.oldPassword'),
         field: 'oldpassword',
         component: 'InputPassword',
         required: true,
       },
       {
-        label: t('sys.profile.newPassword'),
+        label: t('layout.changePassword.newPassword'),
         field: 'password',
         component: 'StrengthMeter',
         componentProps: {
-          placeholder: t('sys.profile.newPasswordPlaceholder'),
+          placeholder: t('layout.changePassword.pleaseEnterNewPassword'),
         },
         rules: [
           {
             required: true,
-            message: t('sys.profile.newPasswordPlaceholder'),
+            message: t('layout.changePassword.pleaseEnterNewPassword'),
           },
         ],
       },
       {
-        label: t('sys.profile.confirmNewPassword'),
+        label: t('layout.changePassword.confirmNewPassword'),
         field: 'confirmpassword',
         component: 'InputPassword',
         dynamicRules: ({ values }) => rules.confirmPassword(values, true),
       },
     ],
     showActionButtonGroup: false,
+    wrapperCol: null,
+    labelWidth: localeStore.getLocale == 'zh_CN' ? 100 : 160,
   });
+  // update-end--author:liaozhiyang---date:20240124---for：【QQYUN-7970】国际化
   //表单赋值
   const [registerModal, { setModalProps, closeModal }] = useModalInner();
 
@@ -86,6 +94,7 @@
   }
 
   defineExpose({
+    title,
     show,
   });
 </script>

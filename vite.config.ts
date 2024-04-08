@@ -27,7 +27,7 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
   // The boolean type read by loadEnv is a string. This function can be converted to boolean type
   const viteEnv = wrapperEnv(env);
 
-  const { VITE_PORT, VITE_PUBLIC_PATH, VITE_PROXY, VITE_DROP_CONSOLE } = viteEnv;
+  const { VITE_PORT, VITE_PUBLIC_PATH, VITE_PROXY } = viteEnv;
 
   const isBuild = command === 'build';
 
@@ -50,6 +50,15 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
           find: /\/#\//,
           replacement: pathResolve('types') + '/',
         },
+        {
+          find: /@\//,
+          replacement: pathResolve('src') + '/',
+        },
+        // /#/xxxx => types/xxxx
+        {
+          find: /#\//,
+          replacement: pathResolve('types') + '/',
+        },
       ],
     },
     server: {
@@ -65,17 +74,31 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
       target: 'es2015',
       cssTarget: 'chrome80',
       outDir: OUTPUT_DIR,
-      terserOptions: {
-        compress: {
-          keep_infinity: true,
-          // Used to delete console in production environment
-          drop_console: VITE_DROP_CONSOLE,
-          drop_debugger: true,
+      rollupOptions: {
+        // 关闭除屑优化，防止删除重要代码，导致打包后功能出现异常
+        treeshake: false,
+        output: {
+          chunkFileNames: 'js/[name]-[hash].js', // 引入文件名的名称
+          entryFileNames: 'js/[name]-[hash].js', // 包的入口文件名称
+          // manualChunks配置 (依赖包从大到小排列)
+          manualChunks: {
+            // vue vue-router合并打包
+            'vue-vendor': ['vue', 'vue-router'],
+            'antd-vue-vendor': ['ant-design-vue','@ant-design/icons-vue','@ant-design/colors'],
+            'vxe-table-vendor': ['vxe-table','vxe-table-plugin-antd','xe-utils'],
+            'emoji-mart-vue-fast': ['emoji-mart-vue-fast'],
+            'china-area-data-vendor': ['china-area-data']
+          },
         },
       },
-      // Turning off brotliSize display can slightly reduce packaging time
+      // 关闭brotliSize显示可以稍微减少打包时间
       reportCompressedSize: false,
+      // 提高超大静态资源警告大小
       chunkSizeWarningLimit: 2000,
+    },
+    esbuild: {
+      //清除全局的console.log和debug
+      drop: isBuild ? ['console', 'debugger'] : [],
     },
     define: {
       // setting vue-i18-next
@@ -94,18 +117,14 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
 
     // The vite plugin used by the project. The quantity is large, so it is separately extracted and managed
     plugins: createVitePlugins(viteEnv, isBuild),
-
+    // 预加载构建配置（首屏性能)
     optimizeDeps: {
       esbuildOptions: {
         target: 'es2020',
       },
-      // @iconify/iconify: The dependency is dynamically and virtually loaded by @purge-icons/generated, so it needs to be specified explicitly
-      include: [
-        '@vue/runtime-core',
-        '@vue/shared',
-        '@iconify/iconify',
-        'ant-design-vue/es/locale/zh_CN',
-        'ant-design-vue/es/locale/en_US',
+      exclude: [
+        //升级vite4后，需要排除online依赖
+        '@jeecg/online',
       ],
     },
   };

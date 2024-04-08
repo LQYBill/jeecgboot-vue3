@@ -1,5 +1,15 @@
 import { FormSchema } from '/@/components/Form/index';
 import { rules } from '/@/utils/helper/validator';
+import anquan1 from './icons/anquan1.png'
+import anquan2 from './icons/anquan2.png'
+import app1 from './icons/app1.png'
+import app2 from './icons/app2.png'
+import geren1 from './icons/geren1.png'
+import geren2 from './icons/geren2.png'
+import zuhu1 from './icons/zuhu1.png'
+import zuhu2 from './icons/zuhu2.png'
+import { calculateFileSize } from "/@/utils/common/compUtils";
+import { BasicColumn } from "@/components/Table";
 import { useI18n } from '/@/hooks/web/useI18n';
 
 const { t } = useI18n();
@@ -19,13 +29,17 @@ export const settingList = [
     key: '1',
     name: t('sys.profile.myInformation'),
     component: 'BaseSetting',
-    icon:'ant-design:user-outlined'
+    icon:'ant-design:user-outlined',
+    img1: geren1,
+    img2: geren2,
   },
-   {
+  {
     key: '2',
     name: t('sys.profile.accountSecurity'),
     component: 'AccountSetting',
-    icon:'ant-design:lock-outlined'
+    icon:'ant-design:lock-outlined',
+    img1: anquan1,
+    img2: anquan2,
   },
 ];
 
@@ -84,7 +98,7 @@ export const formSchema: FormSchema[] = [
     colProps: { span: 24 },
     componentProps:{
       mode:'multiple',
-      dictCode:'sys_position,name,code',
+      dictCode:'sys_position,name,id',
       disabled:true
     }
   },

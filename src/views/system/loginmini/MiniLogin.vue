@@ -1,6 +1,6 @@
 <template>
   <div :class="prefixCls" class="login-background-img">
-    <AppLocalePicker class="absolute top-4 right-4 enter-x xl:text-gray-600" :showText="false" />
+    <AppLocalePicker class="absolute top-4 right-4 enter-x xl:text-gray-600" :showText="false"/>
     <AppDarkModeToggle class="absolute top-3 right-7 enter-x" />
     <div class="aui-logo" v-if="!getIsMobile">
       <div>
@@ -56,9 +56,8 @@
                 </div>
                 <div class="aui-formButton">
                   <div class="aui-flex">
-                    <a-button :loading="loginLoading" class="aui-link-login aui-flex-box" type="primary" @click="loginHandleClick">
-                      {{ t('sys.login.loginButton') }}</a-button
-                    >
+                    <a-button :loading="loginLoading" class="aui-link-login" type="primary" @click="loginHandleClick">
+                      {{ t('sys.login.loginButton') }}</a-button>
                   </div>
                 </div>
               </div>
@@ -202,96 +201,88 @@
     color: #aaa !important;
   }
 
-  :deep(.jeecg-dark-switch) {
-    position: absolute;
+  :deep(.jeecg-dark-switch){
+    position:absolute;
     margin-right: 10px;
   }
-  .aui-link-login {
+  .aui-link-login{
     height: 42px;
     padding: 10px 15px;
     font-size: 14px;
     border-radius: 8px;
     margin-top: 15px;
     margin-bottom: 8px;
+    flex: 1;
+    color: #fff;
   }
-  .aui-phone-logo {
+  .aui-phone-logo{
     position: absolute;
     margin-left: 10px;
     width: 60px;
-    top: 2px;
+    top:2px;
     z-index: 4;
   }
-  .top-3 {
+  .top-3{
     top: 0.45rem;
   }
 </style>
 
 <style lang="less">
-  @prefix-cls: ~'@{namespace}-mini-login';
-  @dark-bg: #293146;
+@prefix-cls: ~'@{namespace}-mini-login';
+@dark-bg: #293146;
 
-  html[data-theme='dark'] {
-    .@{prefix-cls} {
+html[data-theme='dark'] {
+  .@{prefix-cls} {
+    background-color: @dark-bg !important;
+    background-image: none;
+
+    &::before {
+      background-image: url(/@/assets/svg/login-bg-dark.svg);
+    }
+    .aui-inputClear{
+      background-color: #232a3b !important;
+    }
+    .ant-input,
+    .ant-input-password {
+      background-color: #232a3b !important;
+    }
+
+    .ant-btn:not(.ant-btn-link):not(.ant-btn-primary) {
+      border: 1px solid #4a5569 !important;
+    }
+
+    &-form {
+      background: @dark-bg !important;
+    }
+
+    .app-iconify {
+      color: #fff !important;
+    }
+    .aui-inputClear input,.aui-input-line input,.aui-choice{
+      color: #c9d1d9 !important;
+    }
+
+    .aui-formBox{
       background-color: @dark-bg !important;
-      background-image: none;
-
-      &::before {
-        background-image: url(/@/assets/svg/login-bg-dark.svg);
-      }
-      .aui-inputClear {
-        background-color: #232a3b !important;
-      }
-      .ant-input,
-      .ant-input-password {
-        background-color: #232a3b !important;
-      }
-
-      .ant-btn:not(.ant-btn-link):not(.ant-btn-primary) {
-        border: 1px solid #4a5569 !important;
-      }
-
-      &-form {
-        background: @dark-bg !important;
-      }
-
-      .app-iconify {
-        color: #fff !important;
-      }
-      .aui-inputClear input,
-      .aui-input-line input,
-      .aui-choice {
-        color: #c9d1d9 !important;
-      }
-
-      .aui-formBox {
-        background-color: @dark-bg !important;
-      }
-      .aui-third-text span {
-        background-color: @dark-bg !important;
-      }
-      .aui-form-nav .aui-flex-box {
-        color: #c9d1d9 !important;
-      }
-
-      .aui-formButton .aui-linek-code {
-        background: @dark-bg !important;
-        color: white !important;
-      }
-      .aui-code-line {
-        border-left: none !important;
-      }
-      .ant-checkbox-inner,
-      .aui-success h3 {
-        border-color: #c9d1d9;
-      }
+    }
+    .aui-third-text span{
+      background-color: @dark-bg !important;
+    }
+    .aui-form-nav .aui-flex-box{
+      color: #c9d1d9 !important;
     }
 
-    input.fix-auto-fill,
-    .fix-auto-fill input {
-      -webkit-text-fill-color: #c9d1d9 !important;
-      box-shadow: inherit !important;
+    .aui-formButton .aui-linek-code{
+      background:  @dark-bg !important;
+      color: white !important;
     }
-
+    .aui-code-line{
+      border-left: none !important;
+    }
+    .ant-checkbox-inner,.aui-success h3{
+      border-color: #c9d1d9;
+    }
+    //update-begin---author:wangshuai ---date:20230828  for：【QQYUN-6363】这个样式代码有问题，不在里面，导致表达式有问题------------
     &-sign-in-way {
       .anticon {
         font-size: 22px !important;
@@ -303,12 +294,21 @@
         }
       }
     }
-    .ant-divider-inner-text {
-      font-size: 12px !important;
-      color: @text-color-secondary !important;
-    }
-    .aui-third-login a {
-      background: transparent;
-    }
+    //update-end---author:wangshuai ---date:20230828  for：【QQYUN-6363】这个样式代码有问题，不在里面，导致表达式有问题------------
   }
+
+  input.fix-auto-fill,
+  .fix-auto-fill input {
+    -webkit-text-fill-color: #c9d1d9 !important;
+    box-shadow: inherit !important;
+  }
+
+  .ant-divider-inner-text {
+    font-size: 12px !important;
+    color: @text-color-secondary !important;
+  }
+  .aui-third-login a{
+    background: transparent;
+  }
+}
 </style>

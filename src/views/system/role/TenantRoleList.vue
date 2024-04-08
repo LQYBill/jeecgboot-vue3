@@ -16,6 +16,7 @@
           <Icon icon="mdi:chevron-down"></Icon>
         </a-button>
       </a-dropdown>
+      <div style="margin-left: 10px;margin-top: 5px">当前登录租户: <span class="tenant-name">{{loginTenantName}}</span> </div>
     </template>
     <template #action="{ record }">
       <TableAction :actions="getTableAction(record)" :dropDownActions="getDropDownAction(record)" />
@@ -29,7 +30,7 @@
   <RoleDesc @register="registerDesc"></RoleDesc>
 </template>
 <script lang="ts" name="system-role" setup>
-  import { ref } from 'vue';
+  import { onMounted, ref } from 'vue';
   import { BasicTable, TableAction } from '/@/components/Table';
   import { useDrawer } from '/@/components/Drawer';
   import { useModal } from '/@/components/Modal';
@@ -39,6 +40,9 @@
   import { columns, searchFormSchema } from './role.data';
   import { listByTenant, deleteRole, batchDeleteRole, getExportUrl, getImportUrl } from './role.api';
   import { useListPage } from '/@/hooks/system/useListPage';
+  import { getLoginTenantName } from "/@/views/system/tenant/tenant.api";
+  import { tenantSaasMessage } from "@/utils/common/compUtils";
+  
   const showFooter = ref(true);
   const [roleUserDrawer, { openDrawer: openRoleUserDrawer }] = useDrawer();
   const [registerDrawer, { openDrawer }] = useDrawer();
@@ -157,4 +161,24 @@
       },
     ];
   }
+
+  const loginTenantName = ref<string>('');
+  
+  getTenantName();
+  
+  async function getTenantName(){
+    loginTenantName.value = await getLoginTenantName();
+  }
+
+  onMounted(()=>{
+    tenantSaasMessage('租户角色')
+  })
 </script>
+
+<style scoped lang="less">
+  .tenant-name{
+    text-decoration:underline;
+    margin: 5px;
+    font-size: 15px;
+  }
+</style>

@@ -1,15 +1,28 @@
+import { defHttp } from '/@/utils/http/axios';
+import { useUserStore } from '/@/store/modules/user';
 import { getAuthCache } from '/@/utils/auth';
 import { DB_DICT_DATA_KEY } from '/@/enums/cacheEnum';
-import { defHttp } from '/@/utils/http/axios';
 
 /**
  * 从缓存中获取字典配置
  * @param code
  */
 export const getDictItemsByCode = (code) => {
+  // update-begin--author:liaozhiyang---date:20230908---for：【QQYUN-6417】生产环境字典慢的问题
+  const userStore = useUserStore();
+  const dictItems = userStore.getAllDictItems;
+  if (typeof dictItems === 'object' && dictItems[code]) {
+    return dictItems[code];
+  }
+  //update-begin-author:liusq---date:2023-10-13--for: 【issues/777】列表 分类字典不显示
+  //兼容以前的旧写法
   if (getAuthCache(DB_DICT_DATA_KEY) && getAuthCache(DB_DICT_DATA_KEY)[code]) {
     return getAuthCache(DB_DICT_DATA_KEY)[code];
   }
+  //update-end-author:liusq---date:2023-10-13--for:【issues/777】列表 分类字典不显示
+
+  // update-end--author:liaozhiyang---date:20230908---for：【QQYUN-6417】生产环境字典慢的问题
+
 };
 /**
  * 获取字典数组

@@ -10,6 +10,7 @@
   import { BasicDrawer, useDrawerInner } from '/@/components/Drawer';
   import { list, saveOrUpdateMenu } from './menu.api';
   import { useDrawerAdaptiveWidth } from '/@/hooks/jeecg/useAdaptiveWidth';
+  import { useI18n } from "/@/hooks/web/useI18n";
   // 声明Emits
   const emit = defineEmits(['success', 'register']);
   const { adaptiveWidth } = useDrawerAdaptiveWidth();
@@ -41,7 +42,9 @@
     updateSchema([
       {
         field: 'parentId',
-        componentProps: { treeData },
+        // update-begin--author:liaozhiyang---date:20240306---for：【QQYUN-8379】菜单管理页菜单国际化
+        componentProps: { treeData: translateMenu(treeData, 'name') },
+        // update-end--author:liaozhiyang---date:20240306---for：【QQYUN-8379】菜单管理页菜单国际化
       },
       {
         field: 'name',
@@ -61,6 +64,10 @@
       let values = { ...data.record };
       setFieldsValue(values);
       onUrlChange(values.url);
+    }
+    //按钮类型情况下，编辑时候清除一下地址的校验
+    if (menuType.value == 2) {
+      clearValidate();
     }
     //禁用表单
     setProps({ disabled: !attrs.showFooter });
@@ -108,5 +115,27 @@
       }
     }
     //update-end---author:wangshuai ---date:20230204  for：[QQYUN-4058]菜单添加智能化处理------------
+  }
+
+  /**
+  * 2024-03-06
+  * liaozhiyang
+  * 翻译菜单名称
+  */
+  function translateMenu(data, key) {
+    if (data?.length) {
+      const { t } = useI18n();
+      data.forEach((item) => {
+        if (item[key]) {
+          if (item[key].includes("t('") && t) {
+            item[key] = new Function('t', `return ${item[key]}`)(t);
+          }
+        }
+        if (item.children?.length) {
+          translateMenu(item.children, key);
+        }
+      });
+    }
+    return data;
   }
 </script>
