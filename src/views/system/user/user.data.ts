@@ -293,8 +293,8 @@ export const formSchema: FormSchema[] = [
     component: 'Input',
     dynamicRules: ({ model, schema }) => {
       return [
-        { ...rules.duplicateCheckRule('sys_user', 'email', model, schema, true)[0], trigger: 'blur' },
-        { ...rules.rule('email', false)[0], trigger: 'blur' },
+        { ...rules.duplicateCheckRule('sys_user', 'email', model, schema, false)[0], trigger: 'blur' },
+        { ...rules.rule('email', true)[0], trigger: 'blur' },
       ];
     },
   },
@@ -304,7 +304,7 @@ export const formSchema: FormSchema[] = [
     component: 'Input',
     dynamicRules: ({ model, schema }) => {
       return [
-        { ...rules.duplicateCheckRule('sys_user', 'phone', model, schema, true)[0], trigger: 'blur' },
+        { ...rules.duplicateCheckRule('sys_user', 'phone', model, schema, false)[0], trigger: 'blur' },
         { pattern: /^1[3456789]\d{9}$/, message: '手机号码格式有误', trigger: 'blur' },
       ];
     },

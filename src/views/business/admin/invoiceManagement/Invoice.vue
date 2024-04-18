@@ -61,7 +61,7 @@ import {downloadFile} from '/@/api/common/api';
 import { defHttp } from '/@/utils/http/axios';
 import { useMessage } from '/@/hooks/web/useMessage';
 import {useI18n} from "/@/hooks/web/useI18n";
-import {defineComponent, onBeforeMount, onMounted, ref} from 'vue';
+import {defineComponent, onBeforeMount, onMounted, onUnmounted, ref} from 'vue';
 import {BasicColumn} from "/@/components/Table";
 import { useRoute } from 'vue-router';
 import {Result} from "ant-design-vue";
@@ -83,9 +83,14 @@ export default defineComponent({
     const { t } = useI18n();
     const route = useRoute();
     const go = useGo();
+    const ac = new AbortController();
+    const {signal} = ac;
 
     onBeforeMount(()=> {
       checkInvoice();
+    });
+    onUnmounted(() => {
+      ac.abort(t('sys.api.abortController.onUnmount'));
     });
     const pageReady = ref<boolean>();
     const status = ref<any>();
@@ -148,8 +153,8 @@ export default defineComponent({
       let param = {
         invoiceNumber: getInvoiceNum(),
       };
-      defHttp.get({url: Api.checkInvoiceValidity, params: param}).then((res)=>{
-        createMessage.success("Permission granted.");
+      defHttp.get({url: Api.checkInvoiceValidity, params: param, signal:signal}).then((res)=>{
+        // createMessage.success("Permission granted.");
         invoice_number.value = res.invoiceNumber;
         customer.value = res.name;
         email.value = res.email;
@@ -175,7 +180,7 @@ export default defineComponent({
         status.value = ExceptionEnum.PAGE_NOT_FOUND;
       });
     }
-    function loadInvoice() {
+    async function loadInvoice() {
       const param = {
         invoiceNumber: invoice_number.value,
         originalCurrency: "EUR",
@@ -183,129 +188,146 @@ export default defineComponent({
       };
       // on identifie le type de facture (1 : purchase, 2: shipping, 7: purchase + shipping
       invoice_type.value = getInvoiceType();
-      if(invoice_type.value == null || ['1','2','7'].indexOf(invoice_type.value) == -1) {
+      if (invoice_type.value == null || ['1', '2', '7'].indexOf(invoice_type.value) == -1) {
         createMessage.error("Error : Resource not found.");
         pageReady.value = false;
         status.value = ExceptionEnum.PAGE_NOT_FOUND;
         return;
       }
-      if(invoice_type.value === '1' || invoice_type.value === '7') {
-        loadPurchaseInvoiceData(param);
+      const promiseList: any[] = [];
+      if (invoice_type.value === '1' || invoice_type.value === '7') {
+        promiseList.push(loadPurchaseInvoiceData(param));
       }
-      if(invoice_type.value === '7' || invoice_type.value === '2') {
-        loadInvoiceData(param);
+      if (invoice_type.value === '7' || invoice_type.value === '2') {
+        promiseList.push(loadInvoiceData(param));
       }
-      invoiceContentLoading.value = false;
+      await Promise.all(promiseList).then(() => {
+        invoiceContentLoading.value = false;
+      });
     } //end of loadInvoice()
-    function loadInvoiceData(param) {
-      defHttp.get({url: Api.invoiceData, params: param}).then(res => {
-        if (res !== null) {
-          downloadReady.value = true;
-          for (let i in res.feeAndQtyPerCountry) {
-            for (let key in res.feeAndQtyPerCountry[i]) {
-              let subtotal = res.feeAndQtyPerCountry[i][key];
-              final_total_euro.value += subtotal;
-              total_quantity.value += Number(key);
+    async function loadInvoiceData(param) {
+      return new Promise<void>((resolve, reject) => {
+        defHttp.get({url: Api.invoiceData, params: param, signal: signal})
+          .then(res => {
+            if (res !== null) {
+              downloadReady.value = true;
+              for (let i in res.feeAndQtyPerCountry) {
+                for (let key in res.feeAndQtyPerCountry[i]) {
+                  let subtotal = res.feeAndQtyPerCountry[i][key];
+                  final_total_euro.value += subtotal;
+                  total_quantity.value += Number(key);
+                  dataSource.value.push({
+                    key: index.value,
+                    description: "Total shipping cost for " + t("location.country." + i),
+                    quantity: key,
+                    total_amount: subtotal,
+                  });
+                  // incrémente la clé
+                  index.value += 1;
+                }
+              }
+              // VAT
               dataSource.value.push({
                 key: index.value,
-                description: "Total shipping cost for " + t("location.country." + i),
-                quantity: key,
-                total_amount: subtotal,
+                description: "Total VAT fee for " + t("location.continent.EuropeanUnion"),
+                quantity: null,
+                total_amount: res.vat
               });
-              // incrémente la clé
+              final_total_euro.value += res.vat;
               index.value += 1;
+
+              // SERVICE FEE
+              dataSource.value.push({
+                key: index.value,
+                description: "Total service fee",
+                quantity: null,
+                total_amount: res.serviceFee
+              });
+              index.value += 1;
+
+              // PICKING FEE
+              dataSource.value.push({
+                key: index.value,
+                description: "Total picking fee",
+                quantity: null,
+                total_amount: res.pickingFee
+              });
+              index.value += 1;
+
+              // PACKAGING MATERIAL FEE
+              dataSource.value.push({
+                key: index.value,
+                description: "Total packaging material fee",
+                quantity: null,
+                total_amount: res.packagingMaterialFee
+              });
+              index.value += 1;
+
+              // REFUND
+              if (res.refund > 0) {
+                dataSource.value.push({
+                  key: index.value,
+                  description: 'Refund',
+                  quantity: null,
+                  total_amount: res.refund
+                })
+                final_total_euro.value -= res.refund;
+                index.value += 1;
+              }
+
+              // DISCOUNT (not used yet)
+              if (res.discount > 0) {
+                dataSource.value.push({
+                  key: index.value,
+                  description: 'Discount',
+                  quantity: null,
+                  total_amount: res.discount
+                })
+                final_total_euro.value -= res.discount;
+                index.value += 1;
+              }
+              final_total_euro.value = Number(final_total_euro.value.toFixed(2));
+              if (currency.value !== "EUR") {
+                final_total_customer_curr.value = res.finalAmount;
+              }
+            } else {
+              createMessage.error("No data : " + invoice_number.value);
             }
-          }
-          // VAT
-          dataSource.value.push({
-            key: index.value,
-            description: "Total VAT fee for " + t("location.continent.EuropeanUnion"),
-            quantity: null,
-            total_amount: res.vat
+            resolve();
+          })
+          .catch(e => {
+            console.error(e);
+            reject();
           });
-          final_total_euro.value += res.vat;
-          index.value += 1;
+      });
 
-          // SERVICE FEE
-          dataSource.value.push({
-            key: index.value,
-            description: "Total service fee",
-            quantity: null,
-            total_amount: res.serviceFee
-          });
-          index.value += 1;
-
-          // PICKING FEE
-          dataSource.value.push({
-            key: index.value,
-            description: "Total picking fee",
-            quantity: null,
-            total_amount: res.pickingFee
-          });
-          index.value += 1;
-
-          // PACKAGING MATERIAL FEE
-          dataSource.value.push({
-            key: index.value,
-            description: "Total packaging material fee",
-            quantity: null,
-            total_amount: res.packagingMaterialFee
-          });
-          index.value += 1;
-
-          // REFUND
-          if (res.refund > 0) {
-            dataSource.value.push({
-              key: index.value,
-              description: 'Refund',
-              quantity: null,
-              total_amount: res.refund
-            })
-            final_total_euro.value -= res.refund;
-            index.value += 1;
-          }
-
-          // DISCOUNT (not used yet)
-          if (res.discount > 0) {
-            dataSource.value.push({
-              key: index.value,
-              description: 'Discount',
-              quantity: null,
-              total_amount: res.discount
-            })
-            final_total_euro.value -= res.discount;
-            index.value += 1;
-          }
-          final_total_euro.value = Number(final_total_euro.value.toFixed(2));
-          if (currency.value !== "EUR") {
-            final_total_customer_curr.value = res.finalAmount;
-          }
-        } else {
-          createMessage.error("No data : " + invoice_number.value);
-        }
-      })
-        .catch(e => {
-          console.error(e);
-        })
     }
-    function loadPurchaseInvoiceData(param) {
-      defHttp.get({url: Api.purchaseInvoiceData, params: param}).then(res=> {
-        for(let sku in res.feeAndQtyPerSku) {
-          for(let qty in res.feeAndQtyPerSku[sku]) {
-            let subtotal = res.feeAndQtyPerSku[sku][qty];
-            final_total_euro.value += subtotal;
-            total_quantity.value += Number(qty);
-            dataSource.value.push({
-              key: index.value,
-              description: sku,
-              quantity: qty,
-              total_amount: subtotal,
-            });
-            // incrémente la clé
-            index.value+=1;
-          }
-        }
-      })
+    async function loadPurchaseInvoiceData(param) {
+      return new Promise<void>((resolve, reject) => {
+        defHttp.get({url: Api.purchaseInvoiceData, params: param, signal: signal})
+          .then(res=> {
+            for(let sku in res.feeAndQtyPerSku) {
+              for(let qty in res.feeAndQtyPerSku[sku]) {
+                let subtotal = res.feeAndQtyPerSku[sku][qty];
+                final_total_euro.value += subtotal;
+                total_quantity.value += Number(qty);
+                dataSource.value.push({
+                  key: index.value,
+                  description: sku,
+                  quantity: qty,
+                  total_amount: subtotal,
+                });
+                // incrémente la clé
+                index.value+=1;
+              }
+            }
+            resolve();
+          })
+          .catch(e => {
+            console.error(e);
+            reject();
+          });
+      });
     }
     function downloadPdf() {
       const param = {

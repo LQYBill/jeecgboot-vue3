@@ -231,10 +231,10 @@
 </template>
 <script lang="ts">
 
-import {defineComponent, onBeforeMount, reactive, ref} from "vue";
+import {defineComponent, onBeforeMount, onUnmounted, reactive, ref} from "vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {TableImg, useTable} from "/@/components/Table";
-import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
+import { PageWrapper } from '/@/components/Page';
 import {PopConfirmButton} from "/@/components/Button";
 import {Form, Tag} from "ant-design-vue";
 import {getColumns} from "/@/views/business/client/overview/data";
@@ -247,6 +247,7 @@ import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect
 import dayjs from "dayjs";
 import {downloadFile} from "/@/api/common/api";
 import {useGlobSetting} from "/@/hooks/setting";
+import {useRouter} from 'vue-router';
 
 export default defineComponent({
   methods: {dayjs},
@@ -260,6 +261,9 @@ export default defineComponent({
     const globSetting = useGlobSetting();
     const baseUploadUrl = globSetting.uploadUrl;
     const uploadUrl = `${baseUploadUrl}/sys/common/static/`;
+    const {resolve}=useRouter();
+    const ac = new AbortController();
+    const {signal} = ac;
 
     const internalUse = ref<boolean>(false);
 
@@ -270,7 +274,9 @@ export default defineComponent({
     onBeforeMount(()=> {
       checkUser();
     });
-
+    onUnmounted(() => {
+      ac.abort(t('sys.api.abortController.onUnmount'));
+    })
     // Form config
     const useForm = Form.useForm;
     const formRef = ref();
@@ -400,6 +406,9 @@ export default defineComponent({
         })
     }
     function handleClientChange(id: any) {
+      if(!!client.value && client.value.length > 0) {
+        ac.abort(t('sys.api.abortController.userCancel'));
+      }
       client.value = [];
       shopIds.value = [];
       startDate.value = '';
@@ -447,19 +456,33 @@ export default defineComponent({
       loadTransactions("EUR");
     }
     function loadBalance() {
-      defHttp.get({url: Api.getBalance, params: {clientId: client.value.id, currency: "EUR"}})
+      defHttp.get({url: Api.getBalance, params: {clientId: client.value.id, currency: "EUR"}, signal: signal})
         .then(res => {
           balanceEur.value = res;
         })
         .catch(e => {
-          console.error(e);
+          if(signal.aborted) {
+            const {reason} = signal;
+            console.warn(`Http request aborted : ${reason}`);
+            createMessage.warn(reason);
+          }
+          else {
+            console.error(e);
+          }
         })
-      defHttp.get({url: Api.getBalance, params: {clientId: client.value.id, currency: "USD"}})
+      defHttp.get({url: Api.getBalance, params: {clientId: client.value.id, currency: "USD"}, signal: signal})
         .then(res => {
           balanceUsd.value = res;
         })
         .catch(e => {
-          console.error(e);
+          if(signal.aborted) {
+            const {reason} = signal;
+            console.warn(`Http request aborted : ${reason}`);
+            createMessage.warn(reason);
+          }
+          else {
+            console.error(e);
+          }
         })
     }
     // TODO : implémenter l'affichage des factures d'achat manuels
@@ -468,7 +491,7 @@ export default defineComponent({
         clientId: client.value.id,
         currency: currency
       }
-      defHttp.get({ url: Api.list, params })
+      defHttp.get({ url: Api.list, params, signal: signal })
         .then(res => {
           //TODO : add condition client type 1,2,3
           if(currency === "EUR") {
@@ -485,11 +508,18 @@ export default defineComponent({
           }
         })
         .catch(e => {
-          console.error(e);
+          if(signal.aborted) {
+            const {reason} = signal;
+            console.warn(`Http request aborted : ${reason}`);
+            createMessage.warn(reason);
+          }
+          else {
+            console.error(e);
+          }
         });
     }
     function loadDebit(currency) {
-      defHttp.get({url: Api.debit, params: { clientId: client.value.id, currency: currency }})
+      defHttp.get({url: Api.debit, params: { clientId: client.value.id, currency: currency }, signal: signal})
         .then(res => {
           debit.value = {
             id: '0',
@@ -524,7 +554,14 @@ export default defineComponent({
           completeInvoiceDisabled.value = !res.isCompleteInvoiceReady;
         })
         .catch(e=> {
-          console.error(e);
+          if(signal.aborted) {
+            const {reason} = signal;
+            console.warn(`Http request aborted : ${reason}`);
+            createMessage.warn(reason);
+          }
+          else {
+            console.error(e);
+          }
         })
         .finally(() => {
           colorizeRows();
@@ -616,7 +653,8 @@ export default defineComponent({
       });
     }
     function openInvoice(record) {
-      window.open(`/business/admin/shippingInvoice/Invoice?invoice=${record.invoiceNumber}`);
+      const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
+      window.open(invoicePreviewRoute.href, '_blank');
     }
 
     /**
@@ -624,7 +662,7 @@ export default defineComponent({
      */
     function colorizeRows() {
       let rows = document.getElementsByClassName('ant-table-row-level-0');
-      [].forEach.call(rows, function(row) {
+      [].forEach.call(rows, function(row:Element) {
         if(row.children[0].textContent == 'Estimation') {
           for(let cell of row.children) {
             cell.style.backgroundColor = estimationColor;
@@ -691,7 +729,7 @@ export default defineComponent({
 .jeecg-basic-table {
   border-radius: 1em;
   .ant-table-wrapper {
-    padding: 0 0 1em 0;
+    padding: 0 0 1em 0 !important;
     border-radius: 1em;
   }
   .ant-pagination {

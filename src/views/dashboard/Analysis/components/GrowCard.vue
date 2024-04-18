@@ -1,5 +1,5 @@
 <template>
-  <div class="md:flex flex justify-evenly">
+  <div class="md:flex flex justify-evenly kpi-cards">
     <template v-for="(item, index) in growCardList" :key="item.title">
       <Card
         size="small"

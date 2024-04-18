@@ -40,14 +40,12 @@
   import { columns,searchFormSchema } from './menu.data';
   import { list, deleteMenu, batchDeleteMenu } from './menu.api';
   import { useDefIndexStore } from "@/store/modules/defIndex";
-  import { useI18n } from "/@/hooks/web/useI18n";
 
   const { t } = useI18n();
   const checkedKeys = ref<Array<string | number>>([]);
   const showFooter = ref(true);
   const [registerDrawer, { openDrawer }] = useDrawer();
   const [registerDrawer1, { openDrawer: openDataRule }] = useDrawer();
-  const { t } = useI18n();
 
   // 自定义菜单名称列渲染
   columns[0].customRender = function ({text, record}) {

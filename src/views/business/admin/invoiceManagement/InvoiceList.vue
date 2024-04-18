@@ -70,7 +70,7 @@ import {useUserStore} from "/@/store/modules/user";
 import {usePermissionStore} from "/@/store/modules/permission";
 import {PopConfirmButton} from "/@/components/Button";
 import {Modal} from "ant-design-vue";
-import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
+import { PageWrapper } from '/@/components/Page';
 import {columns, fetchUserList, searchFormSchema} from "./data/InvoiceList.data";
 import {list, Api, setPaid} from "./api/invoiceList.api";
 import PackagesIcon from "/@/views/business/admin/invoiceManagement/components/PackagesIcon.vue";

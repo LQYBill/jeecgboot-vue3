@@ -34,6 +34,11 @@ export default {
     invoiceCancelSuccess: '发票取消成功',
     invoiceCancelFail: '发票取消失败',
     invoiceCancelSuccessFileDeleteFail: '发票取消成功但删除多个文件失败',
+
+    abortController : {
+      onUnmount: '用户已离开页面，请求已被取消',
+      userCancel: '请求已被用户取消',
+    },
   },
   app: { logoutTip: '温馨提醒', logoutMessage: '是否确认退出系统?', menuLoading: '菜单加载中...' },
   errorLog: {

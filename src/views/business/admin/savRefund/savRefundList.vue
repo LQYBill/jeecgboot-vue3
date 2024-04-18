@@ -93,7 +93,7 @@ import {useForm} from "/@/components/Form";
 import {toUpper} from "lodash-es";
 import {SearchOutlined} from "@ant-design/icons-vue";
 import {Select as ASelect} from "ant-design-vue";
-import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
+import { PageWrapper } from '/@/components/Page';
 import {columns, searchFormSchema} from "/@/views/business/admin/savRefund/data/savRefundList.data";
 
 const { createMessage:msg } = useMessage();

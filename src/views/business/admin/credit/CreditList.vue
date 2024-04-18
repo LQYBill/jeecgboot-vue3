@@ -52,7 +52,7 @@ import {list, deleteOne, batchDelete, getImportUrl, getExportUrl} from './Credit
 import {downloadFile} from '/@/utils/common/renderUtils';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
-import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
+import { PageWrapper } from '/@/components/Page';
 import {useGlobSetting} from "/@/hooks/setting";
 
 const {t} = useI18n();
