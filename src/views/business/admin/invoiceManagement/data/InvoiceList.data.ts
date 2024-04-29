@@ -38,7 +38,8 @@ export const columns: BasicColumn[] = [
     title: t("data.invoice.invoiceNumber"),
     align:"center",
     sorter: true,
-    dataIndex: 'invoiceNumber'
+    dataIndex: 'invoiceNumber',
+    slots: {customRender: 'invoiceNumber'}
   },
   {
     title: t("data.invoice.totalAmountDue"),
@@ -141,6 +142,7 @@ export const searchFormSchema: FormSchema[] = [
         {label: t('data.invoice.completeInvoice'), value: 'complete'},
       ]
     },
+    disabledLabelWidth:true,
     itemProps: {
       labelCol: reactive({
         xs: { span: 12 },

@@ -243,6 +243,7 @@ export default defineComponent({
                 quantity: null,
                 total_amount: res.serviceFee
               });
+              final_total_euro.value += res.serviceFee;
               index.value += 1;
 
               // PICKING FEE
@@ -252,6 +253,7 @@ export default defineComponent({
                 quantity: null,
                 total_amount: res.pickingFee
               });
+              final_total_euro.value += res.pickingFee;
               index.value += 1;
 
               // PACKAGING MATERIAL FEE
@@ -261,6 +263,7 @@ export default defineComponent({
                 quantity: null,
                 total_amount: res.packagingMaterialFee
               });
+              final_total_euro.value += res.packagingMaterialFee;
               index.value += 1;
 
               // REFUND

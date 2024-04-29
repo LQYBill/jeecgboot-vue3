@@ -46,6 +46,9 @@ export default defineConfig({
       1: '1 1 0%',
       2: '2 2 0%',
     },
+    borderRadius: {
+      '4xl': '2rem',
+    }
   },
   presets: [
     presetUno(),

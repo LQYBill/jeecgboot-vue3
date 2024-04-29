@@ -11,7 +11,9 @@ import { ROW_KEY } from '/@/components/Table/src/const';
 import { onMountedOrActivated } from '/@/hooks/core/onMountedOrActivated';
 import { useMessage } from '/@/hooks/web/useMessage';
 import { ModalFunc } from 'ant-design-vue/lib/modal/Modal';
+import {useI18n} from "@/hooks/web/useI18n";
 
+const { t } = useI18n();
 // 自定义选择列的key
 export const CUS_SEL_COLUMN_KEY = 'j-custom-selected-column';
 
@@ -238,8 +240,8 @@ export function useCustomSelection(
     // 当数据量大于120条时，全选会导致页面卡顿，需进行慢速全选
     if (flattedData.value.length > 120) {
       modal = createConfirm({
-        title: '全选',
-        content: '当前数据量较大，全选可能会导致页面卡顿，确定要执行此操作吗？',
+        title: t('component.table.selectAll'),
+        content: t('component.table.LargeEntryQtySelectedWarning'),
         iconType: 'warning',
         onOk: () => checkAll(),
       });
