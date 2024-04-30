@@ -52,9 +52,8 @@ export const columns: BasicColumn[] = [
     fixed: 'left',
     slots: {
       customRender : 'refundStatus',
-      filterDropdown: 'filterDropdown',
-      filterIcon: 'filterIcon',
     },
+    customFilterDropdown: true,
     onFilter: (value:string, record:any) => value === 'Y' ? record.invoiceNumber : record.invoiceNumber === null,
   },
   {
