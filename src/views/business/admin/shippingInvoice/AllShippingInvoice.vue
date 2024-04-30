@@ -197,7 +197,7 @@
             <a-button class="mr-2" type="primary" preIcon="ant-design:download-outlined" @click="makeManualInvoice" :loading="makeManualInvoiceLoading" :disabled="makeManualInvoiceDisabled">
               {{ t("data.invoice.generateShippingInvoice") }}
             </a-button>
-            <a-button class="mr-2" type="error" preIcon="ant-design:download-outlined" @click="makeManualCompleteInvoice" :loading="manualCompleteInvoiceLoading" :disabled="manualCompleteInvoiceDisabled">
+            <a-button class="mr-2" type="error" color="error" preIcon="ant-design:download-outlined" @click="makeManualCompleteInvoice" :loading="manualCompleteInvoiceLoading" :disabled="manualCompleteInvoiceDisabled">
               {{ t("data.invoice.generateCompleteInvoice") }}
             </a-button>
           </a-spin>
@@ -207,7 +207,7 @@
             <a-button class="ml-1 mr-2" type="primary" preIcon="ant-design:download-outlined" @click="makeInvoice" :loading="makeInvoiceLoading" :disabled="makeInvoiceDisabled">
               {{ t("data.invoice.generateShippingInvoice") }}
             </a-button>
-            <a-button class="mr-2" type="error" preIcon="ant-design:download-outlined" @click="makeCompleteInvoice" :loading="completeInvoiceLoading" :disabled="completeInvoiceDisabled">
+            <a-button class="mr-2" type="error" color="error" preIcon="ant-design:download-outlined" @click="makeCompleteInvoice" :loading="completeInvoiceLoading" :disabled="completeInvoiceDisabled">
               {{ t("data.invoice.generateCompleteInvoice") }}
             </a-button>
           </a-spin>

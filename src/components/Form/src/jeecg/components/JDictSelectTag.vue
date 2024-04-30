@@ -2,7 +2,9 @@
   <a-radio-group v-if="compType === CompTypeEnum.Radio" v-bind="attrs" v-model:value="state" @change="handleChangeRadio">
     <template v-for="item in dictOptions" :key="`${item.value}`">
       <a-radio :value="item.value">
-        {{ item.label }}
+        <span :class="[useDicColor && item.color ? 'colorText' : '']" :style="{ backgroundColor: `${useDicColor && item.color}` }">
+          {{ item.label }}
+        </span>
       </a-radio>
     </template>
   </a-radio-group>
@@ -40,7 +42,11 @@
       <a-select-option v-if="showChooseOption" :value="null">请选择…</a-select-option>
       <template v-for="item in dictOptions" :key="`${item.value}`">
         <a-select-option :value="item.value">
-          <span style="display: inline-block; width: 100%" :title="item.label">
+          <span
+            :class="[useDicColor && item.color ? 'colorText' : '']"
+            :style="{ backgroundColor: `${useDicColor && item.color}` }"
+            :title="item.label"
+          >
             {{ item.label }}
           </span>
         </a-select-option>
@@ -68,9 +74,10 @@
       type: propTypes.string,
       placeholder: propTypes.string,
       stringToNumber: propTypes.bool,
+      useDicColor: propTypes.bool.def(false),
       getPopupContainer: {
         type: Function,
-        default: (node) => node.parentNode,
+        default: (node) => node?.parentNode,
       },
       // 是否显示【请选择】选项
       showChooseOption: propTypes.bool.def(true),
@@ -137,7 +144,8 @@
             prev.push({
               label: next['text'] || next['label'],
               value: stringToNumber ? +value : value,
-              ...omit(next, ['text', 'value']),
+              color: next['color'],
+              ...omit(next, ['text', 'value', 'color']),
             });
           }
           return prev;
@@ -176,11 +184,15 @@
 
       /** 用于搜索下拉框中的内容 */
       function handleFilterOption(input, option) {
-        // 在 label 中搜索
-        let labelIf = option.children()[0]?.children.toLowerCase().indexOf(input.toLowerCase()) >= 0;
-        if (labelIf) {
-          return true;
+        // update-begin--author:liaozhiyang---date:20230914---for：【QQYUN-6514】 配置的时候，Y轴不能输入多个字段了，控制台报错
+        if (typeof option.children === 'function') {
+          // 在 label 中搜索
+          let labelIf = option.children()[0]?.children.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+          if (labelIf) {
+            return true;
+          }
         }
+        // update-end--author:liaozhiyang---date:20230914---for：【QQYUN-6514】 配置的时候，Y轴不能输入多个字段了，控制台报错
         // 在 value 中搜索
         return (option.value || '').toString().toLowerCase().indexOf(input.toLowerCase()) >= 0;
       }
@@ -200,3 +212,17 @@
     },
   });
 </script>
+<style scoped lang="less">
+  // update-begin--author:liaozhiyang---date:20230110---for：【QQYUN-7799】字典组件（原生组件除外）加上颜色配置
+  .colorText {
+    display: inline-block;
+    height: 20px;
+    line-height: 20px;
+    padding: 0 6px;
+    border-radius: 8px;
+    background-color: red;
+    color: #fff;
+    font-size: 12px;
+  }
+  // update-begin--author:liaozhiyang---date:20230110---for：【QQYUN-7799】字典组件（原生组件除外）加上颜色配置
+</style>

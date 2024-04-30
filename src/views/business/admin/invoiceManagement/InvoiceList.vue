@@ -53,6 +53,16 @@
         <div v-else-if="record?.type == 'complete'" class="flex justify-evenly items-center"><BasketIcon color="var(--success-color)" width="16px" height="16px" title="data.invoice.purchaseInvoice"/> + <PlainIcon color="var(--primary-color)" width="24px" height="24px" title="data.invoice.shippingInvoice"/></div>
         <div v-else class="flex justify-evenly items-center text-error"> ?? </div>
       </template>
+      <template #invoiceNumber="{record}">
+        <a-button
+          type="primary"
+          preIcon="ant-design:eye-outlined"
+          @click="openInvoice(record)"
+          shape="round"
+        >
+          {{ record.invoiceNumber }}
+        </a-button>
+      </template>
     </BasicTable>
   </PageWrapper>
 </template>
@@ -70,18 +80,20 @@ import {useUserStore} from "/@/store/modules/user";
 import {usePermissionStore} from "/@/store/modules/permission";
 import {PopConfirmButton} from "/@/components/Button";
 import {Modal} from "ant-design-vue";
-import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
+import { PageWrapper } from '/@/components/Page';
 import {columns, fetchUserList, searchFormSchema} from "./data/InvoiceList.data";
 import {list, Api, setPaid} from "./api/invoiceList.api";
 import PackagesIcon from "/@/views/business/admin/invoiceManagement/components/PackagesIcon.vue";
 import PlainIcon from "/@/views/business/admin/invoiceManagement/components/PlainIcon.vue";
 import BasketIcon from "/@/views/business/admin/invoiceManagement/components/BasketIcon.vue";
+import {useRouter} from "vue-router";
 
 const userStore = useUserStore();
 const permissionStore = usePermissionStore();
 const { createMessage } = useMessage();
 const { t } = useI18n();
 const { handleExportXls } = useMethods();
+const {resolve}=useRouter();
 const username = ref<string>();
 
 onMounted(async () => {
@@ -247,6 +259,11 @@ async function handleDeleteBatch() {
 }
 function handleSetPaid() {
   reload();
+}
+
+function openInvoice(record) {
+  const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
+  window.open(invoicePreviewRoute.href, '_blank');
 }
 </script>
 <style lang="less">

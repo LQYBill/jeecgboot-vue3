@@ -1,30 +1,44 @@
 <template>
   <BasicModal v-bind="$attrs" @register="registerModal" destroyOnClose :title="title" :width="800"
               @ok="handleSubmit">
+    <slot>
+      <div class="flex flex-row flex-nowrap text-center h-8 mb-4">
+        <div class="flex flex-row flex-1 border-b" v-for="n in 2" :class="n==2 ? 'border-l' : '' ">
+          <h2 class="w-64 text-sm">{{ t('data.product.product') }}</h2>
+          <div class="flex items-center w-full flex-1">
+            <h2 class="flex-1 text-sm">{{ t('data.sku.availableAmount') }} 7 | 14 | 42</h2>
+            <h2 class="flex-0.5 text-sm">{{ t('data.order.stock') }}</h2>
+            <h2 class="flex-1 text-sm">{{ t('data.invoice.quantity') }}</h2>
+            <h2 class="flex-0.5 text-sm" :class="n==1 ? 'mr-4' : 'mr-0'">{{ t('data.invoice.subTotal') }}</h2>
+          </div>
+        </div>
+      </div>
+    </slot>
     <BasicForm @register="registerForm" @change="calculateTotal">
       <template #qty="{ model, field, schema }">
         <div class="flex items-center flex-nowrap">
-          <div class="flex flex-col basis-full text-sm" style="flex: 1">
-            <span class="qtyPerPeriod flex border rounded-full h-full py-0.5 mr-1 bg-primary bg-opacity-10">
-              <span class="flex-1 basis-full border-r">{{selectedSkuMap.get(field).salesLastWeek == null ? 0 : selectedSkuMap.get(field).salesLastWeek}}</span>
-              <span class="flex-1 basis-full border-r">{{selectedSkuMap.get(field).salesFourWeeks == null ? 0 : selectedSkuMap.get(field).salesFourWeeks}}</span>
-              <span class="flex-1 basis-full">{{selectedSkuMap.get(field).salesSixWeeks == null ? 0 : selectedSkuMap.get(field).salesSixWeeks}}</span>
+          <!-- sales 7,14,42 -->
+          <div class="flex flex-col text-sm flex-1">
+            <span class="qtyPerPeriod ">
+              <span class="flex-1 border-r">{{selectedSkuMap.get(field).salesLastWeek == null ? 0 : selectedSkuMap.get(field).salesLastWeek}}</span>
+              <span class="flex-1 border-r">{{selectedSkuMap.get(field).salesFourWeeks == null ? 0 : selectedSkuMap.get(field).salesFourWeeks}}</span>
+              <span class="flex-1">{{selectedSkuMap.get(field).salesSixWeeks == null ? 0 : selectedSkuMap.get(field).salesSixWeeks}}</span>
             </span>
           </div>
-          <div class="flex basis-full items-center" style="flex: 0.5;">
-            <StockIcon :status="selectedSkuMap.get(field).stock > 0 ? 'normal' : 'error'" class="basis-2/4 w-full block!important text-right!important" width="24px" height="24px"></StockIcon>
+          <div class="flex items-center justify-center flex-0.5">
+<!--            <StockIcon :status="selectedSkuMap.get(field).stock > 0 ? 'normal' : 'error'" class="basis-2/4 w-full block!important text-right!important" width="24px" height="24px"></StockIcon>-->
 <!--            <Icon icon="ant-design:gold-outlined" :color="selectedSkuMap.get(field).stock > 0 ? 'black' : 'red'" class="basis-2/4 w-full block!important text-right!important"></Icon>-->
-            <span v-if="selectedSkuMap.get(field).stock <= 0" class="text-center basis-full text-red-500">{{selectedSkuMap.get(field).stock}}</span>
-            <span v-else class="text-center basis-full">{{selectedSkuMap.get(field).stock}}</span>
+            <span v-if="selectedSkuMap.get(field).stock <= 0" class="text-center  text-red-500">{{selectedSkuMap.get(field).stock}}</span>
+            <span v-else class="text-center ">{{selectedSkuMap.get(field).stock}}</span>
           </div>
-          <div class="flex flex-col basis-full flex-1">
+          <div class="flex flex-col flex-1">
             <InputNumber class="qtyPicker" v-model:value="model[field]" :min="0" :style="{width: '100%',minWidth: '11rem'}" placeholder="Please enter the quantity" @change="calculateTotal">
               <template #addonAfter>
                 <span style="color: #9CA3AF;">{{ selectedSkuMap.get(field).skuPrice }}€/pcs</span>
               </template>
             </InputNumber>
           </div>
-          <div class="flex flex-col basis-full px-1 ant-input-number-group-addon flex-1">
+          <div class="flex flex-col border-1 text-center flex-0.5 mr-4">
             <span class="pricePerSku">{{ Number((model[field] * selectedSkuMap.get(field).skuPrice).toFixed(2)) }}€</span>
           </div>
         </div>
@@ -66,7 +80,7 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, computed, unref, h} from 'vue';
+import {ref, h} from 'vue';
 import {BasicModal, useModalInner} from '/@/components/Modal';
 import {BasicForm, useForm} from '/@/components/Form/index';
 import {formSchema} from '../ProductOrder.data';
@@ -74,7 +88,6 @@ import {createPurchaseInvoice} from '../ProductOrder.api';
 import {useMessage} from "/@/hooks/web/useMessage";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {Modal} from "ant-design-vue";
-import {defHttp} from "/@/utils/http/axios";
 import {InputNumber} from "ant-design-vue";
 import BasicHelp from "/@/components/Basic/src/BasicHelp.vue";
 import StockIcon from "/@/views/business/admin/purchasing/components/Icons/StockIcon.vue";
@@ -94,7 +107,7 @@ const skuQtyToOrderBeforeAdjust = ref<any>({});
 const [registerForm, {appendSchemaByField, removeSchemaByFiled, setProps, resetFields, setFieldsValue, validate, getFieldsValue}] = useForm({
   //labelWidth: 150,
   schemas: formSchema,
-  labelWidth: 250,
+  labelWidth: 256,
   showActionButtonGroup: false,
   baseColProps: {span: 24},
   showAdvancedButton: false,
@@ -357,20 +370,27 @@ async function handleRevertQty() {
 .qtyPerPeriod {
   color: #9CA3AF;
   text-align: center;
-  span:nth-child(1) {
-    color: @warning-color;
-  }
-  span:nth-child(2) {
-    color: @success-color;
-  }
-  span:nth-child(3) {
-    color: @primary-color;
-  }
+  //@apply flex border rounded-full h-full py-0.5 mr-1 bg-primary bg-opacity-10;
+  @apply flex h-full py-0.5 mr-1;
+  //span:nth-child(1) {
+  //  color: @warning-color;
+  //}
+  //span:nth-child(2) {
+  //  color: @success-color;
+  //}
+  //span:nth-child(3) {
+  //  color: @primary-color;
+  //}
 }
 form {
   .ant-row.ant-form-item {
     align-items: center;
     line-height: normal;
+  }
+  div .ant-col-12 {
+    &:nth-child(odd) {
+      border-left: 1px solid @light-gray-color;
+    }
   }
 }
 .jeecg-basic-form .ant-form-item-label > label[for="form_item_days"] {

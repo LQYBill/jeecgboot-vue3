@@ -107,6 +107,8 @@ export default {
     index: '序号',
 
     total: '共 {total} 条数据',
+
+    LargeEntryQtySelectedWarning: '当前数据量较大，全选可能会导致页面卡顿，确定要执行此操作吗？'
   },
   time: {
     before: '前',

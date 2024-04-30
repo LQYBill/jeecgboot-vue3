@@ -35,6 +35,11 @@ export default {
     invoiceCancelSuccess: 'Invoice(s) Cancelled Successfully',
     invoiceCancelFail: 'Failed to cancel invoice(s)',
     invoiceCancelSuccessFileDeleteFail: 'Invoice(s) cancelled but failed to delete multiple files.',
+
+    abortController : {
+      onUnmount: 'User has left the page, request has been cancelled',
+      userCancel: 'Request has been cancelled by user',
+    },
   },
   app: {
     logoutTip: 'Reminder',

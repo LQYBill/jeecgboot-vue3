@@ -14,6 +14,7 @@
   const isUpdate = ref(true);
   const expandedRowKeys = ref([]);
   const treeData = ref([]);
+  const isSubAdd = ref(false);
   //表单配置
   const [registerForm, { resetFields, setFieldsValue, validate, updateSchema }] = useForm({
     schemas: formSchema,
@@ -34,6 +35,9 @@
     expandedRowKeys.value = [];
     setModalProps({ confirmLoading: false, minHeight: 80 });
     isUpdate.value = !!data?.isUpdate;
+    //update-begin---author:wangshuai ---date: 20230829 for：分类字典data.record为空报错------------
+    isSubAdd.value = !data?.isUpdate && data.record && data.record.id;
+    //update-end---author:wangshuai ---date: 20230829 for：分类字典data.record为空报错------------
     if (data?.record) {
       //表单赋值
       await setFieldsValue({
@@ -79,7 +83,7 @@
       //展开的节点信息
       await getExpandKeysByPid(values['pid'], unref(treeData));
       //刷新列表(isUpdate:是否编辑;values:表单信息;expandedArr:展开的节点信息)
-      emit('success', { isUpdate: unref(isUpdate), values: { ...values }, expandedArr: unref(expandedRowKeys).reverse() });
+      emit('success', { isUpdate: unref(isUpdate), isSubAdd:unref(isSubAdd), values: { ...values }, expandedArr: unref(expandedRowKeys).reverse() });
     } finally {
       setModalProps({ confirmLoading: false });
     }

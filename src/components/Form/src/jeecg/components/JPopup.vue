@@ -57,7 +57,7 @@
         default: () => [],
       },
     },
-    emits: ['update:value', 'register'],
+    emits: ['update:value', 'register', 'popUpChange', 'focus'],
     setup(props, { emit, refs }) {
       const { createMessage } = useMessage();
       const attrs = useAttrs();
@@ -67,9 +67,11 @@
       //注册model
       const [regModal, { openModal }] = useModal();
       //表单值
-      let { groupId, code, fieldConfig } = props;
+      let {code, fieldConfig } = props;
+      // update-begin--author:liaozhiyang---date:20230811---for：【issues/675】子表字段Popup弹框数据不更新
       //唯一分组groupId
-      const uniqGroupId = computed(() => (groupId ? `${groupId}_${code}_${fieldConfig[0]['source']}_${fieldConfig[0]['target']}` : ''));
+      const uniqGroupId = computed(() => (props.groupId ? `${props.groupId}_${code}_${fieldConfig[0]['source']}_${fieldConfig[0]['target']}` : ''));
+      // update-begin--author:liaozhiyang---date:20230811---for：【issues/675】子表字段Popup弹框数据不更新
       /**
        * 判断popup配置项是否正确
        */
@@ -94,6 +96,7 @@
        * 打开pop弹出框
        */
       function handleOpen() {
+        emit('focus');
         !props.disabled && openModal(true);
       }
 
@@ -112,7 +115,10 @@
         //匹配popup设置的回调值
         let values = {};
         for (let item of fieldConfig) {
-          let val = rows.map((row) => row[item.source]).join(',');
+          let val = rows.map((row) => row[item.source]);
+          // update-begin--author:liaozhiyang---date:20230831---for：【QQYUN-7535】数组只有一个且是number类型，join会改变值的类型为string
+          val = val.length == 1 ? val[0] : val.join(',');
+          // update-begin--author:liaozhiyang---date:20230831---for：【QQYUN-7535】数组只有一个且是number类型，join会改变值的类型为string
           item.target.split(',').forEach((target) => {
             values[target] = val;
           });
@@ -121,6 +127,11 @@
         props.formElRef && props.formElRef.setFieldsValue(values);
         //传入赋值方法方式赋值
         props.setFieldsValue && props.setFieldsValue(values);
+        // update-begin--author:liaozhiyang---date:20230831---for：【issues/5288】popup弹框，无法将选择的数据填充到自身
+        // update-begin--author:liaozhiyang---date:20230811---for：【issues/5213】JPopup抛出change事件
+        emit('popUpChange', values);
+        // update-end--author:liaozhiyang---date:20230811---for：【issues/5213】JPopup抛出change事件
+        // update-begin--author:liaozhiyang---date:20230831---for：【issues/5288】popup弹框，无法将选择的数据填充到自身
       }
 
       return {

@@ -52,21 +52,24 @@
         ]"
       />
     </template>
-    <template #filterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
-      <div class="p-2 flex flex-col items-center justify-between w-32 min-h-20 mb-1">
-        <a-select
-          v-model:value="formState.invoiceNumber"
-          ref="searchInput"
-          mode="multiple"
-          @change="handleChange"
-          allowClear
-          class="w-full"
-        >
-          <a-select-option value="Y">{{ t('data.refund.refunded') }}</a-select-option>
-          <a-select-option value="N">{{ t('data.refund.notRefunded') }}</a-select-option>
-        </a-select>
+    <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
+      <div class="p-2 flex flex-col items-center justify-between w-48 min-h-20 mb-1 gap-4">
+        <div class=" w-full flex flex-no-wrap gap-1">
+          <a-select
+            v-model:value="formState.invoiceNumber"
+            ref="searchInput"
+            mode="multiple"
+            @change="handleChange"
+            @pressEnter="handleSearch(confirm)"
+            allowClear
+            class="flex-1"
+          >
+            <a-select-option value="Y">{{ t('data.refund.refunded') }}</a-select-option>
+            <a-select-option value="N">{{ t('data.refund.notRefunded') }}</a-select-option>
+          </a-select>
+          <a-button type="primary" @click="handleSearch(confirm)" preIcon="ant-design:search-outlined" class=""/>
+        </div>
         <div class="flex justify-between w-full">
-          <a-button type="primary" @click="handleSearch" preIcon="ant-design:search-outlined" class="flex-2"/>
           <a-button @click="handleReset" preIcon="ic:baseline-restart-alt" class="flex-1"/>
         </div>
       </div>
@@ -93,7 +96,7 @@ import {useForm} from "/@/components/Form";
 import {toUpper} from "lodash-es";
 import {SearchOutlined} from "@ant-design/icons-vue";
 import {Select as ASelect} from "ant-design-vue";
-import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
+import { PageWrapper } from '/@/components/Page';
 import {columns, searchFormSchema} from "/@/views/business/admin/savRefund/data/savRefundList.data";
 
 const { createMessage:msg } = useMessage();
@@ -213,7 +216,8 @@ function onEditChange({ column, value, record }) {
     record.editValueRefs.name4.value = `${value}`;
   }
 }
-function handleSearch() {
+function handleSearch(confirm) {
+  confirm();
   loadList(1);
 }
 function handleFilter(values) {

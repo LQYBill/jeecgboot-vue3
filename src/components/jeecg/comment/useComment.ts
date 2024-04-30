@@ -11,8 +11,11 @@ import other from '/@/assets/svg/fileType/other.svg';
 import pdf from '/@/assets/svg/fileType/pdf.svg';
 import txt from '/@/assets/svg/fileType/txt.svg';
 import word from '/@/assets/svg/fileType/word.svg';
+import image from '/@/assets/svg/fileType/image.png';
 import { getFileAccessHttpUrl } from '/@/utils/common/compUtils';
 import { createImgPreview } from '/@/components/Preview';
+import data from "emoji-mart-vue-fast/data/apple.json";
+import { EmojiIndex } from "emoji-mart-vue-fast/src";
 
 enum Api {
   list = '/sys/comment/listByForm',
@@ -37,6 +40,21 @@ const getViewFileDomain = () => defHttp.get({ url: Api.getFileViewDomain });
  * @param params
  */
 export const list = (params) => defHttp.get({ url: Api.list, params });
+
+export function getGloablEmojiIndex(){
+  if(window['myEmojiIndex']){
+    console.log("----走window['myEmojiIndex']缓存，不new新对象！")
+    return window['myEmojiIndex'];
+  }
+  
+  window['myEmojiIndex'] = new EmojiIndex(data, {
+    function() {
+      return true;
+    },
+    exclude:['recent','people','nature','foods','activity','places','objects','symbols','flags']
+  });
+  return window['myEmojiIndex'];
+}
 
 /**
  * 查询单条记录
@@ -154,11 +172,28 @@ export function useCommentWithFile(props) {
     });
   }
 
+  /**
+   * QQYUN-4310【文件】从文件库选择文件功能未做
+   * @param file
+   */
+  async function saveSysFormFile(file){
+    let url = '/sys/comment/addFile';
+    let params = {
+      fileId: file.id,
+      commentId: uploadData.commentId
+    }
+    await defHttp.post({url, params}, { joinParamsToUrl: true, isTransformResponse: false });
+  }
+
   async function uploadFiles(fileList) {
     if (fileList && fileList.length > 0) {
       for (let i = 0; i < fileList.length; i++) {
         let file = toRaw(fileList[i]);
-        await uploadOne(file.originFileObj);
+        if(file.exist === true){
+          await saveSysFormFile(file);
+        }else{
+          await uploadOne(file.originFileObj);
+        }
       }
     }
   }
@@ -194,6 +229,7 @@ export function useFileList() {
     txt: txt,
     docx: word,
     doc: word,
+    image
   };
    function getBackground(item) {
     console.log('获取文件背景图', item);
@@ -212,6 +248,10 @@ export function useFileList() {
       }
       return bg;
     }
+  }
+  
+  function getImageTypeIcon() {
+    return typeMap['image'];
   }
 
   function getBase64(file, id){
@@ -281,6 +321,9 @@ export function useFileList() {
   }
 
   function getImageSrc(file){
+    if(file.exist){
+      return getFileAccessHttpUrl(file.url);
+    }
     if(isImage(file)){
       let id = file.uid;
       if(id){
@@ -301,7 +344,12 @@ export function useFileList() {
    * @param item
    */
   function getImageAsBackground(item){
-    let url = getImageSrc(item);
+    let url;
+    if(item.exist){
+      url = getFileAccessHttpUrl(item.url);
+    }else{
+      url = getImageSrc(item);
+    }
     if(url){
       return {
         "backgroundImage": "url('"+url+"')"
@@ -356,7 +404,8 @@ export function useFileList() {
     isImage,
     getImageSrc,
     getImageAsBackground,
-    viewImage
+    viewImage,
+    getImageTypeIcon
   };
 }
 

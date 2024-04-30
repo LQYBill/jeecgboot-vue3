@@ -11,6 +11,7 @@
           :allDefaultValues="defaultValueRef"
           :formModel="formModel"
           :setFormModel="setFormModel"
+          :validateFields="validateFields"
         >
           <template #[item]="data" v-for="item in Object.keys($slots)">
             <slot :name="item" v-bind="data || {}"></slot>
@@ -51,6 +52,8 @@
   import { useModalContext } from '/@/components/Modal';
 
   import { basicProps } from './props';
+  import componentSetting from '/@/settings/componentSetting';
+
   import { useDesign } from '/@/hooks/web/useDesign';
   import dayjs from 'dayjs';
   import { useDebounceFn } from '@vueuse/core';
@@ -88,6 +91,16 @@
           mergeProps.labelCol = undefined;
         }
         //update-end-author:sunjianlei date:20220923 for: 如果用户设置了labelWidth，则使labelCol失效，解决labelWidth设置无效的问题
+        // update-begin--author:liaozhiyang---date:20231017---for：【QQYUN-6566】BasicForm支持一行显示(inline)
+        if (mergeProps.layout === 'inline') {
+          if (mergeProps.labelCol === componentSetting.form.labelCol) {
+            mergeProps.labelCol = undefined;
+          }
+          if (mergeProps.wrapperCol === componentSetting.form.wrapperCol) {
+            mergeProps.wrapperCol = undefined;
+          }
+        }
+        // update-end--author:liaozhiyang---date:20231017---for：【QQYUN-6566】BasicForm支持一行显示(inline)
         return mergeProps;
       });
 
@@ -119,25 +132,39 @@
           if (defaultValue && dateItemType.includes(component)) {
             const { valueFormat } = componentProps
             if (!Array.isArray(defaultValue)) {
-              //update-begin---author:wangshuai ---date:20221124  for：[issues/215]列表页查询框（日期选择框）设置初始时间，一进入页面时，后台报日期转换类型错误的------------
-              if(valueFormat){
-                schema.defaultValue = dateUtil(defaultValue).format(valueFormat);
-              }else{
-                schema.defaultValue = dateUtil(defaultValue);
-              }
-              //update-end---author:wangshuai ---date:20221124  for：[issues/215]列表页查询框（日期选择框）设置初始时间，一进入页面时，后台报日期转换类型错误的------------
-            } else {
-              const def: dayjs.Dayjs[] = [];
-              defaultValue.forEach((item) => {
+              // update-begin--author:liaozhiyang---date:20240326---for：【QQYUN-8696】rangepicker等时间控件报错（vue3.4以上版本有问题）
+              if (Object.prototype.toString.call(defaultValue) === '[object Date]') {
                 //update-begin---author:wangshuai ---date:20221124  for：[issues/215]列表页查询框（日期选择框）设置初始时间，一进入页面时，后台报日期转换类型错误的------------
-                if(valueFormat){
-                  def.push(dateUtil(item).format(valueFormat));
-                }else{
-                  def.push(dateUtil(item));
+                if (valueFormat) {
+                  schema.defaultValue = dateUtil(defaultValue).format(valueFormat);
+                } else {
+                  schema.defaultValue = dateUtil(defaultValue);
                 }
                 //update-end---author:wangshuai ---date:20221124  for：[issues/215]列表页查询框（日期选择框）设置初始时间，一进入页面时，后台报日期转换类型错误的------------
+              }
+              // update-end--author:liaozhiyang---date:20240326---for：【QQYUN-8696】rangepicker等时间控件报错（vue3.4以上版本有问题）
+            } else {
+              // update-begin--author:liaozhiyang---date:20240326---for：【QQYUN-8696】rangepicker等时间控件报错（vue3.4以上版本有问题）
+              let isAssignment = false;
+              defaultValue.forEach((item) => {
+                if (Object.prototype.toString.call(item) === '[object Date]') {
+                  isAssignment = true;
+                }
               });
-              schema.defaultValue = def;
+              if (isAssignment) {
+                const def: dayjs.Dayjs[] = [];
+                defaultValue.forEach((item) => {
+                  //update-begin---author:wangshuai ---date:20221124  for：[issues/215]列表页查询框（日期选择框）设置初始时间，一进入页面时，后台报日期转换类型错误的------------
+                  if (valueFormat) {
+                    def.push(dateUtil(item).format(valueFormat));
+                  } else {
+                    def.push(dateUtil(item));
+                  }
+                  //update-end---author:wangshuai ---date:20221124  for：[issues/215]列表页查询框（日期选择框）设置初始时间，一进入页面时，后台报日期转换类型错误的------------
+                });
+                schema.defaultValue = def;
+              }
+              // update-end--author:liaozhiyang---date:20240326---for：【QQYUN-8696】rangepicker等时间控件报错（vue3.4以上版本有问题）
             }
           }
         }
@@ -244,10 +271,12 @@
       const onFormSubmitWhenChange = useDebounceFn(handleSubmit, 300);
       function setFormModel(key: string, value: any) {
         formModel[key] = value;
-        const { validateTrigger } = unref(getBindValue);
-        if (!validateTrigger || validateTrigger === 'change') {
-          validateFields([key]).catch((_) => {});
-        }
+        // update-begin--author:liaozhiyang---date:20230922---for：【issues/752】表单校验dynamicRules 无法 使用失去焦点后校验 trigger: 'blur'
+        // const { validateTrigger } = unref(getBindValue);
+        // if (!validateTrigger || validateTrigger === 'change') {
+        //   validateFields([key]).catch((_) => {});
+        // }
+        // update-end--author:liaozhiyang---date:20230922---for：【issues/752】表单校验dynamicRules 无法 使用失去焦点后校验 trigger: 'blur'
         if(props.autoSearch === true){
           onFormSubmitWhenChange();
         }
@@ -369,5 +398,12 @@
         margin-bottom: 8px !important;
       }
     }
+    // update-begin--author:liaozhiyang---date:20231017---for：【QQYUN-6566】BasicForm支持一行显示(inline)
+    &.ant-form-inline {
+      & > .ant-row {
+        .ant-col { width:auto !important; }
+      }
+    }
+    // update-end--author:liaozhiyang---date:20231017---for：【QQYUN-6566】BasicForm支持一行显示(inline)
   }
 </style>

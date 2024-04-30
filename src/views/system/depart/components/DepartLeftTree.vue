@@ -58,13 +58,13 @@
           <template #title="{ key: treeKey, title, dataRef }">
             <a-dropdown :trigger="['contextmenu']">
               <Popconfirm
-                :visible="visibleTreeKey === treeKey"
+                :open="visibleTreeKey === treeKey"
                 title="确定要删除吗？"
                 ok-text="确定"
                 cancel-text="取消"
                 placement="rightTop"
                 @confirm="onDelete(dataRef)"
-                @visibleChange="onVisibleChange"
+                @openChange="onVisibleChange"
               >
                 <span>{{ title }}</span>
               </Popconfirm>
@@ -88,7 +88,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { inject, nextTick, ref, unref, defineExpose } from 'vue';
+  import { inject, nextTick, ref, unref } from 'vue';
   import { useI18n } from "/@/hooks/web/useI18n";
   import { useModal } from '/@/components/Modal';
   import { useMessage } from '/@/hooks/web/useMessage';

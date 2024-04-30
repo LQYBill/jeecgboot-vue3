@@ -1,5 +1,5 @@
 <template>
-  <div class="account-padding">
+  <div :class="[`${prefixCls}`]">
     <div class="my-account">{{ t('sys.profile.account') }}</div>
     <div class="account-row-item clearfix">
       <div class="account-label gray-75">{{ t('sys.login.email')}}</div>
@@ -15,31 +15,39 @@
   <UserPasswordModal @register="registerPassModal" @success="initUserDetail" />
 </template>
 <script lang="ts" setup>
-import { onMounted, ref, reactive } from "vue";
-import { getUserData } from "./UserSetting.api";
-import { useUserStore } from "/@/store/modules/user";
-import UserPasswordModal from "./commponents/UserPasswordModal.vue";
-import { useModal } from "/@/components/Modal";
-import { useI18n } from '/@/hooks/web/useI18n';
+  import { onMounted, ref, reactive } from 'vue';
+  import { CollapseContainer } from '/@/components/Container';
+  import { getUserData } from './UserSetting.api';
+  import { useUserStore } from '/@/store/modules/user';
+  import UserReplacePhoneModal from './commponents/UserPhoneModal.vue';
+  import UserReplaceEmailModal from './commponents/UserEmailModal.vue';
+  import UserPasswordModal from './commponents/UserPasswordModal.vue';
+  import { useModal } from '/@/components/Modal';
+  import { WechatFilled } from '@ant-design/icons-vue';
+  import { useDesign } from '/@/hooks/web/useDesign';
+  import { useI18n } from '/@/hooks/web/useI18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const userDetail = ref<any>([]);
-const userStore = useUserStore();
-const [registerModal, { openModal }] = useModal();
-const [registerPassModal, { openModal: openPassModal }] = useModal();
+  const { prefixCls } = useDesign('j-user-account-setting-container');
 
-/**
- * 初始化用户数据
- */
-function initUserDetail() {
-  //获取用户数据
-  getUserData().then((res => {
-    if (res.success) {
-      userDetail.value = res.result;
-    }
-  }));
-}
+  const userDetail = ref<any>([]);
+  const userStore = useUserStore();
+  const [registerModal, { openModal }] = useModal();
+  const [registerEmailModal, { openModal: openEmailModal }] = useModal();
+  const [registerPassModal, { openModal: openPassModal }] = useModal();
+
+  /**
+   * 初始化用户数据
+   */
+  function initUserDetail() {
+    //获取用户数据
+    getUserData().then((res) => {
+      if (res.success) {
+        userDetail.value = res.result;
+      }
+    });
+  }
 
 /**
  * 密码修改
@@ -54,53 +62,63 @@ onMounted(() => {
   initUserDetail();
 });
 </script>
-<style lang="less" scoped>
-.account-row-item {
-  align-items: center;
-  border-bottom: 1px solid #eaeaea;
-  box-sizing: border-box;
-  display: flex;
-  height: 71px;
-  position: relative;
-}
+<style lang="less">
+    // update-begin-author:liusq date:20230625 for: [issues/563]暗色主题部分失效
+  @prefix-cls: ~'@{namespace}-j-user-account-setting-container';
 
-.account-label {
-  text-align: left;
-  width: 160px;
-}
+  .@{prefix-cls}{
+     padding: 30px 40px 0 20px;
+    .account-row-item {
+      align-items: center;
+      /*begin 兼容暗夜模式*/
+      border-bottom: 1px solid @border-color-base;
+      /*end 兼容暗夜模式*/
+      box-sizing: border-box;
+      display: flex;
+      height: 71px;
+      position: relative;
+    }
 
-.gray-75 {
-  color: #757575 !important;
-}
+    .account-label {
+      text-align: left;
+      width: 160px;
+    }
 
-.pointer {
-  cursor: pointer;
-}
+    .gray-75 {
+      /*begin 兼容暗夜模式*/
+      color: @text-color !important;
+      /*end 兼容暗夜模式*/
+    }
 
-.blue-e5 {
-  color: #1e88e5;
-}
+    .pointer {
+      cursor: pointer;
+    }
 
-.phone-margin {
-  margin-left: 24px;
-  margin-right: 24px;
-}
+    .blue-e5 {
+      color: #1e88e5;
+    }
 
-.clearfix:after {
-  clear: both;
-}
+    .phone-margin {
+      margin-left: 24px;
+      margin-right: 24px;
+    }
 
-.clearfix:before {
-  content: "";
-  display: table;
-}
-.account-padding{
-  padding: 30px 40px 0 20px;
-}
-.my-account{
-  font-size: 17px;
-  font-weight: 700!important;
-  color: #333!important;
-  margin-bottom: 20px;
-}
+    .clearfix:after {
+      clear: both;
+    }
+
+    .clearfix:before {
+      content: "";
+      display: table;
+    }
+    .my-account{
+      font-size: 17px;
+      font-weight: 700!important;
+      /*begin 兼容暗夜模式*/
+      color: @text-color;
+      /*end 兼容暗夜模式*/
+      margin-bottom: 20px;
+    }
+  }
+  // update-end-author:liusq date:20230625 for: [issues/563]暗色主题部分失效
 </style>

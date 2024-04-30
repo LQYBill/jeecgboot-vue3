@@ -40,9 +40,10 @@
               <div
                 class="ant-tabs-ink-bar ant-tabs-ink-bar-animated"
                 :style="{
-                  transform: activeKey == 'all' ? 'translate3d(0px, 0px, 0px)' : 'translate3d(120px, 0px, 0px)',
+                  transform: activeKey == 'all' ? 'translate3d(130px, 0px, 0px)' : 'translate3d(215px, 0px, 0px)',
                   display: 'block',
                   width: '88px',
+                  height: '1px'
                 }"
               ></div>
             </div>
@@ -52,7 +53,7 @@
         <!-- 头部图标 -->
         <div class="icon-right">
           <div class="icons">
-            <a-popover placement="bottomRight" :overlayStyle="{ width: '400px' }" trigger="click" v-model:visible="showSearch">
+            <a-popover placement="bottomRight" :overlayStyle="{ width: '400px' }" trigger="click" v-model:open="showSearch">
               <template #content>
                 <div>
                   <span class="search-label">回复、提到我的人?：</span>
@@ -96,7 +97,7 @@
     </template>
 
     <div class="sys-message-card">
-      <a-tabs :activeKey="activeKey" center @tabClick="handleChangePanel">
+      <a-tabs :activeKey="activeKey" center @tabClick="handleChangePanel" animated>
         <template #renderTabBar>
           <div></div>
         </template>
@@ -115,17 +116,18 @@
 
   <user-select-modal isRadioSelection :showButton="false" labelKey="realname" rowKey="username" @register="regModal" @getSelectResult="getSelectedUser"></user-select-modal>
 
-  <DetailModal @register="registerDetail" />
+  <DetailModal @register="registerDetail" :zIndex="1001"/>
 </template>
 
 <script>
   import { BasicModal, useModalInner, useModal } from '/@/components/Modal';
   import { FilterOutlined, CloseOutlined, BellFilled, ExclamationOutlined, PlusOutlined } from '@ant-design/icons-vue';
-  import { JSelectUser } from '/@/components/Form';
+  import JSelectUser from '/@/components/Form/src/jeecg/components/JSelectUser.vue';
   import { ref, unref, reactive, computed } from 'vue';
-  import SysMessageList from './SysMessageList.vue'
+  // import SysMessageList from './SysMessageList.vue'
   import UserSelectModal from '/@/components/Form/src/jeecg/components/modal/UserSelectModal.vue'
   import DetailModal from '/@/views/monitor/mynews/DetailModal.vue';
+  import { createAsyncComponent } from '/@/utils/factory/createAsyncComponent';
   
   export default {
     name: 'SysMessageModal',
@@ -136,7 +138,7 @@
       BellFilled,
       ExclamationOutlined,
       JSelectUser,
-      SysMessageList,
+      SysMessageList: createAsyncComponent(() => import('./SysMessageList.vue')),
       UserSelectModal,
       PlusOutlined,
       DetailModal
@@ -158,7 +160,7 @@
       const searchParams = reactive({
         fromUser: '',
         realname: '',
-        rangeDateKey: '',
+        rangeDateKey: '7day',
         rangeDate: [],
       });
 
@@ -169,14 +171,16 @@
           rangeDate: searchParams.rangeDate,
         }
         if(activeKey.value == 'all'){
-          allMessageRef.value.reload(params);
+          getRefPromise(allMessageRef).then(() => {
+            allMessageRef.value.reload(params);
+          });
         }else{
           starMessageRef.value.reload(params);
         }
       }
       
       //useModalInner
-      const [registerModal, { closeModal }] = useModalInner(async () => {
+      const [registerModal, { closeModal }] = useModalInner(async (data) => {
         //每次弹窗打开 加载最新的数据
         loadData();
       });
@@ -196,6 +200,7 @@
         { key: 'sz', text: '上周', active: false },
         { key: 'by', text: '本月', active: false },
         { key: 'sy', text: '上月', active: false },
+        { key: '7day', text: '七日', active: true },
         { key: 'zdy', text: '自定义', active: false },
       ]);
       function handleClickDateTag(item) {
@@ -277,6 +282,21 @@
         searchParams.fromUser = ''
         searchParams.realname = ''
       }
+
+      function getRefPromise(componentRef) {
+        return new Promise((resolve) => {
+          (function next() {
+            let ref = componentRef.value;
+            if (ref) {
+              resolve(ref);
+            } else {
+              setTimeout(() => {
+                next();
+              }, 100);
+            }
+          })();
+        });
+      }
       
       function clearAll(){
         searchParams.fromUser='';
@@ -286,11 +306,11 @@
         for (let a of dateTags) {
           a.active = false;
         }
+        loadData();
       }
 
       const [registerDetail, { openModal: openDetailModal }] = useModal();
       function showDetailModal(record){
-        console.error(123, record)
         openDetailModal(true, {record: unref(record), isUpdate: true})
       }
       return {
@@ -374,27 +394,22 @@
           padding: 10px;
           display: inline-block;
           cursor: pointer;
-          &:hover {
-            color: #1890ff;
-          }
-          &:active {
-            color: #1890ff;
-          }
         }
 
         > span.filtera{
-          background-color: #d3eafd;
+          //background-color: #d3eafd;
+          background-color: #eff1f2;
           border-radius: 4px;
           cursor: pointer;
           height: 27px;
           padding-top: 7px;
           margin-top: 3px;
           line-height: 25px;
-          color: #2196f3;
+          //color: #2196f3;
           display: flex;
           
           >span.anticon{
-            height: 30px;
+            height: auto;
             line-height: 9px;
             display: inline-block;
           }
@@ -406,6 +421,34 @@
     .ant-tabs-nav-wrap {
       display: inline-block;
       width: calc(100% - 340px);
+      .ant-tabs-tab {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        padding: 12px 0;
+        font-size: 14px;
+        background: transparent;
+        border: 0;
+        outline: none;
+        cursor: pointer;
+      }
+      .ant-tabs-tab {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        padding: 12px 0;
+        font-size: 14px;
+        background: transparent;
+        border: 0;
+        outline: none;
+        cursor: pointer;
+      }
+      .ant-tabs-tab+.ant-tabs-tab {
+         margin: 0 0 0 32px;
+      }
+      .ant-tabs-ink-bar {
+        background: @primary-color;
+      }
     }
     .ant-tabs-nav-scroll {
       text-align: center;
@@ -463,7 +506,6 @@
           cursor: pointer;
           &.active {
             background-color: #d3eafd !important;
-            color: #2196f3;
           }
         }
       }
@@ -476,12 +518,6 @@
     border-radius: 30px;
     .clear-user-icon{
       margin-left: 5px;
-
-      .anticon{
-        &:hover{
-          color: #2196f3;
-        }
-      }
     }
   }
 </style>

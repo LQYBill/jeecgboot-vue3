@@ -172,7 +172,6 @@ export function useDataSource(
   }
 
   function insertTableDataRecord(record: Recordable, index: number): Recordable | undefined {
-    //【issues/136】同步Vben：BasicTable 调用插入函数异常插入两条记录]
     // if (!dataSourceRef.value || dataSourceRef.value.length == 0) return;
     index = index ?? dataSourceRef.value?.length;
     unref(dataSourceRef).splice(index, 0, record);
@@ -249,7 +248,14 @@ export function useDataSource(
       if (beforeFetch && isFunction(beforeFetch)) {
         params = (await beforeFetch(params)) || params;
       }
-
+      // update-begin--author:liaozhiyang---date:20240227---for：【QQYUN-8316】table查询条件,请求剔除空字符串字段
+      for (let item of Object.entries(params)) {
+        const [key, val] = item;
+        if (val === '') {
+          delete params[key];
+        };
+      };
+      // update-end--author:liaozhiyang---date:20240227---for：【QQYUN-8316】table查询条件,请求剔除空字符串字段
       const res = await api(params);
       rawDataSourceRef.value = res;
 

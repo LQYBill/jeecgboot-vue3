@@ -40,7 +40,7 @@
 <script lang="ts" name="system-dict" setup>
   //ts语法
   import { ref, computed, unref } from 'vue';
-  import { BasicTable, TableAction } from '/src/components/Table';
+  import { BasicTable, TableAction } from '/@/components/Table';
   import { useDrawer } from '/@/components/Drawer';
   import { useModal } from '/@/components/Modal';
   import DictItemList from './components/DictItemList.vue';
@@ -51,6 +51,7 @@
   import { columns, searchFormSchema } from './dict.data';
   import { list, deleteDict, batchDeleteDict, getExportUrl, getImportUrl, refreshCache, queryAllDictItems } from './dict.api';
   import { DB_DICT_DATA_KEY } from '/@/enums/cacheEnum';
+  import { useUserStore } from '/@/store/modules/user';
 
   const { createMessage } = useMessage();
   const {t} = useI18n();
@@ -148,7 +149,10 @@
     if (result.success) {
       const res = await queryAllDictItems();
       removeAuthCache(DB_DICT_DATA_KEY);
-      setAuthCache(DB_DICT_DATA_KEY, res.result);
+      // update-begin--author:liaozhiyang---date:20230908---for：【QQYUN-6417】生产环境字典慢的问题
+      const userStore = useUserStore();
+      userStore.setAllDictItems(res.result);
+      // update-end--author:liaozhiyang---date:20230908---for：【QQYUN-6417】生产环境字典慢的问题
       createMessage.success(t('sys.cacheCleared'));
     } else {
       createMessage.error(t('sys.cacheClearFailed'));

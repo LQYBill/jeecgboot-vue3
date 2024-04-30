@@ -52,14 +52,14 @@
 </template>
 <script lang="ts">
 import {BasicColumn, useTable} from "/@/components/Table";
-import {defineComponent, onMounted, reactive, ref} from "vue";
+import {defineComponent, onMounted, onUnmounted, reactive, ref} from "vue";
 import {defHttp} from "/@/utils/http/axios";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {useI18n} from "/@/hooks/web/useI18n";
 import { useMessage } from '/@/hooks/web/useMessage';
 import BillableOrdersSubTable
   from "/@/views/business/admin/shippingInvoice/modules/billableOrdersSubTable.vue";
-import PageWrapper from "/@/components/Page/src/PageWrapper.vue";
+import { PageWrapper } from '/@/components/Page';
 import {PopConfirmButton} from "/@/components/Button";
 import {Tag} from "ant-design-vue";
 import {useUserStore} from "/@/store/modules/user";
@@ -71,11 +71,16 @@ export default defineComponent({
     const { createMessage } = useMessage();
     const userStore = useUserStore();
     const username = ref<string>();
+    const abortController = new AbortController();
+    const {signal} = abortController;
 
     onMounted(()=> {
       loadList();
       username.value = userStore.getUserInfo.username;
     });
+    onUnmounted(()=> {
+      abortController.abort(t('sys.api.abortController.onUnmount'));
+    })
     enum Api {
       list = "/shippingInvoice/breakdown/byShop",
       listByClient = "/shippingInvoice/breakdown/byClient",
@@ -188,7 +193,7 @@ export default defineComponent({
     });
     function loadList() {
       checkedKeys.value = [];
-      defHttp.get({ url: Api.list })
+      defHttp.get({ url: Api.list, signal: signal })
         .then(res=> {
           createMessage.info("Estimation by shop finished, now mapping by client.");
           listByShop.value = res;
@@ -207,8 +212,13 @@ export default defineComponent({
             })
         })
         .catch(e => {
-          console.error(e);
           loading.value = false;
+          if(signal.aborted) {
+            const {reason} = signal;
+            console.warn(`Http request aborted : ${reason}`);
+            createMessage.warn(reason);
+          }
+          console.error(e);
         });
     }
     function setSubTableContent(code) {

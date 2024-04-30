@@ -1,9 +1,10 @@
 <template>
-  <JPopup v-bind="popupProps" />
+  <JPopup v-bind="popupProps" @focus="handleFocus" />
 </template>
 <script lang="ts">
-  import { computed, defineComponent } from 'vue';
-  import { JPopup } from '/@/components/Form';
+  import { computed, defineComponent, ref } from 'vue';
+  //import { JPopup } from '/@/components/Form';
+  import JPopup from '/@/components/Form/src/jeecg/components/JPopup.vue';
   import { JVxeComponent } from '/@/components/jeecg/JVxeTable/types';
   import { useJVxeComponent, useJVxeCompProps } from '/@/components/jeecg/JVxeTable/hooks';
   import { dispatchEvent, vModel } from '/@/components/jeecg/JVxeTable/utils';
@@ -15,17 +16,18 @@
     props: useJVxeCompProps(),
     setup(props: JVxeComponent.Props) {
       const { innerValue, row, originColumn, cellProps, handleChangeCommon } = useJVxeComponent(props);
-
+      const groupId = ref<string>('j-vxe-popup');
       const popupProps = computed(() => {
+        // update-begin--author:liaozhiyang---date:20231009---for：【issues/5371】一对多子表popup增加多选
         return {
-          ...cellProps,
+          ...cellProps.value,
           value: innerValue.value,
           field: originColumn.value.field || originColumn.value.key,
           code: originColumn.value.popupCode,
           fieldConfig: originColumn.value.fieldConfig,
           // orgFields: originColumn.value.orgFields,
           // destFields: originColumn.value.destFields,
-          groupId: 'j-vxe-popup',
+          groupId: groupId.value,
           param: originColumn.value.params,
           sorter: originColumn.value.sorter,
           setFieldsValue: (values) => {
@@ -44,9 +46,15 @@
             }
           },
         };
+        // update-end--author:liaozhiyang---date:20231009---for：【issues/5371】一对多子表popup增加多选
       });
-
+      // update-begin--author:liaozhiyang---date:20230811---for：【issues/675】子表字段Popup弹框数据不更新
+      const handleFocus = () => {
+        groupId.value = '';
+      };
+      // update-end--author:liaozhiyang---date:20230811---for：【issues/675】子表字段Popup弹框数据不更新
       return {
+        handleFocus,
         popupProps,
       };
     },

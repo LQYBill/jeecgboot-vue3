@@ -1,5 +1,5 @@
 <template>
-  <BasicModal v-bind="config" :title="currTitle" v-model:visible="visible" wrapClassName="loginSelectModal">
+  <BasicModal v-bind="config" :maxHeight="500" :title="currTitle" v-model:visible="visible" wrapClassName="loginSelectModal">
     <a-form ref="formRef" v-bind="layout" :colon="false" class="loginSelectForm">
       <a-form-item v-if="isMultiTenant" :validate-status="validate_status">
         <!--label内容-->
@@ -50,7 +50,7 @@
   </BasicModal>
 </template>
 <script lang="ts" setup>
-  import { ref, computed, watch, unref, defineExpose } from 'vue';
+  import { ref, computed, watch, unref } from 'vue';
   import { Avatar } from 'ant-design-vue';
   import { BasicModal } from '/@/components/Modal';
   import { getUserDeparts, selectDepart } from '/@/views/system/depart/depart.api';
