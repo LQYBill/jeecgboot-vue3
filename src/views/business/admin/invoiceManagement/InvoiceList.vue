@@ -54,39 +54,40 @@
         <div v-else class="flex justify-evenly items-center text-error"> ?? </div>
       </template>
       <template #invoiceNumber="{record}">
-        <a-button
-          type="primary"
-          preIcon="ant-design:eye-outlined"
-          @click="openInvoice(record)"
-          shape="round"
-        >
-          {{ record.invoiceNumber }}
-        </a-button>
+        <div class="flex flex-row flex-nowrap justify-between items-center">
+          <a-button
+            type="primary"
+            preIcon="ant-design:eye-outlined"
+            @click="openInvoice(record)"
+            shape="round"
+          >
+            {{ record.invoiceNumber }}
+          </a-button>
+          <Icon icon="ant-design:copy-outlined" @click="handleCopy(record.invoiceNumber)" class="cursor-pointer"></Icon>
+        </div>
       </template>
     </BasicTable>
   </PageWrapper>
 </template>
 <script async setup lang="ts">
-import {BasicTable, FormSchema, TableAction, useTable} from "/@/components/Table";
-import {BasicColumn} from '/@/components/Table';
-import {downloadFile, getUserList} from '/@/api/common/api';
+import {BasicTable, TableAction, useTable} from "/@/components/Table";
+import {downloadFile} from '/@/api/common/api';
 import {defHttp} from '/@/utils/http/axios';
 import {useMessage} from '/@/hooks/web/useMessage';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMethods} from "/@/hooks/system/useMethods";
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, ref, unref} from "vue";
 import {filterObj} from "/@/utils/common/compUtils";
 import {useUserStore} from "/@/store/modules/user";
 import {usePermissionStore} from "/@/store/modules/permission";
 import {PopConfirmButton} from "/@/components/Button";
-import {Modal} from "ant-design-vue";
 import { PageWrapper } from '/@/components/Page';
 import {columns, fetchUserList, searchFormSchema} from "./data/InvoiceList.data";
 import {list, Api, setPaid} from "./api/invoiceList.api";
-import PackagesIcon from "/@/views/business/admin/invoiceManagement/components/PackagesIcon.vue";
 import PlainIcon from "/@/views/business/admin/invoiceManagement/components/PlainIcon.vue";
 import BasketIcon from "/@/views/business/admin/invoiceManagement/components/BasketIcon.vue";
 import {useRouter} from "vue-router";
+import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 
 const userStore = useUserStore();
 const permissionStore = usePermissionStore();
@@ -94,6 +95,7 @@ const { createMessage } = useMessage();
 const { t } = useI18n();
 const { handleExportXls } = useMethods();
 const {resolve}=useRouter();
+const { clipboardRef, copiedRef } = useCopyToClipboard();
 const username = ref<string>();
 
 onMounted(async () => {
@@ -264,6 +266,16 @@ function handleSetPaid() {
 function openInvoice(record) {
   const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
   window.open(invoicePreviewRoute.href, '_blank');
+}
+function handleCopy(invoiceNumber:string) {
+  if (!invoiceNumber) {
+    createMessage.warning(t('component.copy.noValue'));
+    return;
+  }
+  clipboardRef.value = invoiceNumber;
+  if (unref(copiedRef)) {
+    createMessage.warning(t('component.copy.success'));
+  }
 }
 </script>
 <style lang="less">

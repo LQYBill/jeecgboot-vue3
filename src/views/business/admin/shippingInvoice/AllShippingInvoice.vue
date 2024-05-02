@@ -30,8 +30,8 @@
         <a-row :class="[step == 0 ? 'focus' : '']">
           <a-col :span="24">
             <a-form-item
-              :labelCol="{span: 5}"
-              :wrapperCol="{span: 24}"
+              :labelCol="{span: 2}"
+              :wrapperCol="{span: 22}"
               v-bind="validateInfos.name"
               name="invoiceMode"
               style="margin-bottom: 0"
@@ -1485,6 +1485,7 @@ function handleExpand(expanded, record) {
   border-left: 2px solid #ffad1842;
 }
 .orderSelectFormItem {
+  width:100%;
   .ant-form-item-label {
     flex: none;
     width: fit-content;

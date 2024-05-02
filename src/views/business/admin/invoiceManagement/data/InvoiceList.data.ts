@@ -39,7 +39,8 @@ export const columns: BasicColumn[] = [
     align:"center",
     sorter: true,
     dataIndex: 'invoiceNumber',
-    slots: {customRender: 'invoiceNumber'}
+    slots: {customRender: 'invoiceNumber'},
+    width: 180,
   },
   {
     title: t("data.invoice.totalAmountDue"),
