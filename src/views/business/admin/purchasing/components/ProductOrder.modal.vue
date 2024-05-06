@@ -6,7 +6,7 @@
         <div class="flex flex-row flex-1 border-b" v-for="n in 2" :class="n==2 ? 'border-l' : '' ">
           <h2 class="w-64 text-sm">{{ t('data.product.product') }}</h2>
           <div class="flex items-center w-full flex-1">
-            <h2 class="flex-1 text-sm">{{ t('data.sku.availableAmount') }} 7 | 14 | 42</h2>
+            <h2 class="flex-1 text-sm">{{ t('data.sku.sales') }} 7 | 14 | 42</h2>
             <h2 class="flex-0.5 text-sm">{{ t('data.order.stock') }}</h2>
             <h2 class="flex-1 text-sm">{{ t('data.invoice.quantity') }}</h2>
             <h2 class="flex-0.5 text-sm" :class="n==1 ? 'mr-4' : 'mr-0'">{{ t('data.invoice.subTotal') }}</h2>

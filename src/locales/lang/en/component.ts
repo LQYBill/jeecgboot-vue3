@@ -4,6 +4,10 @@ export default {
     toSearch: 'to search',
     toNavigate: 'to navigate',
   },
+  copy: {
+    success: 'Copied',
+    noValue: 'Nothing to copy'
+  },
   countdown: {
     normalText: 'Get SMS code',
     sendText: 'Reacquire in {0}s',

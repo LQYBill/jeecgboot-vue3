@@ -4,6 +4,10 @@ export default {
     toSearch: '确认',
     toNavigate: '切换',
   },
+  copy: {
+    success: '复制成功',
+    noValue: '无内容可复制'
+  },
   countdown: {
     normalText: '获取验证码',
     sendText: '{0}秒后重新获取',
