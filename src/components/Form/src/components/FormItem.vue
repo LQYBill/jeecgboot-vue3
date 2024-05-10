@@ -338,9 +338,9 @@
         //label宽度支持自定义
         const { label, helpMessage, helpComponentProps, subLabel, labelLength } = props.schema;
         let showLabel: string = label + '';
-        if (labelLength && showLabel.length > 4) {
-          showLabel = showLabel.substr(0, labelLength);
-        }
+        // if (labelLength && showLabel.length > 4) {
+        //   showLabel = showLabel.substr(0, labelLength);
+        // }
         const titleObj = { title: label };
         const renderLabel = subLabel ? (
           <span>
