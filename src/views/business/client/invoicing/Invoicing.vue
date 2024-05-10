@@ -26,7 +26,7 @@
         </a-row>
       </a-form>
       <a-form ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
-        <a-row>
+        <a-row id="shop-search">
           <a-col :span="6">
             <a-form-item
               :labelCol="labelCol"
@@ -82,10 +82,10 @@
           </a-card>
         </a-row>
       </a-form>
-      <BasicTable @register="registerTable">
+      <BasicTable @register="registerTable" id="orders-list-table">
         <template #tableTitle>
           <PopConfirmButton
-            type="warning"
+            type="primary"
             title="Confirm making shipping invoice ?"
             preIcon="ant-design:rocket-outlined"
             @confirm="makeManualShippingInvoice"
@@ -96,7 +96,7 @@
             {{ t("data.invoice.generateShippingInvoice") }}
           </PopConfirmButton>
           <PopConfirmButton
-            type="warning"
+            type="success"
             title="Confirm making purchase invoice ?"
             preIcon="ant-design:shopping-outlined"
             @confirm="makeManualPurchaseInvoice"
@@ -107,7 +107,7 @@
             {{ t("data.invoice.generatePurchaseInvoice") }}
           </PopConfirmButton>
           <PopConfirmButton
-            type="warning"
+            type="default"
             title="Confirm making purchase and shipping invoice ?"
             preIcon="ant-design:calculator-outlined"
             @confirm="makeCompleteManualInvoice"
@@ -117,6 +117,7 @@
           >
             {{ t("data.invoice.generateInvoice7pre") }}
           </PopConfirmButton>
+          <a-button @click="openHelpModal" type="warning">Help</a-button>
         </template>
         <template #productAvailability="{record}">
           <Badge
@@ -140,11 +141,12 @@
         </template>
       </BasicTable>
     </a-card>
+    <InvoicingHelpModal @register="registerModal" @success="" @guide="startGuide"/>
   </PageWrapper>
 </template>
 <script lang="ts" setup>
 
-import {defineComponent, onBeforeMount, onMounted, reactive, ref} from "vue";
+import {onBeforeMount, reactive, ref} from "vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
@@ -153,11 +155,14 @@ import { PageWrapper } from '/@/components/Page';
 import {getColumns} from "/@/views/business/client/invoicing/data";
 import {defHttp} from "/@/utils/http/axios";
 import JSelectMultiple from "/@/components/Form/src/jeecg/components/JSelectMultiple.vue";
-import {Badge, Card, Col, Form, Row, Tag} from "ant-design-vue";
+import {Badge, Form, Tag} from "ant-design-vue";
 import dayjs from "dayjs";
 import {downloadFile} from "/@/api/common/api";
 import {PopConfirmButton} from "/@/components/Button";
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
+import intro from "intro.js";
+import {useModal} from "@/components/Modal";
+import InvoicingHelpModal from "@/views/business/client/_components/InvoicingHelpModal.vue";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -234,6 +239,8 @@ let ipagination = ref({
   showSizeChanger: true,
   total: 0,
 });
+
+const [registerModal, {openModal}] = useModal();
 const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, getSelectRowKeys, setLoading }] = useTable({
   columns: getColumns(),
   dataSource: orderList,
@@ -315,6 +322,10 @@ function loadShopList(clientId) {
     })
     .catch(e => {
       console.error(e);
+    })
+    .finally(() => {
+      if(localStorage.clientInvoicingGuideWatched !== 'true')
+        startGuide();
     });
 }
 function handleShopChange(shops) {
@@ -572,6 +583,37 @@ function downloadDetailFile(invoiceNumber) {
   }).catch(e => {
     console.error(`Download invoice detail fail : ${e}`);
   });
+}
+function startGuide() {
+  intro().
+  setOptions({
+    steps: [
+      {
+        title: 'Invoicing guide',
+        intro: `Hello <b>${client.value.firstName}</b>!👋<br/> Here is a guide to help you invoice your orders.`,
+      },
+      {
+        title: 'First step',
+        element: document.querySelector(`#shop-search`)!,
+        intro: 'First select the shop(s) you want to invoice.',
+      },
+      {
+        title: 'List of orders to invoice',
+        element: document.querySelector(`#orders-list-table`)!,
+        intro: 'Orders that are available to be invoiced will be listed here.<br/> It may take a few seconds to load the orders, so be patient ;).',
+      },
+      {
+        title: 'Estimation of fees',
+        element: document.querySelector(`.cardGridContainer`)!,
+        intro: 'Fees estimation for the selected orders will be displayed here.',
+      },
+    ],
+  })
+    .start();
+  localStorage.clientInvoicingGuideWatched = 'true';
+}
+function openHelpModal() {
+  openModal(true, { })
 }
 </script>
 <style lang="less">
