@@ -58,13 +58,14 @@ export default {
   form: {
     labelCol: {
       xs: { span: 24 },
-      sm: { span: 4 },
-      xl: { span: 6 },
+      sm: { span: 6 },
+      xl: { span: 8 },
       xxl: { span: 4 },
     },
     wrapperCol: {
       xs: { span: 24 },
       sm: { span: 18 },
+      xl: { span: 16 },
     },
     //表单默认冒号
     colon: true,
