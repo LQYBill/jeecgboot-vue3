@@ -97,6 +97,9 @@ export const formSchema: FormSchema[] = [
     ifShow: ({ values }) => {
       return values.parameterType == 'string';
     },
+    componentProps : {
+      rows: 10,
+    },
   },
   {
     field: 'parameter',
