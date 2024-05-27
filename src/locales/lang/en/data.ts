@@ -43,6 +43,7 @@ export default {
     pending: "Pending",
     placeOrder: "Place Order",
     preparing: "Preparing",
+    reason: "Reason",
     shipped: "Shipped",
     shippedUninvoicedOrdersAmountToBill: "Shipped & Uninvoiced Orders Amount to Bill",
     shippedUninvoicedOrdersVolume: "Shipped & Uninvoiced Orders Volume",

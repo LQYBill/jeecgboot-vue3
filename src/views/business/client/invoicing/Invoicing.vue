@@ -38,7 +38,7 @@
                 <span title="Shop">{{ t('data.invoice.shop') }}</span>
               </template>
               <JSelectMultiple
-                :placeholder="t('component.searchForm.shopInputSearch')"
+                :placeholder="t('component.searchForm.shopsInputSearch')"
                 @change="handleShopChange"
                 v-model:value="formState.shop"
                 :options="shopList"
