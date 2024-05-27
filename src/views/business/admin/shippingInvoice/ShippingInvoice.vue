@@ -143,7 +143,7 @@ const getSchemas = (): FormSchema[] => {
         span: 5,
       },
       componentProps: {
-        placeholder: t('component.searchForm.shopInputSearch'),
+        placeholder: t('component.searchForm.shopsInputSearch'),
         options: shopList,
         disabled: shopDisabled,
         onChange: (e: any) => {
@@ -154,7 +154,7 @@ const getSchemas = (): FormSchema[] => {
       rules: [
         {
           required: true,
-          message: t('component.searchForm.shopInputSearch'),
+          message: t('component.searchForm.shopsInputSearch'),
           type: 'string',
         },
       ],

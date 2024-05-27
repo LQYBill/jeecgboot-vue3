@@ -65,6 +65,7 @@ export default {
   },
   searchForm: {
     //placeholder
+    actionInput: 'Select a action',
     amountInput: 'Enter an amount',
     currencyInputSearch: 'Select a currency',
     qtyAutoPicker: 'Set quantity for all Skus',
@@ -80,11 +81,14 @@ export default {
     invoiceTypeInputSearch: "Select an invoice type",
     invoiceModeInputSearch: "Select an invoicing mode",
     orderSelectModeInputSearch: "Choose an order selection mode",
+    ordersSelectSearch: "Select orders",
     paidAmountInput: "Please enter the paid amount",
     platformOrderID: 'Select a Platform Order ID',
     platformOrderIDFilter: 'Filter Platform Order ID',
+    reasonInputText: 'Please enter a reason',
     shopFilter: "Filter by shop",
-    shopInputSearch: "Select shops",
+    shopInputSearch: "Select a shop",
+    shopsInputSearch: "Select shops",
     skuSelectSearch: "Select a sku",
     userSelect: 'Select a user',
     userFilter: 'Filter by user',

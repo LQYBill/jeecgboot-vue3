@@ -91,7 +91,7 @@
               </template>
               <template #help>{{ t('data.form.defaultAllShopSelected') }}</template>
               <JSelectMultiple
-                :placeholder="t('component.searchForm.shopInputSearch')"
+                :placeholder="t('component.searchForm.shopsInputSearch')"
                 @change="handleShopChange"
                 v-model:value="formState.shop"
                 :options="shopList"

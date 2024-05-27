@@ -43,6 +43,7 @@ export default {
     pending: "待处理",
     placeOrder: "下订单",
     preparing: "配货中",
+    reason: "原因",
     shipped: "已发货",
     shippedUninvoicedOrdersAmountToBill: "已发货未开票应收款",
     shippedUninvoicedOrdersVolume: "已发货未开票订单量",

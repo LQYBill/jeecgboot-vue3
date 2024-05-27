@@ -30,7 +30,7 @@
               name="shop"
             >
               <JSelectMultiple
-                :placeholder="t('component.searchForm.shopInputSearch')"
+                :placeholder="t('component.searchForm.shopsInputSearch')"
                 @change="handleShopChange"
                 v-model:value="formState.shop"
                 :options="shopList"
@@ -158,7 +158,7 @@ const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 6 } });
 const wrapperCol = ref<any>({ xs: { span: 24 }, sm: { span: 18 } });
 const validatorRules = ref({
   customer: [{ required: true, message: t('component.searchForm.clientInputSearch'), trigger: 'blur' }],
-  shop: [{ required: true, message: t('component.searchForm.shopInputSearch'), trigger: 'blur' }],
+  shop: [{ required: true, message: t('component.searchForm.shopsInputSearch'), trigger: 'blur' }],
 });
 const formState = reactive<Record<string, any>>({
   customer: '',

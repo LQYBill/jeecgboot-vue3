@@ -186,6 +186,7 @@ export default {
     Ukraine: "Ukraine",
     UnitedArabEmirates: "United Arab Emirates",
     UnitedKingdom: "United Kingdom",
+    UnitedStates: 'United States',
     UnitedStatesOfAmerica: "United States of America",
     Uruguay: "Uruguay",
     Uzbekistan: "Uzbekistan",
