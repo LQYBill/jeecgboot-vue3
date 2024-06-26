@@ -18,6 +18,7 @@
         {{t('component.table.selectAll')}}
       </a-checkbox>
     </template>
+    <!--// :disabled property added by Gauthier WIA -->
     <a-select-option v-for="(item, index) in dictOptions" :key="index" :getPopupContainer="getParentContainer" :value="item.value" :disabled="item.disabled">
       <span :class="[useDicColor && item.color ? 'colorText' : '']" :style="{ backgroundColor: `${useDicColor && item.color}` }">{{ item.text || item.label }}</span>
     </a-select-option>

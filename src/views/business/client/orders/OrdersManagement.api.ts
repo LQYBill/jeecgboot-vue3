@@ -3,4 +3,5 @@ export enum Api {
   getShops = '/shippingInvoice/shopsByClient',
   getOrders = '/business/platformOrder/ordersByShop',
   postOrders = '/business/platformOrder/orderManagement',
+  getRecipientInfo = '/business/platformOrder/recipientInfo',
 }

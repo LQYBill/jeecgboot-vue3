@@ -52,34 +52,7 @@
           </a-col>
         </a-row>
         <a-row>
-          <a-card
-            :bordered='false'
-            :title='t("data.invoice.estimatedFeesForSelectedOrders")'
-            :loading='estimation.length === 0 ? false : !estimatesReady'
-            style="width: 100%;">
-            <div class="cardGridContainer">
-              <p class="mt-4" style="width: 100%" v-if='estimation.length === 0'>{{t("data.invoice.noOrdersSelected")}}</p>
-              <template v-for='item in estimation' style='width:20%;text-align:center'>
-                <div class="fee-card" style="min-height: 170px">
-                  <div class="flex flex-col items-center head-info">
-                    <h1 class="text-md mt-2">{{item.shop}}</h1>
-                    <div class="flex justify-between w-full">
-                      <span class="text-md mt-2">{{ t('data.invoice.shippingFee')}} : </span>
-                      <span class="text-md mt-2">{{item?.shippingFeesEstimation}} €</span>
-                    </div>
-                    <div class="flex justify-between w-full">
-                      <span class="text-md mt-2">{{ t('data.invoice.purchaseFee')}} : </span>
-                      <span class="text-md mt-2">{{item?.purchaseEstimation}} €</span>
-                    </div>
-                    <div class="flex justify-between w-full">
-                      <span class="text-md mt-2">{{ t('data.invoice.total')}} : </span>
-                      <span class="text-md mt-2">{{item?.totalEstimation}} €</span>
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </div>
-          </a-card>
+          <estimation-by-shop-card :estimates-ready="estimatesReady" :estimation="estimation"/>
         </a-row>
       </a-form>
       <BasicTable @register="registerTable" id="orders-list-table">
@@ -163,6 +136,8 @@ import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect
 import intro from "intro.js";
 import {useModal} from "@/components/Modal";
 import InvoicingHelpModal from "@/views/business/client/_components/InvoicingHelpModal.vue";
+import {estimation as estimationDTO} from "@/views/business/dto/estimation.dto";
+import EstimationByShopCard from "@/views/business/components/EstimationByShopCard.vue";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -181,14 +156,14 @@ const validatorRules = ref({
 const formState = reactive<Record<string, any>>({
   shop: '',
 });
-const { resetFields, validate, validateInfos } = useForm(formState, validatorRules, { immediate: false });
+const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
 const Api = {
   getClient: "/userClient/getClient",
   getSelfServiceClients: "/userClient/getSelfServiceClients",
   getShops: "/shippingInvoice/shopsByClient",
   getOrders: "/shippingInvoice/preShipping/ordersStatusByShops",
-  selfEstimateFees: '/shippingInvoice/selfEstimateFees',
+  completeFeesEstimation: '/shippingInvoice/completeFeesEstimation',
   makeManualShippingInvoice: "/shippingInvoice/makeManualInvoice",
   makeManualPurchaseInvoice: "/shippingInvoice/makeManualPurchaseInvoice",
   makeCompleteManualInvoice: "/shippingInvoice/makeManualComplete",
@@ -222,7 +197,6 @@ const makeCompleteLoading = ref<boolean>(false);
 const estimatesReady = ref<boolean>(true);
 const estimation = ref<any[]>([]);
 
-const expandedRowKeys = ref<any[]>([]);
 const iSorter = ref({
   field: 'shopId',
   order: 'ascend'
@@ -241,7 +215,7 @@ let ipagination = ref({
 });
 
 const [registerModal, {openModal}] = useModal();
-const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, getSelectRowKeys, setLoading }] = useTable({
+const [registerTable, { clearSelectedRowKeys, getSelectRows, getSelectRowKeys, setLoading }] = useTable({
   columns: getColumns(),
   dataSource: orderList,
   rowSelection: {
@@ -402,14 +376,14 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
     orderIds: getSelectRowKeys(),
     type: "preshipping",
   };
-  defHttp.post({url: Api.selfEstimateFees, params: param})
+  defHttp.post({url: Api.completeFeesEstimation, params: param})
     .then(
-      res => {
+      (res:{[key: string]: estimationDTO}) => {
         estimation.value = [];
         for(let shop in res) {
-          let shopName = getShopName(shop);
+          // let shopName = getShopName(shop);
           let shopEstimation = res[shop];
-          shopEstimation.shop = shopName;
+          // shopEstimation.shop = shopName;
           estimation.value.push(shopEstimation);
         }
         estimatesReady.value = true;

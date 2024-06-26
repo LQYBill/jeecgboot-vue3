@@ -288,7 +288,7 @@ export default defineComponent({
     const formState = reactive<Record<string, any>>({
       customer: '',
     });
-    const { resetFields, validate, validateInfos } = useForm(formState, validatorRules, { immediate: false });
+    const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
     const Api = {
       getClient: '/userClient/getClient',
@@ -661,22 +661,23 @@ export default defineComponent({
      * colorize debit and credit rows for better visibility
      */
     function colorizeRows() {
-      let rows = document.getElementsByClassName('ant-table-row-level-0');
-      [].forEach.call(rows, function(row:Element) {
-        if(row.children[0].textContent == 'Estimation') {
-          for(let cell of row.children) {
+      let rows = Array.from(document.getElementsByClassName('ant-table-row-level-0') as HTMLCollectionOf<HTMLElement>);
+      [].forEach.call(rows, function(row: HTMLElement) {
+        let children = Array.from(row.children as HTMLCollectionOf<HTMLElement>);
+        if(children[0].textContent == 'Estimation') {
+          for(let cell of children) {
             cell.style.backgroundColor = estimationColor;
           }
         }
-        if(row.children[1].textContent == 'Debit') {
-          row.children[0].style.borderLeftStyle = "solid";
-          row.children[0].style.borderLeftColor = debitColor;
-          row.children[0].style.borderLeftWidth = "5px";
+        if(children[1].textContent == 'Debit') {
+          children[0].style.borderLeftStyle = "solid";
+          children[0].style.borderLeftColor = debitColor;
+          children[0].style.borderLeftWidth = "5px";
         }
-        if(row.children[1].textContent == 'Credit') {
-          row.children[0].style.borderLeftStyle = "solid";
-          row.children[0].style.borderLeftColor = creditColor;
-          row.children[0].style.borderLeftWidth = "5px";
+        if(children[1].textContent == 'Credit') {
+          children[0].style.borderLeftStyle = "solid";
+          children[0].style.borderLeftColor = creditColor;
+          children[0].style.borderLeftWidth = "5px";
         }
       });
       eurTableLoading.value = false;
