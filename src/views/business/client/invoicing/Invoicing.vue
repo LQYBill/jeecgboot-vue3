@@ -48,14 +48,14 @@
             </a-form-item>
           </a-col>
           <a-col :span="5">
-            <a-button type="primary" preIcon="ant-design:search-outlined" @click="loadOrders" :disabled="searchDisabled">{{ t('common.operation.search') }}</a-button>
+            <a-button type="primary" preIcon="ant-design:search-outlined" @click="loadOrders(1)" :disabled="searchDisabled">{{ t('common.operation.search') }}</a-button>
           </a-col>
         </a-row>
         <a-row>
           <estimation-by-shop-card :estimates-ready="estimatesReady" :estimation="estimation"/>
         </a-row>
       </a-form>
-      <BasicTable @register="registerTable" id="orders-list-table">
+      <BasicTable @register="registerTable" id="orders-list-table" ref="tableRef">
         <template #tableTitle>
           <PopConfirmButton
             type="primary"
@@ -112,6 +112,33 @@
             {{ record?.purchaseAvailable === '0' ? t("common.available") : record?.purchaseAvailable === '1' ? t('data.invoice.invoiced') : record?.purchaseAvailable === '2' ? t("data.invoice.paid") : t("common.unavailable") }}
           </Tag>
         </template>
+        <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
+          <div class="p-2 flex flex-col items-center justify-between w-48 min-h-20 mb-1 gap-4">
+            <div class=" w-full flex flex-no-wrap gap-1">
+              <a-select
+                v-model:value="formState[column.dataIndex]"
+                ref="searchInput"
+                mode="multiple"
+                @change="e => handleFilterSelectChange(e, setSelectedKeys)"
+                @pressEnter="handleSearch(selectedKeys, confirm, column?.dataIndex)"
+                allowClear
+                class="flex-1"
+              >
+                <a-select-option value="0">{{t("common.available") }}</a-select-option>
+                <a-select-option value="1">{{ t('data.invoice.invoiced') }}</a-select-option>
+                <a-select-option value="2">{{ t("data.invoice.paid") }}</a-select-option>
+                <a-select-option value="-1">{{ t("common.unavailable") }}</a-select-option>
+              </a-select>
+              <a-button type="primary" @click="handleSearch(selectedKeys, confirm, column?.dataIndex)" preIcon="ant-design:search-outlined" class=""/>
+            </div>
+            <div class="flex justify-between w-full">
+              <a-button @click="handleReset(clearFilters)" preIcon="ic:baseline-restart-alt" class="flex-1"/>
+            </div>
+          </div>
+        </template>
+        <template #filterIcon="filtered">
+          <SearchOutlined :style="{ color: filtered ? 'var(--primary-color)' : undefined }" />
+        </template>
       </BasicTable>
     </a-card>
     <InvoicingHelpModal @register="registerModal" @success="" @guide="startGuide"/>
@@ -138,6 +165,9 @@ import {useModal} from "@/components/Modal";
 import InvoicingHelpModal from "@/views/business/client/_components/InvoicingHelpModal.vue";
 import {estimation as estimationDTO} from "@/views/business/dto/estimation.dto";
 import EstimationByShopCard from "@/views/business/components/EstimationByShopCard.vue";
+import {toUpper} from "lodash-es";
+import {filterObj} from "@/utils/common/compUtils";
+import {SearchOutlined} from "@ant-design/icons-vue";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -146,6 +176,7 @@ onBeforeMount(() => {
   checkUser();
 });
 
+const tableRef = ref();
 const useForm = Form.useForm;
 const formRef = ref();
 const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 6 } });
@@ -155,7 +186,14 @@ const validatorRules = ref({
 });
 const formState = reactive<Record<string, any>>({
   shop: '',
+  shippingAvailable: [],
+  purchaseAvailable: [],
 });
+const state = reactive({
+  searchText: Array<any>(),
+  searchedColumn: '',
+});
+const searchInput = ref();
 const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
 const Api = {
@@ -197,23 +235,25 @@ const makeCompleteLoading = ref<boolean>(false);
 const estimatesReady = ref<boolean>(true);
 const estimation = ref<any[]>([]);
 
+const total = ref(0);
+const page = ref(1);
+const pageSize = ref(50);
 const iSorter = ref({
-  field: 'shopId',
-  order: 'ascend'
+  column: 'order_time',
+  order: 'ASC'
 });
 let ipagination = ref({
-  current: 1,
+  current: page,
   defaultPageSize: 50,
-  pageSize: 50,
+  pageSize,
   pageSizeOptions: ['50', '100', '200', '500'],
-  showTotal: (total, range) => {
-    return range[0] + '-' + range[1] + ' / ' + total
-  },
+  showTotal: showPaginationTotal,
   showQuickJumper: true,
   showSizeChanger: true,
-  total: 0,
+  total,
+  onChange: handlePaginationChange,
+  onShowSizeChange: handleShowSizeChange,
 });
-
 const [registerModal, {openModal}] = useModal();
 const [registerTable, { clearSelectedRowKeys, getSelectRows, getSelectRowKeys, setLoading }] = useTable({
   columns: getColumns(),
@@ -225,6 +265,7 @@ const [registerTable, { clearSelectedRowKeys, getSelectRows, getSelectRowKeys, s
   },
   pagination: ipagination,
   defSort: iSorter,
+  // onChange: handleTableChange,
   bordered: false,
   striped: true,
   clickToRowSelect: true,
@@ -316,7 +357,38 @@ function handleShopChange(shops) {
   makeCompleteLoading.value = false;
   searchDisabled.value = selectedShopIds.value.length === 0;
 }
-function loadOrders() {
+function getQueryParams() {
+  let params = Object.assign(iSorter.value);
+  params.pageNo = ipagination.value.current;
+  params.pageSize = ipagination.value.pageSize;
+  params.order = toUpper(iSorter.value.order);
+  params.column = iSorter.value.column;
+  params.shopIds = selectedShopIds.value;
+  return filterObj(params);
+}
+// function handleTableChange(pagination, sorter) {
+  // ipagination.value = pagination;
+  // if (Object.keys(sorter).length > 0) {
+  //   iSorter.value.field = sorter.field
+  //   iSorter.value.order = 'ascend' === sorter.order ? 'asc' : 'desc'
+  // }
+  // loadOrders();
+// }
+function handlePaginationChange(p, pz) {
+  page.value = p;
+  pageSize.value = pz;
+  loadOrders();
+}
+function handleShowSizeChange(current, size) {
+  page.value = current;
+  pageSize.value = size;
+  loadOrders(1);
+}
+function loadOrders(arg?:number) {
+  if(arg === 1) {
+    ipagination.value.current = 1;
+  }
+  let params = getQueryParams();
   orderList.value = [];
   ordersAndStatusList.value = [];
   makeShippingDisabled.value = true;
@@ -327,10 +399,18 @@ function loadOrders() {
   makeCompleteLoading.value = false;
   clearSelectedRowKeys();
   setLoading(true);
-  defHttp.get({url : Api.getOrders, params: {shopIds: selectedShopIds.value}})
+  defHttp.get({url : Api.getOrders, params})
     .then(res => {
       ordersAndStatusList.value = res.records;
       orderList.value = res.records;
+      total.value = res.total;
+      page.value = res.current;
+      pageSize.value = res.size;
+      tableRef.value.setPagination({
+        current: page.value,
+        pageSize: pageSize.value,
+        total: total.value,
+      });
     })
     .catch(e => {
       console.error(e);
@@ -338,6 +418,9 @@ function loadOrders() {
     .finally(() => {
       setLoading(false)
     });
+}
+function showPaginationTotal(range: Array<number>) {
+  return range[0] + '-' + range[1] + ' / ' + ipagination.value.total;
 }
 function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
   makeShippingDisabled.value = true;
@@ -379,6 +462,11 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
   defHttp.post({url: Api.completeFeesEstimation, params: param})
     .then(
       (res:{[key: string]: estimationDTO}) => {
+        if(selectedRowKeys.length == 0) {
+          estimation.value = [];
+          estimatesReady.value = true;
+          return;
+        }
         estimation.value = [];
         for(let shop in res) {
           // let shopName = getShopName(shop);
@@ -460,7 +548,7 @@ function makeManualShippingInvoice() {
       clearSelectedRowKeys();
       shopDisabled.value = false;
       searchDisabled.value = false;
-      loadOrders();
+      loadOrders(1);
       makeShippingLoading.value = false;
     });
 }
@@ -495,7 +583,7 @@ function makeManualPurchaseInvoice() {
       clearSelectedRowKeys();
       shopDisabled.value = false;
       searchDisabled.value = false;
-      loadOrders();
+      loadOrders(1);
       makePurchaseLoading.value = false;
     });
 }
@@ -568,17 +656,17 @@ function startGuide() {
       },
       {
         title: 'First step',
-        element: document.querySelector(`#shop-search`)!,
+        element: <HTMLElement> document.querySelector(`#shop-search`)!,
         intro: 'First select the shop(s) you want to invoice.',
       },
       {
         title: 'List of orders to invoice',
-        element: document.querySelector(`#orders-list-table`)!,
+        element: <HTMLElement> document.querySelector(`#orders-list-table`)!,
         intro: 'Orders that are available to be invoiced will be listed here.<br/> It may take a few seconds to load the orders, so be patient ;).',
       },
       {
         title: 'Estimation of fees',
-        element: document.querySelector(`.cardGridContainer`)!,
+        element: <HTMLElement> document.querySelector(`.cardGridContainer`)!,
         intro: 'Fees estimation for the selected orders will be displayed here.',
       },
     ],
@@ -589,6 +677,19 @@ function startGuide() {
 function openHelpModal() {
   openModal(true, { })
 }
+const handleFilterSelectChange = (e, setSelectedKeys) => {
+  setSelectedKeys(e ? [e] : [])
+}
+const handleSearch = (selectedKeys, confirm, dataIndex) => {
+  confirm();
+  state.searchText = selectedKeys;
+  state.searchedColumn = dataIndex;
+};
+const handleReset = (clearFilters) => {
+  clearFilters({ confirm: true });
+  formState.shippingAvailable = [];
+  formState.purchaseAvailable = [];
+};
 </script>
 <style lang="less">
 @geekBlue: #1d39c4;
