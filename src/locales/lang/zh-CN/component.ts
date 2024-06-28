@@ -66,6 +66,7 @@ export default {
   searchForm: {
     //placeholder
     actionInput: '请选择一个操作',
+    addressInput: '请输入地址',
     amountInput: '请输入金额',
     currencyInputSearch: '请选择货币',
     qtyAutoPicker: '设置所有 SKU 的数量',
@@ -86,9 +87,11 @@ export default {
     orderSelectModeInputSearch: "请选择订单选择模式",
     ordersSelectSearch: "请选择订单",
     paidAmountInput: "请输入已付金额",
+    phoneInput: '请输入电话号码',
     platformOrderID: '请选择平台订ID',
     platformOrderIDFilter: '按平台订ID查看',
     reasonInputText: '请输入原因',
+    recipientInputText: '请输入收件人信息',
     skuSelectSearch: "输入sku选择",
     userFilter: '按用户查看',
     userSelect: '请输入用户',

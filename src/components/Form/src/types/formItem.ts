@@ -88,4 +88,8 @@ export interface FormItem {
    * When to validate the value of children node
    */
   validateTrigger?: string | string[] | false;
+  /**
+   * id field edited by Gauthier WIA
+   */
+  id?: string;
 }

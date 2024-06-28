@@ -27,7 +27,7 @@
     <template v-slot:createTime="record">
       <time :datetime="record.text"><span>{{ record.text.split(' ')[0] }}</span><br/><span class="font-extralight">{{ record.text.split(' ')[1] }}</span></time>
     </template>
-    <template v-slot:action="{ record, column }">
+    <template v-slot:action="{ record }">
       <TableAction
         :actions="[
           {
@@ -52,7 +52,7 @@
         ]"
       />
     </template>
-    <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
+    <template #customFilterDropdown="{ confirm }">
       <div class="p-2 flex flex-col items-center justify-between w-48 min-h-20 mb-1 gap-4">
         <div class=" w-full flex flex-no-wrap gap-1">
           <a-select
@@ -81,12 +81,11 @@
   <SavRefundModal @register="registerModal" @success="loadList" :isDisabled="isDisabled"/>
 </template>
 <script lang="ts" setup>
-import {BasicColumn, BasicTable, FormSchema, TableAction, useTable} from "/@/components/Table";
+import {BasicTable, TableAction, useTable} from "/@/components/Table";
 import {defHttp} from '/@/utils/http/axios';
-import {useMessage} from '/@/hooks/web/useMessage';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMethods} from "/@/hooks/system/useMethods";
-import {computed, onMounted, reactive, ref, toRaw, unref, watch} from "vue";
+import {computed, onMounted, reactive, ref} from "vue";
 import {filterObj} from "/@/utils/common/compUtils";
 import {useModal} from "/@/components/Modal";
 
@@ -99,7 +98,6 @@ import {Select as ASelect} from "ant-design-vue";
 import { PageWrapper } from '/@/components/Page';
 import {columns, searchFormSchema} from "/@/views/business/admin/savRefund/data/savRefundList.data";
 
-const { createMessage:msg } = useMessage();
 const { t } = useI18n();
 const { handleExportXls, handleImportXls } = useMethods();
 const [registerModal, { openModal }] = useModal();
@@ -119,9 +117,7 @@ enum Api {
 
 const isDisabled = ref(false);
 
-const dictOptions = ref<Object>({});
-
-const [registerForm, { resetFields, setFieldsValue, validate }] = useForm({
+const [registerForm] = useForm({
   actionColOptions: {
     span: 6,
   },
@@ -163,7 +159,7 @@ const exportParams = computed(()=>{
 const dataSource = ref<Recordable<any>[]>();
 const filters = ref<any>({invoiceNumber: 'null'});
 const loading = ref<boolean>(false);
-const [registerTable, {reload}] = useTable({
+const [registerTable] = useTable({
   rowSelection,
   columns,
   dataSource,
@@ -230,7 +226,7 @@ function handleReset() {
   filters.value = {};
   loadList(1);
 }
-function handleTableChange(pagination, filters, sorter) {
+function handleTableChange(pagination, sorter) {
   iPagination.value = pagination;
   if (Object.keys(sorter).length > 0) {
     iSorter.value.column = sorter.field
@@ -249,7 +245,7 @@ function getQueryParams() {
   params.invoiceNumber = filters.value.invoiceNumber;
   return filterObj(params);
 }
-function loadList(arg?) {
+function loadList(arg?:number) {
   loading.value = true;
   if (arg === 1) {
     iPagination.value.current = 1;

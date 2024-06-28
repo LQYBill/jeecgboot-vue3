@@ -1,0 +1,15 @@
+export enum Api {
+  getClient = '/userClient/getClient',
+  getShops = '/shippingInvoice/shopsByClient',
+  getOrdersByShop = '/business/platformOrder/ordersByShop',
+  postOrders = '/business/platformOrder/orderManagement',
+  getRecipientInfo = '/business/platformOrder/recipientInfo',
+  getSelfServiceClients = "/userClient/getSelfServiceClients",
+  getOrderStatusByShop = "/shippingInvoice/preShipping/ordersStatusByShops",
+  completeFeesEstimation = '/shippingInvoice/completeFeesEstimation',
+  makeManualShippingInvoice = "/shippingInvoice/makeManualInvoice",
+  makeManualPurchaseInvoice = "/shippingInvoice/makeManualPurchaseInvoice",
+  makeCompleteManualInvoice = "/shippingInvoice/makeManualComplete",
+  downloadInvoice = "/shippingInvoice/download",
+  downloadInvoiceDetail = "/shippingInvoice/downloadInvoiceDetail",
+}
