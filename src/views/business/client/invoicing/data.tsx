@@ -49,10 +49,6 @@ export function getColumns(): BasicColumn[] {
       slots: { customRender: 'shippingAvailability' },
       customFilterDropdown: true,
       onFilter(value: Array<string | number | boolean >, record) {
-        console.group('onFilter shippingAvailable')
-        console.log(value)
-        console.log(record.shippingAvailable)
-        console.groupEnd()
         return value.includes(record.shippingAvailable);
       },
       fixed: 'right',
@@ -66,10 +62,6 @@ export function getColumns(): BasicColumn[] {
       fixed: 'right',
       customFilterDropdown: true,
       onFilter(value: Array<string | number | boolean >, record) {
-        console.group('onFilter shippingAvailable')
-        console.log(value)
-        console.log(record.purchaseAvailable)
-        console.groupEnd()
         return value.includes(record.purchaseAvailable);
       },
     },
