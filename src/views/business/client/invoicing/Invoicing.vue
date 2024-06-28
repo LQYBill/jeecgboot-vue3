@@ -168,6 +168,7 @@ import EstimationByShopCard from "@/views/business/components/EstimationByShopCa
 import {toUpper} from "lodash-es";
 import {filterObj} from "@/utils/common/compUtils";
 import {SearchOutlined} from "@ant-design/icons-vue";
+import {Api} from "@/views/business/client/client.api";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -195,19 +196,6 @@ const state = reactive({
 });
 const searchInput = ref();
 const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
-
-const Api = {
-  getClient: "/userClient/getClient",
-  getSelfServiceClients: "/userClient/getSelfServiceClients",
-  getShops: "/shippingInvoice/shopsByClient",
-  getOrders: "/shippingInvoice/preShipping/ordersStatusByShops",
-  completeFeesEstimation: '/shippingInvoice/completeFeesEstimation',
-  makeManualShippingInvoice: "/shippingInvoice/makeManualInvoice",
-  makeManualPurchaseInvoice: "/shippingInvoice/makeManualPurchaseInvoice",
-  makeCompleteManualInvoice: "/shippingInvoice/makeManualComplete",
-  downloadInvoice: "/shippingInvoice/download",
-  downloadInvoiceDetail: "/shippingInvoice/downloadInvoiceDetail",
-}
 
 const internalUse = ref<boolean>(false);
 
@@ -374,12 +362,12 @@ function getQueryParams() {
   // }
   // loadOrders();
 // }
-function handlePaginationChange(p, pz) {
+function handlePaginationChange(p:number, pz:number) {
   page.value = p;
   pageSize.value = pz;
   loadOrders();
 }
-function handleShowSizeChange(current, size) {
+function handleShowSizeChange(current:number, size:number) {
   page.value = current;
   pageSize.value = size;
   loadOrders(1);
@@ -399,7 +387,7 @@ function loadOrders(arg?:number) {
   makeCompleteLoading.value = false;
   clearSelectedRowKeys();
   setLoading(true);
-  defHttp.get({url : Api.getOrders, params})
+  defHttp.get({url : Api.getOrderStatusByShop, params})
     .then(res => {
       ordersAndStatusList.value = res.records;
       orderList.value = res.records;
@@ -419,8 +407,8 @@ function loadOrders(arg?:number) {
       setLoading(false)
     });
 }
-function showPaginationTotal(range: Array<number>) {
-  return range[0] + '-' + range[1] + ' / ' + ipagination.value.total;
+function showPaginationTotal(total: number, range: [number, number]) {
+  return range[0] + '-' + range[1] + ' / ' + total;
 }
 function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
   makeShippingDisabled.value = true;

@@ -59,7 +59,7 @@ import {useI18n} from "@/hooks/web/useI18n";
 
 import JSearchSelect from "@/components/Form/src/jeecg/components/JSearchSelect.vue";
 import {defHttp} from "@/utils/http/axios";
-import {Api} from "@/views/business/client/orders/OrdersManagement.api";
+import {Api} from "@/views/business/client/client.api";
 import {
   OperationEnum,
   OrderActionParam, OrderActionResponse,
@@ -515,7 +515,7 @@ function handleShopChange(newShop: string, field: string) {
 }
 function loadOrders(shopId:string, field: string) {
   if(!orderListByShop.value.hasOwnProperty(shopId)) {
-    defHttp.get({url: Api.getOrders, params: {shopID: shopId}})
+    defHttp.get({url: Api.getOrdersByShop, params: {shopID: shopId}})
       .then(res => {
         orderListByShop.value[shopId] = res;
         selectableOrderList.value[shopId] = res;
