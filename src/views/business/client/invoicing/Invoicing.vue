@@ -333,6 +333,9 @@ function loadShopList(clientId) {
 }
 function handleShopChange(shops) {
   // value returned is array of shop
+  page.value = 1;
+  pageSize.value = 50;
+  total.value = 0;
   clearSelectedRowKeys();
   orderList.value = [];
   ordersAndStatusList.value = [];
@@ -375,6 +378,8 @@ function handleShowSizeChange(current:number, size:number) {
 function loadOrders(arg?:number) {
   if(arg === 1) {
     ipagination.value.current = 1;
+    clearSelectedRowKeys();
+    estimation.value = [];
   }
   let params = getQueryParams();
   orderList.value = [];
@@ -385,7 +390,6 @@ function loadOrders(arg?:number) {
   makePurchaseLoading.value = false;
   makeCompleteDisabled.value = true;
   makeCompleteLoading.value = false;
-  clearSelectedRowKeys();
   setLoading(true);
   defHttp.get({url : Api.getOrderStatusByShop, params})
     .then(res => {
