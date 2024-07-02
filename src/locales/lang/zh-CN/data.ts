@@ -55,7 +55,9 @@ export default {
   },
   recipient: {
     recipient: "收件人",
+    address: "地址",
     country: "目的国家",
+    phoneNumber: "电话号码",
     postalCode: "邮编"
   },
   logistics: {

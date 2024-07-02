@@ -4,12 +4,13 @@ import {downloadFile} from '/@/api/common/api';
 enum Api {
   createOrder='/shippingInvoice/makeManualSkuPurchaseInvoice',
   getClientList = '/client/client/all',
+  getSkuListByClient = '/sku/skuListByClient',
   getSkusByClient = '/sku/skusByClient',
   downloadInvoice = '/shippingInvoice/download',
   downloadInventory = '/shippingInvoice/downloadInventory',
   getMabangUsername = '/sys/user/getMabangUsername',
 }
-export const getMabangUsername = (handleSuccess:any) => {
+export const getMabangUsername = async (handleSuccess:any) => {
   return defHttp.get({url: Api.getMabangUsername})
     .then(res => {
       handleSuccess(res);
@@ -17,7 +18,7 @@ export const getMabangUsername = (handleSuccess:any) => {
       handleSuccess(null);
     });
 }
-export const listCustomers = (handleSuccess:any) => {
+export const listCustomers = async (handleSuccess:any) => {
   return defHttp.get({url: Api.getClientList})
     .then(res => {
       let customerSelectList = res.map(
@@ -43,12 +44,19 @@ export const listCustomers = (handleSuccess:any) => {
       console.error(e);
     })
 }
-
-export const listSkus = (params:any, handleSuccess:any) => {
+export const listSkusForFilter = async (params:{clientId:string}, handleSuccess:any) => {
+  return defHttp.get({url: Api.getSkuListByClient, params})
+    .then(res => {
+      handleSuccess(res);
+    })
+    .catch(e => {
+      console.error(e);
+    });
+}
+export const listClientSkus = async (params:any, handleSuccess:any) => {
   return defHttp.get({url: Api.getSkusByClient, params})
     .then(res => {
-      let skuList = res.records;
-      handleSuccess(skuList);
+      handleSuccess(res);
     })
     .catch(e => {
       console.error(e);

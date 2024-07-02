@@ -47,6 +47,10 @@ export function getColumns(): BasicColumn[] {
       sorter: (a, b) => a['shippingAvailable'].localeCompare(b['shippingAvailable']),
       dataIndex: 'shippingAvailable',
       slots: { customRender: 'shippingAvailability' },
+      customFilterDropdown: true,
+      onFilter(value: Array<string | number | boolean >, record) {
+        return value.includes(record.shippingAvailable);
+      },
       fixed: 'right',
     },
     {
@@ -56,6 +60,10 @@ export function getColumns(): BasicColumn[] {
       dataIndex: 'purchaseAvailable',
       slots: { customRender: 'purchaseAvailability' },
       fixed: 'right',
+      customFilterDropdown: true,
+      onFilter(value: Array<string | number | boolean >, record) {
+        return value.includes(record.purchaseAvailable);
+      },
     },
   ];
 }

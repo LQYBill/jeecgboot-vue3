@@ -55,6 +55,8 @@ export default {
   },
   recipient: {
     recipient: "Recipient",
+    address: "Address",
+    phoneNumber: "Phone Number",
     country: "Destination Country",
     postalCode: "zip code"
   },

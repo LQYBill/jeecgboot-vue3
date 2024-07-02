@@ -66,6 +66,7 @@ export default {
   searchForm: {
     //placeholder
     actionInput: 'Select a action',
+    addressInput: 'Please enter an address',
     amountInput: 'Enter an amount',
     currencyInputSearch: 'Select a currency',
     qtyAutoPicker: 'Set quantity for all Skus',
@@ -83,9 +84,11 @@ export default {
     orderSelectModeInputSearch: "Choose an order selection mode",
     ordersSelectSearch: "Select orders",
     paidAmountInput: "Please enter the paid amount",
+    phoneInput: 'Please enter a phone number',
     platformOrderID: 'Select a Platform Order ID',
     platformOrderIDFilter: 'Filter Platform Order ID',
     reasonInputText: 'Please enter a reason',
+    recipientInputText: 'Please enter recipient information',
     shopFilter: "Filter by shop",
     shopInputSearch: "Select a shop",
     shopsInputSearch: "Select shops",

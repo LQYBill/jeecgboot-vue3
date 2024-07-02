@@ -213,23 +213,7 @@
           </a-spin>
         </a-row>
         <a-row v-if="orderSelectMode == 0 && step >= 4">
-          <a-card
-            :bordered='false'
-            :title='t("data.invoice.shippingFeesEstimationForSelectedOrders")'
-            :loading='!estimatesReady'
-            style="width: 100%">
-            <div class="cardGridContainer">
-              <p class="mt-4" style="width: 100%" v-if='shippingFeesEstimates.length === 0'>{{t("data.invoice.noOrdersSelected")}}</p>
-              <template v-for='item in shippingFeesEstimates' style='width:20%;text-align:center'>
-                <div class="fee-card">
-                  <div class="flex flex-col items-center head-info">
-                    <span class="text-md mt-2">{{item?.shop}}</span>
-                    <p class="text-md mt-2">{{item?.dueForProcessedOrders}} €</p>
-                  </div>
-                </div>
-              </template>
-            </div>
-          </a-card>
+          <estimation-by-shop-card :estimates-ready="estimatesReady" :estimation="estimation"/>
         </a-row>
       </a-form>
       <div v-if="orderSelectMode == 0 && step >= 4" :class="[step == 5 && orderSelectMode == 0 ? 'focus' : '']">
@@ -285,7 +269,7 @@
 </template>
 <script setup lang="ts">
 import {PageWrapper} from "/@/components/Page";
-import {onMounted, reactive, ref} from "vue";
+import {onMounted, onUnmounted, reactive, ref} from "vue";
 import {defHttp} from "/@/utils/http/axios";
 import {useMessage} from "/@/hooks/web/useMessage";
 import {useI18n} from "/@/hooks/web/useI18n";
@@ -301,7 +285,9 @@ import PlatformOrderContentSubTable
 import JRangeDate from "/@/components/Form/src/jeecg/components/JRangeDate.vue";
 import BasicHelp from "/@/components/Basic/src/BasicHelp.vue";
 import Icon from "/@/components/Icon/src/Icon.vue";
-
+import {shippingInvoiceParam} from "@/views/business/dto/shippingInvoiceParam.dto";
+import  {estimation as estimationDTO} from "@/views/business/dto/estimation.dto";
+import EstimationByShopCard from "@/views/business/components/EstimationByShopCard.vue";
 const { t } = useI18n();
 const { createMessage } = useMessage();
 
@@ -310,6 +296,10 @@ onMounted (()=> {
   // loadCountryList();
   step.value = 0;
 });
+onUnmounted(() => {
+  controller.abort();
+});
+let controller = new AbortController();
 const useForm = Form.useForm;
 const formRef = ref();
 const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 6 } });
@@ -330,7 +320,7 @@ const formState = reactive<Record<string, any>>({
   orderSelectMode: '',
   warehouse: '',
 });
-const { resetFields, validate, validateInfos } = useForm(formState, validatorRules, { immediate: false });
+const {validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
 const Api = {
   getClientList: "/client/client/all",
@@ -348,7 +338,8 @@ const Api = {
   downloadInvoiceDetail: "/shippingInvoice/downloadInvoiceDetail",
   listOrders: '/shippingInvoice/orders',
   checkSkuPrices: '/shippingInvoice/checkSkuPrices',
-  estimateShippingFees: '/shippingInvoice/estimate',
+  // estimateShippingFees: '/shippingInvoice/estimate',
+  completeFeesEstimation: '/shippingInvoice/completeFeesEstimation',
   syncOrders: '/shippingInvoice/syncByIds',
 }
 
@@ -391,7 +382,7 @@ const searchDisabled = ref<boolean>(true);
 const findOrdersLoading = ref<boolean>(false);
 const orderListLoading = ref<boolean>(false);
 const estimatesReady = ref<boolean>(true);
-const shippingFeesEstimates = ref([]);
+const estimation = ref<estimationDTO[]>([]);
 
 const makeManualInvoiceSpinning = ref<boolean>(false);
 const makeManualInvoiceDisabled = ref<boolean>(true);
@@ -419,8 +410,8 @@ const rowSelection = {
 };
 let ipagination = ref({
   current: 1,
-  defaultPageSize: 100,
-  pageSize: 100,
+  defaultPageSize: 50,
+  pageSize: 50,
   pageSizeOptions: ['50', '100', '200', '500'],
   showTotal: (total, range) => {
     return range[0] + '-' + range[1] + ' / ' + total
@@ -507,7 +498,7 @@ const columns: BasicColumn[] = [
     slots: {customRender: 'toReview'},
   },
 ];
-const [registerTable, { reload, expandAll, collapseAll }] = useTable({
+const [registerTable] = useTable({
   title: t('data.invoice.orderList'),
   isTreeTable: true,
   expandIconColumnIndex: 1,
@@ -622,7 +613,6 @@ function handleClientChange(id) {
   let index = customerList.value.map(i => i.id).indexOf(id);
   customerId.value = id;
   customerInfo.value = customerList.value[index];
-  console.log(`customer info : ${JSON.stringify(customerInfo.value)}`);
   //clear selected shops
   shopDisabled.value = true;
   searchDisabled.value = true;
@@ -687,7 +677,7 @@ function loadAvailableDate() {
   else { // (1,2) & (1,2,3)
     let param = {
       shopIds: shopIDs.value.toString().split(","),
-      erpStatuses: erpStatus.value.toString().split(","),
+      erpStatuses: erpStatus.value!.toString().split(","),
     };
     return defHttp.get({url: Api.getValidOrderTimePeriod, params: param})
       .then(
@@ -850,7 +840,7 @@ function syncOrders() {
     platformOrderIds.push(order.platformOrderId)
   });
   defHttp.get({url: Api.syncOrders, params: {orderIds: platformOrderIds}})
-    .then(res => {
+    .then(() => {
       syncDisabled.value = true;
     });
 }
@@ -869,7 +859,7 @@ function checkSkuBetweenDate() {
     createMessage.warning(t('component.searchForm.warehouseSelect'))
     return;
   }
-  let param = {
+  let param: shippingInvoiceParam = {
     clientID: customerId.value.toString(),
     shopIDs: shopIDs.value.toString().split(','),
     start: selectedStartDate.value.toString(),
@@ -878,7 +868,7 @@ function checkSkuBetweenDate() {
   };
   if(erpStatus.value === '3') {
     defHttp.post({url: Api.checkOrdersBetweenDate, params: param})
-      .then(res => {
+      .then(() => {
         purchasePricesAvailable.value = true;
         // if user changes select mode too fast, before the check is finished, the buttons will enable themselves
         // so we make sure we are using the correct mode and a mode is selected
@@ -899,7 +889,7 @@ function checkSkuBetweenDate() {
     // check sku but not it's order time between and erp_status IN (???)
     param.erpStatuses = erpStatus.value?.toString().split(',');
     defHttp.post({url: Api.checkOrdersBetweenOrderDate, params: param})
-      .then(res => {
+      .then(() => {
         purchasePricesAvailable.value = true;
         completeInvoiceDisabled.value = orderSelectMode.value !== 1;
       }).catch(e => {
@@ -1218,8 +1208,8 @@ function clearField(field:any) {
     case "manualSelection":
       ipagination.value.current = 1;
       ipagination.value.total = 1;
-      ipagination.value.pageSize = 100;
-      ipagination.value.defaultPageSize = 100;
+      ipagination.value.pageSize = 50;
+      ipagination.value.defaultPageSize = 50;
       orderList.value = [];
       searchDisabled.value = true;
       findOrdersLoading.value = false;
@@ -1230,7 +1220,7 @@ function clearField(field:any) {
       manualCompleteInvoiceLoading.value = false;
       checkedKeys.value = [];
       estimatesReady.value = true;
-      shippingFeesEstimates.value = [];
+      estimation.value = [];
       purchasePricesAvailable.value = false;
       break;
     case "selectAll":
@@ -1263,7 +1253,7 @@ function clearField(field:any) {
       shopList.value = [];
       dateDisabled.value = true;
       try{
-        let shopCheckbox = document.querySelectorAll("label[for='form_item_shop']")[0].parentElement?.nextElementSibling?.getElementsByClassName("ant-checkbox-input")[0];
+        let shopCheckbox = <HTMLInputElement> document.querySelectorAll("label[for='form_item_shop']")[0].parentElement?.nextElementSibling?.getElementsByClassName("ant-checkbox-input")[0];
         if(typeof shopCheckbox !== 'undefined') {
           shopCheckbox.checked = false;
           shopCheckbox.parentElement?.classList.remove("ant-checkbox-checked");
@@ -1282,25 +1272,27 @@ function clearField(field:any) {
     default :
       clearField("manualSelection");
       clearField("selectAll");
+      controller.abort();
       break;
   }
   Object.keys(fields).map((key) => {
     formState[key] = fields[key];
   });
 }
-function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
+async function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
+  // controller.abort();
   estimatesReady.value = false;
   makeManualInvoiceSpinning.value = true;
-  if(selectedRowKeys.length > 0) {
+  if (selectedRowKeys.length > 0) {
     // deactivate undesired checked keys
-    let uncheckableRowKeys:any[] = [];
-    for(let row of selectionRows){
-      if(!(!!row.logisticChannelName || !!row.invoiceLogisticChannelName)) {
+    let uncheckableRowKeys: any[] = [];
+    for (let row of selectionRows) {
+      if (!(!!row.logisticChannelName || !!row.invoiceLogisticChannelName)) {
         // console.log(row.id);
         uncheckableRowKeys.push(row.id);
       }
     }
-    for(let idx of uncheckableRowKeys) {
+    for (let idx of uncheckableRowKeys) {
       let index = selectedRowKeys.indexOf(idx);
       selectedRowKeys.splice(index, 1);
     }
@@ -1312,31 +1304,38 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
       orderIds: checkedKeys.value,
       type: erpStatus.value === "3" ? "shipping" : erpStatus.value === "1,2" ? "preshipping" : "all",
     };
-    defHttp.post({url: Api.estimateShippingFees, params: param})
+    controller = new AbortController();
+    const {signal} = controller;
+    await defHttp.post({url: Api.completeFeesEstimation, params: param, signal})
       .then(
         res => {
-          shippingFeesEstimates.value = res;
+          estimation.value = [];
+          for (let shop in res) {
+            // let shopName = getShopName(shop);
+            let shopEstimation = res[shop];
+            // shopEstimation.shop = shopName;
+            estimation.value.push(shopEstimation);
+          }
           estimatesReady.value = true;
         }
-
       ).catch(e => {
         console.error(e);
       });
-    defHttp.post({url: Api.checkSkuPrices, params: param})
+    await defHttp.post({url: Api.checkSkuPrices, params: param})
       .then(
-        res => {
+        () => {
           purchasePricesAvailable.value = true;
         }
       ).catch(e => {
-        console.error(e);
-        purchasePricesAvailable.value = false;
-      }).finally(()=> {
-        manualCompleteInvoiceDisabled.value = checkedKeys.value.length === 0 || !purchasePricesAvailable.value;
-        makeManualInvoiceDisabled.value = false;
-      });
+      console.error(e);
+      purchasePricesAvailable.value = false;
+    }).finally(() => {
+      manualCompleteInvoiceDisabled.value = checkedKeys.value.length === 0 || !purchasePricesAvailable.value;
+      makeManualInvoiceDisabled.value = false;
+    });
   } else {
     checkedKeys.value = selectedRowKeys;
-    shippingFeesEstimates.value = [];
+    estimation.value = [];
     estimatesReady.value = true;
     manualCompleteInvoiceDisabled.value = true;
     makeManualInvoiceDisabled.value = true;
