@@ -40,36 +40,6 @@
           :step="10"
         />
       </a-form-item>
-<!--      <a-form-item>-->
-<!--        <Divider type="vertical"/>-->
-<!--      </a-form-item>-->
-<!--      <a-form-item>-->
-<!--        <span>{{ t('data.shipping.volume') }} : </span>-->
-<!--      </a-form-item>-->
-<!--      <a-form-item ref="long" style="text-align: center">-->
-<!--        <template #extra>-->
-<!--          <span>{{ t('data.shipping.length') }}(cm)</span>-->
-<!--        </template>-->
-<!--        <a-input v-model:value="formState.length" style="width:50px"/>-->
-<!--      </a-form-item>-->
-<!--      <a-form-item>-->
-<!--        <span>X</span>-->
-<!--      </a-form-item>-->
-<!--      <a-form-item ref="width" style="text-align: center">-->
-<!--        <template #extra>-->
-<!--          <span>{{ t('data.shipping.width') }}(cm)</span>-->
-<!--        </template>-->
-<!--        <a-input v-model:value="formState.width" style="width:50px"/>-->
-<!--      </a-form-item>-->
-<!--      <a-form-item>-->
-<!--        <span>X</span>-->
-<!--      </a-form-item>-->
-<!--      <a-form-item ref="height" style="text-align: center">-->
-<!--        <template #extra>-->
-<!--          <span>{{ t('data.shipping.height') }}(cm)</span>-->
-<!--        </template>-->
-<!--        <a-input v-model:value="formState.height" style="width:50px"/>-->
-<!--      </a-form-item>-->
       <a-form-item>
         <Divider type="vertical"/>
       </a-form-item>
@@ -91,7 +61,15 @@
       :loading="dataTableLoading"
       bordered
       ref="tableRef"
-    />
+    >
+      <template #totalShippingFees="{ record }">
+        {{ record.TotalCost }}
+        <span v-if="record.CostDifference < 0" class="text-error"> ( {{ record.CostDifference }} % )</span>
+        <span v-else-if="record.CostDifference > 0" class="text-success"> ( + {{ record.CostDifference }} % )</span>
+        <span v-else class="text-gray"> ( +{{ record.CostDifference }} % )</span>
+
+      </template>
+    </BasicTable>
   </a-card>
 </template>
 <script lang="ts" setup>
@@ -202,7 +180,8 @@ const columns:BasicColumn[] = [
         align: "center",
         dataIndex: "TotalCost",
         width: 80,
-        sorter: (a, b) => a.TotalCost - b.TotalCost
+        sorter: (a, b) => a.TotalCost - b.TotalCost,
+        slots: { customRender: 'totalShippingFees' },
       },
       {
         title: t('data.invoice.details'),
