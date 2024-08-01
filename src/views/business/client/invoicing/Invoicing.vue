@@ -530,7 +530,7 @@ function makeManualShippingInvoice() {
 
       let filename = res.filename;
       let code = res.invoiceCode;
-      downloadInvoice(filename, 'shipping');
+      downloadInvoice(code, filename);
       downloadDetailFile(code);
     })
     .catch(e => {
@@ -566,7 +566,7 @@ function makeManualPurchaseInvoice() {
 
       let filename = res.filename;
       let code = res.invoiceCode;
-      downloadInvoice(filename, 'purchase');
+      downloadInvoice(code, filename);
     })
     .catch(e => {
       console.error(e);
@@ -601,7 +601,7 @@ function makeCompleteManualInvoice() {
 
       let filename = res.filename;
       let code = res.invoiceCode;
-      downloadInvoice(filename, 'shipping');
+      downloadInvoice(code, filename);
       downloadDetailFile(code);
     })
     .catch(e => {
@@ -615,15 +615,16 @@ function makeCompleteManualInvoice() {
       makeCompleteLoading.value = false;
     });
 }
-function downloadInvoice(invoiceFilename, invoiceType) {
-  const param = {filename: invoiceFilename, type: invoiceType};
-  downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
+function downloadInvoice(invoiceNumber: string, invoiceFilename: string) {
+  const filename = invoiceFilename.slice(0, -4) + 'pdf';
+  const param = {invoiceNumber};
+  downloadFile(Api.downloadPdf, filename, param).then(() => {
     createMessage.info("Download successful.")
   }).catch(e => {
     console.error(`Download invoice fail : ${e}`);
   });
 }
-function downloadDetailFile(invoiceNumber) {
+function downloadDetailFile(invoiceNumber: string) {
   const param =
     {
       invoiceNumber: invoiceNumber,
@@ -735,5 +736,8 @@ const handleReset = (clearFilters) => {
 }
 .ant-card-loading-content {
   min-height: 170px;
+}
+.ant-skeleton.ant-skeleton-active{
+  min-height: 171.33px;
 }
 </style>
