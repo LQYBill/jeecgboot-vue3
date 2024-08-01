@@ -70,7 +70,7 @@
       </template>
       <template #effectiveDate="{ record }">
         {{ record.effectiveDate }}<br/>
-        <small class="text-gray italic">{{ record.previousEffectiveDate }}</small>
+        <small v-if="record.effectiveDate !== record.previousEffectiveDate" class="text-gray italic">{{ record.previousEffectiveDate }}</small>
       </template>
     </BasicTable>
   </a-card>
