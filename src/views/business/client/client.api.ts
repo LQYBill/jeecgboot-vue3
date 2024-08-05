@@ -11,5 +11,6 @@ export enum Api {
   makeManualPurchaseInvoice = "/shippingInvoice/makeManualPurchaseInvoice",
   makeCompleteManualInvoice = "/shippingInvoice/makeManualComplete",
   downloadInvoice = "/shippingInvoice/download",
+  downloadPdf = "/generated/shippingInvoice/downloadPdf",
   downloadInvoiceDetail = "/shippingInvoice/downloadInvoiceDetail",
 }
