@@ -119,7 +119,11 @@ export default {
     index: 'Index',
     total: 'Total of {total}',
 
-    LargeEntryQtySelectedWarning: 'The amount of data selected is very large and may cause the page to freeze. Are you sure you want to perform this operation?'
+    LargeEntryQtySelectedWarning: 'The amount of data selected is very large and may cause the page to freeze. Are you sure you want to perform this operation?',
+
+    edit: {
+      numberMin: 'The minimum value is { num }',
+    },
   },
   time: {
     before: ' ago',
