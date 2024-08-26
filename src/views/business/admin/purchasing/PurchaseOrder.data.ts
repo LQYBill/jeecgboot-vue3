@@ -79,6 +79,13 @@ export const columns: BasicColumn[] = [
     sorter: (a:any, b:any) => a.ordered - b.ordered,
   },
   {
+    title: t('data.purchase.groupId'),
+    align: "center",
+    dataIndex: 'ordered',
+    slots: {customRender: 'groupId'},
+    sorter: (a:any, b:any) => a.ordered - b.ordered,
+  },
+  {
     title: t('data.invoice.platformOrderID'),
     align: "center",
     dataIndex: 'platformOrderId',

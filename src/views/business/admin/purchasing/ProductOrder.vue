@@ -131,7 +131,6 @@ import {
   downloadInvoice,
   getMabangUsername, listClientSkus,
   listCustomers,
-  listSkusForFilter
 } from "./ProductOrder.api";
 import { columns } from "./ProductOrder.data";
 import ProductOrderModal from "./components/ProductOrder.modal.vue";
@@ -247,7 +246,7 @@ function handleSetCustomer(selectList, list) {
   customerSelectList.value = selectList;
   customerList.value = list;
 }
-function handleClientChange(id) {
+async function handleClientChange(id) {
   client.value = [];
   skuList.value = [];
   state.searchText = [];
@@ -259,11 +258,8 @@ function handleClientChange(id) {
   let index = customerList.value.map(i => i.id).indexOf(id);
   client.value = customerList.value[index];
   if(id !== undefined) {
-    loadSkuListForFilter();
+    await loadSkuList(1);
   }
-}
-async function loadSkuListForFilter() {
-  await listSkusForFilter({clientId: client.value.id}, handleSetFiltersSkus);
 }
 function handleSetFiltersSkus(res: {erpCode: string, product:string, productEn:string}[]) {
   productListZh.value = [...new Set(res.map(i=> i.product))]; // to only get unique values

@@ -4,8 +4,7 @@ import {downloadFile} from '/@/api/common/api';
 enum Api {
   createOrder='/shippingInvoice/makeManualSkuPurchaseInvoice',
   getClientList = '/client/client/all',
-  getSkuListByClient = '/sku/skuListByClient',
-  getSkusByClient = '/sku/skusByClient',
+  listClientSkus = '/sku/listWithFilters',
   downloadInvoice = '/shippingInvoice/download',
   downloadInventory = '/shippingInvoice/downloadInventory',
   getMabangUsername = '/sys/user/getMabangUsername',
@@ -44,17 +43,8 @@ export const listCustomers = async (handleSuccess:any) => {
       console.error(e);
     })
 }
-export const listSkusForFilter = async (params:{clientId:string}, handleSuccess:any) => {
-  return defHttp.get({url: Api.getSkuListByClient, params})
-    .then(res => {
-      handleSuccess(res);
-    })
-    .catch(e => {
-      console.error(e);
-    });
-}
 export const listClientSkus = async (params:any, handleSuccess:any) => {
-  return defHttp.get({url: Api.getSkusByClient, params})
+  return defHttp.get({url: Api.listClientSkus, params})
     .then(res => {
       handleSuccess(res);
     })

@@ -163,6 +163,7 @@ export default {
     },
   },
   purchase: {
+    groupId: "Purchase batch number",
     orderAttributionFail : "Error while attributing purchase order to orders [%{var}]",
     orderAttributionSuccess : "Purchase order was successfully attributed to orders [%{var}]",
     mabangOrderCreateFailForInvoices : "Error while creating Mabang order for invoice(s) %{var}, please delete the orders corresponding to the invoices in Mabang.",

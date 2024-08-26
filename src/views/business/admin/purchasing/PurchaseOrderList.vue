@@ -63,6 +63,11 @@
         <Icon v-if="record?.ordered" icon="ant-design:shopping-cart-outlined" class="success--color"></Icon>
         <Icon v-else icon="ant-design:close-outlined" class="error--color"></Icon>
       </template>
+      <template #groupId="{record}">
+        <div class="flex flex-wrap gap-1">
+          <a-tag v-if="!!record?.groupId" class="ant-tag-primary" v-for="group in record?.groupId.split(',')">{{ group }}</a-tag>
+        </div>
+      </template>
       <template #platformOrderId="{record}">
         <a-tag v-if="!!record?.platformOrderId" class="ant-tag-primary" v-for="order in record?.platformOrderId.split(',')">{{ order }}</a-tag>
         <span v-else class="text-xs italic text-gray-300">{{t('data.noData')}}</span>
@@ -74,8 +79,8 @@
 </template>
 
 <script lang="ts" name="purchaseOrder" setup>
-import {ref, computed, unref} from 'vue';
-import {BasicTable, useTable, TableAction, TableImg} from '/@/components/Table';
+import {ref} from 'vue';
+import {BasicTable, TableAction, TableImg} from '/@/components/Table';
 import {useModal} from '/@/components/Modal';
 import {useListPage} from '/@/hooks/system/useListPage'
 import PurchaseOrderModal from './components/PurchaseOrder.modal.vue'
@@ -89,14 +94,12 @@ import {
 } from './PurchaseOrder.api';
 import {downloadFile} from '/@/utils/common/renderUtils';
 import {useI18n} from "/@/hooks/web/useI18n";
-import {useMessage} from "/@/hooks/web/useMessage";
 import {PageWrapper} from "/@/components/Page";
 import {useGlobSetting} from "/@/hooks/setting";
 import Icon from "/@/components/Icon";
 
 
 const {t} = useI18n();
-const {createMessage} = useMessage();
 
 const globSetting = useGlobSetting();
 const baseUploadUrl = globSetting.uploadUrl;
@@ -123,7 +126,7 @@ const iSorter = ref({
 //注册model
 const [registerModal, {openModal}] = useModal();
 //注册table数据
-const {prefixCls, tableContext, onExportXls, onImportXls} = useListPage({
+const {tableContext} = useListPage({
   tableProps: {
     title: 'Register Purchase Order',
     api: list,
