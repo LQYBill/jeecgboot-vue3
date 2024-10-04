@@ -201,7 +201,7 @@ const [registerModal, {setModalProps, closeModal}, ] = useModalInner(async (data
         {
           field: `${selectedSku.value[i].erpCode}`,
           component: 'InputNumber',
-          label: h('span', {'innerHTML': selectedSku.value[i].erpCode + '<br/><span class="text-xs text-gray-400 leading-none">(' + selectedSku.value[i].product + ')</span>'}),
+          label: h('span', {'innerHTML': selectedSku.value[i].erpCode + '<br/><span class="text-xs text-gray-400 leading-none">(' + selectedSku.value[i].zhName + ')</span>'}),
           // subLabel: `${selectedSku.value[i].erpCode}`,
           required: true,
           colProps: {

@@ -68,10 +68,10 @@
               >
                 <a-select-opt-group>
                   <template #label>{{ !!column?.customTitle ? column?.customTitle : !!column?.title ? column?.title : column?.dataIndex }}</template>
-                  <a-select-option v-if="column?.dataIndex === 'product'" v-for="optionZh in productListZh" :key="optionZh" :value="optionZh">
+                  <a-select-option v-if="column?.dataIndex === 'zhName'" v-for="optionZh in productListZh" :key="optionZh" :value="optionZh">
                     {{ optionZh }}
                   </a-select-option>
-                  <a-select-option v-else-if="column?.dataIndex==='productEn'" v-for="optionEn in productListEn" :key="optionEn" :value="optionEn">
+                  <a-select-option v-else-if="column?.dataIndex==='enName'" v-for="optionEn in productListEn" :key="optionEn" :value="optionEn">
                     {{ optionEn }}
                   </a-select-option>
                   <a-select-option v-else-if="column?.dataIndex==='erpCode'" v-for="erpCode in erpCodes" :key="erpCode" :value="erpCode">
@@ -157,8 +157,8 @@ const validatorRules = ref({
 const formState = reactive<Record<string, any>>({
   customer: '',
   erpCode: [],
-  product: [],
-  productEn: [],
+  zhName: [],
+  enName: [],
 });
 const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
@@ -251,8 +251,8 @@ async function handleClientChange(id) {
   skuList.value = [];
   state.searchText = [];
   formState.erpCode = [];
-  formState.product = [];
-  formState.productEn = [];
+  formState.zhName = [];
+  formState.enName = [];
   setLoading(false);
 
   let index = customerList.value.map(i => i.id).indexOf(id);
@@ -261,9 +261,9 @@ async function handleClientChange(id) {
     await loadSkuList(1);
   }
 }
-function handleSetFiltersSkus(res: {erpCode: string, product:string, productEn:string}[]) {
-  productListZh.value = [...new Set(res.map(i=> i.product))]; // to only get unique values
-  productListEn.value = [...new Set(res.map(i=> i.productEn))];
+function handleSetFiltersSkus(res: {erpCode: string, zhName:string, enName:string}[]) {
+  productListZh.value = [...new Set(res.map(i=> i.zhName))]; // to only get unique values
+  productListEn.value = [...new Set(res.map(i=> i.enName))];
   erpCodes.value = [...new Set(res.map(i=> i.erpCode))];
   productListDisabled.value = false;
 
@@ -277,8 +277,8 @@ function getQueryParams() {
   params.column = iSorter.value.column;
   params.clientId = client.value.id;
   params.erpCodes = formState.erpCode.toString();
-  params.zhNames = formState.product.toString();
-  params.enNames = formState.productEn.toString();
+  params.zhNames = formState.zhName.toString();
+  params.enNames = formState.enName.toString();
   return filterObj(params);
 }
 async function loadSkuList(arg?:number) {
@@ -344,8 +344,8 @@ const handleReset = (clearFilters) => {
   clearFilters({ confirm: true });
   state.searchText = [];
   formState.erpCode = [];
-  formState.product = [];
-  formState.productEn = [];
+  formState.zhName = [];
+  formState.enName = [];
 };
 const splitText = (text) => {
   const regexPattern = new RegExp(

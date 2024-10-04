@@ -21,10 +21,10 @@
             >
               <a-select-opt-group>
                 <template #label>{{ !!column?.customTitle ? column?.customTitle : !!column?.title ? column?.title : column?.dataIndex }}</template>
-                <a-select-option v-if="column?.dataIndex === 'product'" v-for="optionZh in productListZh" :key="optionZh" :value="optionZh">
+                <a-select-option v-if="column?.dataIndex === 'zhName'" v-for="optionZh in productListZh" :key="optionZh" :value="optionZh">
                   {{ optionZh }}
                 </a-select-option>
-                <a-select-option v-else-if="column?.dataIndex==='productEn'" v-for="optionEn in productListEn" :key="optionEn" :value="optionEn">
+                <a-select-option v-else-if="column?.dataIndex==='enName'" v-for="optionEn in productListEn" :key="optionEn" :value="optionEn">
                   {{ optionEn }}
                 </a-select-option>
                 <a-select-option v-else-if="column?.dataIndex==='erpCode'" v-for="erpCode in erpCodes" :key="erpCode" :value="erpCode">
@@ -90,8 +90,8 @@ const erpCodes = ref<string[]>();
 // filters
 const filters = reactive<Record<string, any>>({
   erpCode: [],
-  product: [],
-  productEn: [],
+  zhName: [],
+  enName: [],
 });
 const filterState = reactive({
   searchText: Array<any>(),
@@ -201,8 +201,8 @@ function getQueryParams() {
   params.order = iSorter.value.order;
   params.column = iSorter.value.column;
   params.erpCodes = filters.erpCode.toString();
-  params.zhNames = filters.product.toString();
-  params.enNames = filters.productEn.toString();
+  params.zhNames = filters.zhName.toString();
+  params.enNames = filters.enName.toString();
   return filterObj(params);
 }
 const handleFilterSelectChange = (e, setSelectedKeys) => {
@@ -218,8 +218,8 @@ const handleReset = (clearFilters) => {
   clearFilters({ confirm: true });
   filterState.searchText = [];
   filters.erpCode = [];
-  filters.product = [];
-  filters.productEn = [];
+  filters.zhName = [];
+  filters.enName = [];
 };
 const splitText = (text, column) => {
   const regexPattern = new RegExp(

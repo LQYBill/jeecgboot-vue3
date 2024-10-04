@@ -48,7 +48,16 @@
         // 是否找到了对应的项，找不到则添加这一项
         let foundIt =
           options.value.findIndex((option) => {
-            return option.value.toString() === value.toString();
+            /**
+             * by WIA Sourcing @Gauthier 2024-08-28
+             * now component supports options with groups
+             */
+            if(option.hasOwnProperty('options')) {
+              return option.options.forEach((opt) => {
+                return opt.value.toString() === value.toString();
+              });
+            }
+            else return option.value.toString() === value.toString();
           }) !== -1;
         // !!value ：不添加空值
         if (!foundIt && !!value) {

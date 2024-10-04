@@ -34,13 +34,13 @@ export function getProductColumns(): BasicColumn[] {
     },
     {
       title: t('data.zhName'),
-      dataIndex: 'product',
+      dataIndex: 'zhName',
       align: 'left',
       sorter: true,
       customFilterDropdown: true,
       onFilter: (value, record:any) => {
         for (let i = 0; i < value.length; i++) {
-          if (record.product.toString().toLowerCase().includes(value[i].toLowerCase())) {
+          if (record.zhName.toString().toLowerCase().includes(value[i].toLowerCase())) {
             return true;
           }
         }
@@ -48,13 +48,13 @@ export function getProductColumns(): BasicColumn[] {
     },
     {
       title: t('data.enName'),
-      dataIndex: 'productEn',
+      dataIndex: 'enName',
       align: 'left',
       sorter: true,
       customFilterDropdown: true,
       onFilter: (value, record:any) => {
         for (let i = 0; i < value.length; i++) {
-          if (record.productEn.toString().toLowerCase().includes(value[i].toLowerCase())) {
+          if (record.enName.toString().toLowerCase().includes(value[i].toLowerCase())) {
             return true;
           }
         }
@@ -68,7 +68,7 @@ export function getProductColumns(): BasicColumn[] {
     },
     {
       title: t('data.invoice.effectiveDate'),
-      dataIndex: 'effectiveDate',
+      dataIndex: 'weightEffectiveDate',
       align: 'left',
       sorter: true,
     },

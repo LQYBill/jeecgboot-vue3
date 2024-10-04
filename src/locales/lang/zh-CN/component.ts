@@ -73,6 +73,7 @@ export default {
     dayAutoPicker1: '按照过去7/28/42天销量，自动计算 :',
     dayAutoPicker2: '天产品采购量',
     proofInput: '请提供付款证明',
+    enNameInput: '请输入英文名',
     enterInvoiceNumber: '请输入发票号',
     enterNumberOfDays: '请输入天数',
     clientInputSearch: "请输入客户进行搜索",
@@ -84,6 +85,8 @@ export default {
     countrySelectSearch: "输入国家选择",
     invoiceTypeInputSearch: "请选择发票类型",
     invoiceModeInputSearch: "请选择发票模式",
+    isGiftInput: '请选择是否为赠品',
+    moqInput: '请输入最小起订量',
     orderSelectModeInputSearch: "请选择订单选择模式",
     ordersSelectSearch: "请选择订单",
     paidAmountInput: "请输入已付金额",
@@ -92,11 +95,15 @@ export default {
     platformOrderIDFilter: '按平台订ID查看',
     reasonInputText: '请输入原因',
     recipientInputText: '请输入收件人信息',
+    sensitiveAttributeInput: '请选择敏感属性',
+    serviceFeeInput: '请输入服务费',
+    shippingDiscountInput: '请输入运费折扣',
     skuSelectSearch: "输入sku选择",
     userFilter: '按用户查看',
     userSelect: '请输入用户',
     warehouseSelect: "发货仓库不能为空！",
-    weightInputSearch: "请输入重量"
+    weightInputSearch: "请输入重量",
+    zhNameInput: '请输入中文名',
   },
   table: {
     settingDens: '密度',
@@ -191,6 +198,7 @@ export default {
   tips : {
     orderNumberSplitComma: '订单号用逗号分开',
     orderStatus: '此值是自动设置的。只有在您想要覆盖该值时才使用。',
+    skuProductLatestCode: 'SKU产品最新号码: %{var}',
   },
   advancedSearch: "Advanced Search",
 };
