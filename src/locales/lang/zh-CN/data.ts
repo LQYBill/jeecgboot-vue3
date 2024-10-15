@@ -41,7 +41,7 @@ export default {
     ordered: "采购中",
     outOfStock: "缺货",
     pending: "待处理",
-    placeOrder: "下订单",
+    placeOrder: "提交订单",
     preparing: "配货中",
     reason: "原因",
     shipped: "已发货",
@@ -52,6 +52,7 @@ export default {
     transTime: "订单交易时间",
     trackingNum: "订单追踪号",
     unshippedOrdersVolume: "未发货订单量",
+    customData: "商品多属性"
   },
   recipient: {
     recipient: "收件人",
@@ -231,6 +232,14 @@ export default {
     invoicingPage: "生成发票页",
     productOrderPage: "商品采购页",
     purchaseOrderManagementPage : "采购订单管理",
+    shoumanOrderPage : "首曼订单管理",
+  },
+  shouman:{
+    orderToPlace: "待下单",
+    orderHistory: "历史订单",
+    preview: "预览订单备注",
+    comment: "订单备注",
+    productName: "产品名称",
   },
   Client: "客户",
   Invoice: "发票",
