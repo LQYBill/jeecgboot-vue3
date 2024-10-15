@@ -52,6 +52,7 @@ export default {
     transNum: "Transaction Number",
     transTime: "Transaction time",
     trackingNum: "Tracking Number",
+    customData: "Customization Data"
   },
   recipient: {
     recipient: "Recipient",
@@ -231,6 +232,14 @@ export default {
     invoicingPage: "Invoicing page",
     productOrderPage: "Product Order Page",
     purchaseOrderManagementPage : "Purchase Order Management",
+    shoumanOrderPage : "Shouman Order Management",
+  },
+  shouman:{
+    orderToPlace: "Order To Place",
+    orderHistory: "History",
+    preview: "Preview order remarks",
+    comment: "Remarks",
+    productName: "Product name",
   },
   Client: "Client",
   Invoice: "Invoice",
