@@ -39,15 +39,12 @@ const nameMappedByCode = ref<Record<string, Record<string, string>>>(); // {[cod
 const skuCommonFieldsInfo = ref<Record<string, string | number| Date>>();
 
 function handleRecordCopy(record: Sku) {
-  console.log('record', record);
   copiedRecord.value = record;
 }
 function handleSubmitCode(formValue: Record<string, string>) {
-  console.log('formValue', formValue);
   codeBuildFormValue.value = formValue;
 }
 function handleSubmitName(formValue: Record<string, Record<string, string>>) {
-  console.log('formValue', formValue);
   nameMappedByCode.value = formValue;
 }
 function handleSubmitCodeCreation(param: Record<string, string | number>) {
@@ -88,7 +85,6 @@ function buildAllSkus() {
     };
     skuList.push(filterObj(sku));
   }
-  console.log('skuList', skuList);
 
   createMessage.success('All skus built successfully');
   emits('submit', skuList);

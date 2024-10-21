@@ -38,14 +38,12 @@ const [register] = useTable({
 const sensitiveAttributes = ref<Record<string, string>>({});
 onMounted(async () => {
   await sensitiveAttributeListApi().then((res) => {
-    console.log('sensitiveAttributes', res);
     res.records.forEach((item) => {
       sensitiveAttributes.value = {
         ...sensitiveAttributes.value,
         [item.id]: item.zhName,
       };
     });
-    console.log(sensitiveAttributes.value);
   });
 })
 </script>

@@ -99,7 +99,6 @@ const [register, { getFieldsValue, setFieldsValue, appendSchemaByField, removeSc
 const formRef = ref();
 
 async function updateErpCode(field: string, value: any){
-  console.log('updateErpCode', field, value)
   if (field === 'category') {
     setTimeout(async () => {
       const categoryValue = getFieldsValue().category;
@@ -111,8 +110,6 @@ async function updateErpCode(field: string, value: any){
     }, 100);
   } else if(field === 'product') {
     erpCodeValues.value[1] = value.toString();
-    console.log('productList', productList.value)
-    console.log('erpCodeValues', erpCodeValues.value);
   } else if (field === 'client') {
     setTimeout(async () => {
       // there shouldn't be 20 criteria fields, so we can use 20 as the client field to make sure it's the last field
@@ -133,23 +130,17 @@ async function updateErpCode(field: string, value: any){
       for(let i = parseInt(min); i <= parseInt(max); i++) {
         let fieldValue = '';
         if (fieldList.value[i]) {
-          console.log('fieldList', fieldList.value[i]);
           const enName = normalizeString(fieldList.value[i].enName);
           const zhName = fieldList.value[i].zhName;
-          console.log('getFieldsValue', getFieldsValue());
           if(!!getFieldsValue()[`${zhName}/${enName}`]) {
             if(!fieldList.value[i].enName.startsWith(dupeCriteriaBaseName)) {
-              console.log('criteria doesn\'t start with criteria');
               fieldValue = getFieldsValue()[`${zhName}/${enName}`];
-              console.log('fieldValue', fieldValue);
               erpCodeValues.value[i+2] = fieldValue;
             }
             // doublons
             else {
-              console.log('criteria starts with criteria');
               const enName = normalizeString(pickedDupeCriteriaList.value[i].enName);
               const zhName = pickedDupeCriteriaList.value[i].zhName;
-              console.log('name', `${zhName}/${enName}`);
               fieldValue = !!pickedDupeCriteriaList.value[i] ? !!getFieldsValue()[`${zhName}/${enName}`] ? getFieldsValue()[`${zhName}/${enName}`] : '' : '';
               erpCodeValues.value[i+2] = fieldValue;
             }
@@ -190,13 +181,11 @@ async function updateCriteria(category: string) {
   }
   await criteriaListApi(category).then(async (res) => {
     criteriaList.value = res;
-    console.log('criteriaList', criteriaList.value);
     await createProductSchema();
     await createCriteriaSchemas();
   });
 }
 async function createProductSchema() {
-  console.log('createProductSchema', getFieldsValue().category);
   await productListApi(getFieldsValue().category).then((res) => {
     if(res == null) return;
     productList.value = res.map((item) => {
@@ -332,7 +321,6 @@ async function createCriteriaSchemas () {
   }
 }
 async function updateCriteriaSchemaForDupe(field: string, criteriaId: string | undefined) {
-  console.log('updateCriteriaSchemaForDupe', field, criteriaId);
   if(!criteriaId) {
     const rank = Object.keys(fieldList.value).find(key => fieldList.value[key].enName === field);
     await deleteDupeSchemaByRanking(parseInt(rank!));
@@ -340,7 +328,6 @@ async function updateCriteriaSchemaForDupe(field: string, criteriaId: string | u
     return;
   }
   let criterion = criteriaList.value.find(item => item.id === criteriaId);
-  console.log('criterion', criterion);
   let options:JSelectInputOptions[] = [];
   await criteriaValueListApi(criterion!.id).then((res) => {
     options = createOptionsWithGroup(res);
@@ -369,7 +356,6 @@ async function updateCriteriaSchemaForDupe(field: string, criteriaId: string | u
   pickedDupeCriteriaList.value[criterion!.ranking] = criterion!;
 }
 async function deleteDupeSchemaByRanking(rank: number) {
-  console.log('Deleting Dupe schema by ranking : ', rank)
   let dupeFields = Object.values(pickedDupeCriteriaList.value).filter(item => item.ranking === rank).map(item => `${item.zhName}/${normalizeString(item.enName)}`);
   await removeSchemaByFiled(dupeFields);
   delete pickedDupeCriteriaList.value[rank];
@@ -382,7 +368,6 @@ function filterCriteriaRankingDupes() {
   duplicatedRankings.forEach((ranking) => {
     duplicateCriteriaList.value[ranking] = criteriaList.value.filter(item => item.ranking === ranking);
   });
-  console.log('duplicateCriteriaList', duplicateCriteriaList.value);
   return criteriaList.value.filter(item => !duplicatedRankings.includes(item.ranking));
 }
 async function resetCriteria() {
@@ -390,12 +375,10 @@ async function resetCriteria() {
   Object.values(fieldList.value).forEach((criteria) => {
     fields.push(criteria.zhName + '/' + normalizeString(criteria.enName));
   });
-  console.log('resetCriteria', fields);
   await removeSchemaByFiled(fields);
 }
 async function handleSubmit() {
   try {
-    console.log('getFieldsValue', getFieldsValue());
     await validateFields(Object.keys(getFieldsValue()));
     const values:Record<string, any> = generateErpCodesProperties();
     emits("submit", values);
@@ -410,8 +393,6 @@ function objectIsEmpty(obj: any) {
   return Object.keys(obj).length === 0;
 }
 function handleCopy() {
-  console.group('handlecopy');
-  console.log('copy', erpCodeValues.value);
   const resToString: string = generateErpCodes();
   if (!resToString) {
       createMessage.warning(t('component.copy.noValue'));
@@ -421,7 +402,6 @@ function handleCopy() {
     if (unref(copiedRef)) {
       createMessage.warning(t('component.copy.success'));
     }
-  console.log('resToString', resToString);
 }
 function generateErpCodes():string {
   let res:string[] = [''];
@@ -474,7 +454,6 @@ function generateErpCodesProperties(): Record<string, any> {
   //   let criterionValue = getFieldsValue()[field];
   //   codeJson = createPropCopy(codeJson, field, criterionValue.split(','));
   // }
-  console.log('codeJson', codeJson);
   return codeJson
 }
 function createPropCopy(codeJson: {[key:string]: {}}, field:string, criterionValue: string[]) {
@@ -504,7 +483,6 @@ function createCopy(erpCodes: string[], nbOfCopy: number): string[] {
   for(let i = 0; i < nbOfCopy; i++) {
     res.push(...erpCodes);
   }
-  console.log('creating copies', res);
   return res;
 }
 function concatCriteriaValue(erpCodes: string[], criterionValue: string[]): string[] {

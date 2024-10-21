@@ -351,13 +351,11 @@ watch(
   { immediate: true } // Ensures it runs immediately if values are already present
 );
 function handleFocus(field: string) {
-  console.log('last focused field', field);
   lastFocusedField.value = field;
 }
 async function handleEnNameChange() {
   lastFocusedField.value = 'enName';
 
-  console.log('enName', formState.enName)
   for(let key in formState) {
     if(key.includes('_enName'))
       formState[key] = formState.enName;
@@ -367,7 +365,6 @@ async function handleEnNameChange() {
 async function handleZhNameChange() {
   lastFocusedField.value = 'zhName';
 
-  console.log('zhName', formState.zhName)
   for(let key in formState) {
     if(key.includes('_zhName'))
       formState[key] = formState.zhName;
@@ -376,7 +373,6 @@ async function handleZhNameChange() {
 }
 async function handleDeclareEnNameChange() {
   lastFocusedField.value = 'declareEnName';
-  console.log('enName', formState.declareEnName)
   for(let key in formState) {
     if(key.includes('_declareEnName'))
       formState[key] = formState.declareEnName;
@@ -385,7 +381,6 @@ async function handleDeclareEnNameChange() {
 }
 async function handleDeclareZhNameChange() {
   lastFocusedField.value = 'declareZhName';
-  console.log('zhName', formState.declareZhName)
   for(let key in formState) {
     if(key.includes('_declareZhName'))
       formState[key] = formState.declareZhName;
@@ -393,14 +388,12 @@ async function handleDeclareZhNameChange() {
   await parseVarInFormState();
 }
 async function handleSupplierChange() {
-  console.log('supplier', formState.supplier)
   for(let key in formState) {
     if(key.includes('_supplierName'))
       formState[key] = formState.supplier;
   }
 }
 async function handleSupplierLinkChange() {
-  console.log('supplierLink', formState.supplierLink)
   for(let key in formState) {
     if(key.includes('_supplierLink'))
       formState[key] = formState.supplierLink;
@@ -418,21 +411,17 @@ async function parseVarInFormState() {
     if (!value.includes('$')) {
       continue;
     }
-    console.log('found a variable')
     const wordRegex = RegExp('(\\$[A-zÀ-ú]+\\b)', 'g');
     const matches = value.match(wordRegex);
     if (!matches) {
       continue;
     }
-    console.log('matches', matches);
     for (let i = 0; i < matches.length; i++) {
       const match: string = matches[i];
-      console.log('match', match);
       let newValue = '';
       await matchVariableByName(match, key).then((res) => {
         newValue = res[0];
       });
-      console.log('translated value', newValue);
       formState[key] = formState[key].replace(match, newValue);
     }
   }
@@ -442,12 +431,6 @@ async function matchVariableByName(name: string, formStateKey:string):Promise<st
   const erpCode = formStateKey.replace('_enName', '').replace('_zhName', '').replace('_declareEnName', '').replace('_declareZhName', '');
   const language = (formStateKey.includes('_enName') || formStateKey.includes('_declareEnName')) ? 'enName' : 'zhName';
   const fieldName = fieldMapByEnName.value[varName];
-  console.group('matchVariableByName');
-  console.log('varName', varName);
-  console.log('erpCode', erpCode);
-  console.log('fieldName', fieldName);
-  console.log('found value :', codeBuildFormValue.value[erpCode][fieldName]);
-  console.groupEnd();
   let fieldValueFromForm = codeBuildFormValue.value[erpCode][fieldName];
   if(varName === 'product') {
     const categoryCode = codeBuildFormValue.value[erpCode]['category'];
@@ -462,7 +445,6 @@ async function getTranslatedValue(criteria:string, field:string, value:string) {
   return await translatedValueByCriteriaApi(criteria, field, value);
 }
 async function handleAddFieldName(fieldName:string) {
-  console.log('add field name ' + fieldName + ' to ' + lastFocusedField.value);
   const fieldVarName = Object.keys(fieldMapByEnName.value).find(key => fieldMapByEnName.value[key] === fieldName);
   if(lastFocusedField.value === 'enName') {
     formState.enName += '$' + fieldVarName + ' ';
@@ -536,7 +518,6 @@ function handleSubmit() {
         };
       }
     }
-    console.log('skuMappedByCode', skuMappedByCode);
     emits('submit', skuMappedByCode);
     createMessage.success('Saved');
   });

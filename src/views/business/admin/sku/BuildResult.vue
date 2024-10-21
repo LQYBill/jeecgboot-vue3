@@ -56,7 +56,6 @@ const { t } = useI18n();
 const apiResponse = inject('apiResponse') as Ref<{successes:string[], failures:string[]}>;
 
 async function handleSync() {
-  console.log('sync');
   const skus = apiResponse.value.successes;
   await skuSyncApi(skus).then((res) => {
     console.log('res', res);

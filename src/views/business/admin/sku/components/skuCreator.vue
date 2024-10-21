@@ -150,7 +150,6 @@
               ]"
                 v-model:value="formState.isGift"
                 allowClear
-                @change="handleIsGiftChange"
               />
             </a-form-item>
           </a-card>
@@ -188,7 +187,6 @@ const emits = defineEmits(["submit"]);
 
 onBeforeMount(async () => {
   await sensitiveAttributeListApi().then((res) => {
-    console.log('sensitiveAttributeOptions', res);
     sensitiveAttributeOptions.value = res.records.map((item) => {
       return {
         label: item.zhName,
@@ -228,9 +226,6 @@ const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 24 } });
 
 const sensitiveAttributeOptions: Record<string, any> = ref([]);
 
-function handleIsGiftChange(e) {
-  console.log('isGift:', e);
-}
 function handleImport() {
   createConfirm({
     iconType: 'warning',
@@ -252,14 +247,12 @@ function importFromClipboard() {
     return;
   }
   createMessage.success('Imported from clipboard');
-  console.log('copiedRecord', copiedRecord.value.value);
   const {
     weight,
     skuPrice,
     declaredValue,
     sensitiveAttribute, shippingDiscount, isGift, serviceFee,
   } = copiedRecord.value.value;
-  console.log(formState);
   const sensitiveAttributeId = sensitiveAttributeOptions.value.find((item:{label:string, value:any}) => item.label === sensitiveAttribute).value;
   formState.weight = weight;
   formState.skuPrice = skuPrice;
@@ -268,7 +261,6 @@ function importFromClipboard() {
   formState.shippingDiscount = discountDecimalToPercentage(shippingDiscount);
   formState.isGift = isGift;
   formState.serviceFee = serviceFee;
-  console.log(formState);
 }
 function handleReset() {
   formRef.value.resetFields();

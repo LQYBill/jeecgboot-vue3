@@ -74,10 +74,8 @@ const apiResponse = ref<{successes:string[], failures:string[]}>({successes: [],
 
 async function createSku() {
   await createMabangSkuApi(skuListResult.value).then((res) => {
-    console.log('res', res);
     apiResponse.value['successes'] = res.successes;
     apiResponse.value['failures'] = res.failures;
-    console.log('res', res);
   });
 }
 

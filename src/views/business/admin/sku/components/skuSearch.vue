@@ -129,22 +129,21 @@ async function beforeSearch() {
   }
 }
 async function search() {
-  console.log('search expression', searchState.value);
   await searchExistingSkuApi(searchState.value!, signal.value).then((res) => {
-    console.log('search result', res);
     skuListResult.value = res;
   })
 }
 
 function handleEdit(record:Sku) {
+  // TODO
   console.log('edit', record);
 }
 function handleCopy(record:Sku) {
-  console.log('copy', record);
   copiedRecord.value = record;
   emits("copy", copiedRecord);
 }
 function handleDelete(record:Sku) {
+  // TODO
   console.log('delete', record);
 }
 </script>
