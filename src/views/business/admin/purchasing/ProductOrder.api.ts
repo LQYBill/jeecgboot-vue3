@@ -5,9 +5,12 @@ enum Api {
   createOrder='/shippingInvoice/makeManualSkuPurchaseInvoice',
   getClientList = '/client/client/all',
   listClientSkus = '/sku/listWithFilters',
+  listAllSelectableSkuIds = '/sku/listAllSelectableSkuIds',
   downloadInvoice = '/shippingInvoice/download',
+  downloadInvoiceInventory = '/shippingInvoice/downloadInvoiceInventory',
   downloadInventory = '/shippingInvoice/downloadInventory',
   getMabangUsername = '/sys/user/getMabangUsername',
+  syncSkuQty = '/sku/syncSkuQty',
 }
 export const getMabangUsername = async (handleSuccess:any) => {
   return defHttp.get({url: Api.getMabangUsername})
@@ -52,6 +55,11 @@ export const listClientSkus = async (params:any, handleSuccess:any) => {
       console.error(e);
     });
 }
+export const getAllSelectableSkus = async (params: Record<string, any>, handleSuccess:any) => {
+  return defHttp.get({url: Api.listAllSelectableSkuIds, params}).then(res => {
+    handleSuccess(res);
+  })
+}
 export const createPurchaseInvoice = (params:any) => {
   return defHttp.post({url: Api.createOrder, params});
 }
@@ -64,7 +72,18 @@ export const downloadInvoice = (invoiceFilename:string, handleSuccess:any) => {
     console.error(`Download invoice fail : ${e}`);
   });
 }
-export const downloadInventory = (invoiceMetaData:any, handleSuccess:any) => {
+export const downloadInvoiceInventory = (invoiceMetaData:any, handleSuccess:Function) => {
+  const filename = invoiceMetaData.internalCode
+    + '_(' + invoiceMetaData.invoiceEntity
+    + ')_' + invoiceMetaData.invoiceCode
+    + '_Inventaire_SKU.xlsx';
+  downloadFile(Api.downloadInvoiceInventory, filename, invoiceMetaData).then(() => {
+    handleSuccess();
+  }).catch(e => {
+    console.error(`Download inventory fail : ${e}`);
+  });
+}
+export const downloadInventory = (invoiceMetaData: any, handleSuccess:Function) => {
   const filename = invoiceMetaData.internalCode
     + '_(' + invoiceMetaData.invoiceEntity
     + ')_' + invoiceMetaData.invoiceCode
@@ -74,4 +93,7 @@ export const downloadInventory = (invoiceMetaData:any, handleSuccess:any) => {
   }).catch(e => {
     console.error(`Download inventory fail : ${e}`);
   });
+}
+export const syncSkuQty = (erpCodes: string[]) => {
+  return defHttp.post({url: Api.syncSkuQty, params: erpCodes});
 }

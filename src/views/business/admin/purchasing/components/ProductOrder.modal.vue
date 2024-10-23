@@ -6,7 +6,7 @@
         <div class="flex flex-row flex-1 border-b" v-for="n in 2" :class="n==2 ? 'border-l' : '' ">
           <h2 class="w-64 text-sm">{{ t('data.product.product') }}</h2>
           <div class="flex items-center w-full flex-1">
-            <h2 class="flex-1 text-sm">{{ t('data.sku.sales') }} 7 | 14 | 42</h2>
+            <h2 class="flex-1 text-sm">{{ t('data.sku.sales') }} 7 | 28 | 42</h2>
             <h2 class="flex-0.5 text-sm">{{ t('data.order.stock') }}</h2>
             <h2 class="flex-1 text-sm">{{ t('data.invoice.quantity') }}</h2>
             <h2 class="flex-0.5 text-sm" :class="n==1 ? 'mr-4' : 'mr-0'">{{ t('data.invoice.subTotal') }}</h2>
@@ -28,7 +28,8 @@
           <div class="flex items-center justify-center flex-0.5">
 <!--            <StockIcon :status="selectedSkuMap.get(field).stock > 0 ? 'normal' : 'error'" class="basis-2/4 w-full block!important text-right!important" width="24px" height="24px"></StockIcon>-->
 <!--            <Icon icon="ant-design:gold-outlined" :color="selectedSkuMap.get(field).stock > 0 ? 'black' : 'red'" class="basis-2/4 w-full block!important text-right!important"></Icon>-->
-            <span v-if="selectedSkuMap.get(field).stock <= 0" class="text-center  text-red-500">{{selectedSkuMap.get(field).stock}}</span>
+            <span v-if="selectedSkuMap.get(field).stock == 0" class="text-center  text-red-500">{{selectedSkuMap.get(field).stock}}</span>
+            <span v-else-if="selectedSkuMap.get(field).stock < 0" class="text-center  bg-red text-white px-1">{{selectedSkuMap.get(field).stock}}</span>
             <span v-else class="text-center ">{{selectedSkuMap.get(field).stock}}</span>
           </div>
           <div class="flex flex-col flex-1">
@@ -54,7 +55,12 @@
           </div>
           <a-button v-if="!isAdjusted" class="" type="primary" @click="handleAdjustQty">Adjust</a-button>
           <a-button v-else class="" type="warning" @click="handleRevertQty">Revert</a-button>
-
+          <a-tooltip>
+            <template #title>
+              Fill all negative stocks to missing amounts
+            </template>
+            <a-button type="primary" @click="handleFillNegativeStocks">Fill negative stocks</a-button>
+          </a-tooltip>
         </div>
       </template>
       <template #setQtyToAll="{ model, field, schema }">
@@ -90,7 +96,6 @@ import {useI18n} from "/@/hooks/web/useI18n";
 import {Modal} from "ant-design-vue";
 import {InputNumber} from "ant-design-vue";
 import BasicHelp from "/@/components/Basic/src/BasicHelp.vue";
-import StockIcon from "/@/views/business/admin/purchasing/components/Icons/StockIcon.vue";
 
 const {t} = useI18n();
 const {createMessage} = useMessage();
@@ -122,7 +127,10 @@ const [registerForm1] = useForm({
       component: "InputNumber",
       label: t('component.searchForm.dayAutoPicker1'),
       colProps: {
-        span: 10,
+        xs: {span: 18},
+        lg: {span: 16},
+        xl: {span: 16},
+        xxl: {span: 10},
       },
       defaultValue: 0,
       // componentProps: {
@@ -152,7 +160,10 @@ const [registerForm1] = useForm({
       component: "InputNumber",
       label: t('component.searchForm.qtyAutoPicker'),
       colProps: {
-        span: 10,
+        xs: {span: 4},
+        lg: {span: 6},
+        xl: {span: 6},
+        xxl: {span: 6},
       },
       defaultValue: 0,
       dynamicRules: ({ values }) => {
@@ -265,7 +276,8 @@ async function handleSubmit(v) {
         let result = {};
         setModalProps({confirmLoading: true});
         for (let i in values) {
-          params[i] = values[i];
+          if(values[i] > 0)
+            params[i] = values[i];
         }
         await createPurchaseInvoice(params)
           .then(res => {
@@ -333,7 +345,7 @@ async function handleAdjustQty() {
   for(let i = 0; i < selectedSku.value.length; i++) {
     let sku = selectedSku.value[i];
     let qty = skuQtyToOrderBeforeAdjust.value[sku.erpCode] - (sku.stock < 0 ? 0 : sku.stock);
-    setFieldsValue({
+    await setFieldsValue({
       [`${sku.erpCode}`]: qty < 0 ? 0 : qty
     });
   }
@@ -343,12 +355,22 @@ async function handleAdjustQty() {
 async function handleRevertQty() {
   for(let i = 0; i < selectedSku.value.length; i++) {
     let sku = selectedSku.value[i];
-    setFieldsValue({
+    await setFieldsValue({
       [`${sku.erpCode}`]: skuQtyToOrderBeforeAdjust.value[sku.erpCode]
     });
   }
   await calculateTotal();
   isAdjusted.value = false;
+}
+async function handleFillNegativeStocks() {
+  for(let i = 0; i < selectedSku.value.length; i++) {
+    let sku = selectedSku.value[i];
+    let qty = sku.stock < 0 ? Math.abs(sku.stock) : 0;
+    await setFieldsValue({
+      [`${sku.erpCode}`]: qty
+    });
+  }
+  await calculateTotal();
 }
 </script>
 
