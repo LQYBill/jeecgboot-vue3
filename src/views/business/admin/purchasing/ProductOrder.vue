@@ -43,7 +43,7 @@
               <a-button v-if="selectAllVisible" type="warning" @click="handleSelectAllSkus" preIcon="ic:outline-library-add-check" :disabled="selectAllDisabled">
                 {{ t('component.table.selectAll') }} Skus
               </a-button>
-              <a-badge v-if="unselectAllVisible" :count="allSkus.length">
+              <a-badge v-if="unselectAllVisible" :count="allSkus.length" show-zero>
                 <a-button type="error" @click="handleUnselectAllSkus" preIcon="ic:outline-indeterminate-check-box" :disabled="unselectAllDisabled">
                   {{ t('component.table.unSelectAll') }}
                 </a-button>
@@ -365,6 +365,8 @@ function onSelectChange() {
     unselectAllVisible.value = false;
     orderDisabled.value = false;
     syncDisabled.value = false;
+    allSelected.value = false;
+    allSkus.value = [];
   }
 }
 function getCheckboxProps(record: Recordable) {
