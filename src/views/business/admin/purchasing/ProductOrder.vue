@@ -282,6 +282,12 @@ async function handleClientChange(id) {
   formState.erpCode = [];
   formState.zhName = [];
   formState.enName = [];
+  allSelected.value = false;
+  allSkus.value = [];
+  selectAllDisabled.value = true;
+  selectAllVisible.value = true;
+  unselectAllDisabled.value = true;
+  unselectAllVisible.value = false;
   setLoading(false);
 
   let index = customerList.value.map(i => i.id).indexOf(id);
