@@ -122,6 +122,7 @@ export default {
     noDataSelected: '未选中任何数据',
     selectedRows: '已选中 { num } 条记录',
     selectAll: '全选',
+    unSelectAll: '取消选择',
     index: '序号',
 
     total: '共 {total} 条数据',

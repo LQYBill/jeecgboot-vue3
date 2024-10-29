@@ -27,9 +27,29 @@
        </a-form>
       <BasicTable @register="registerTable" ref="tableRef">
         <template #tableTitle>
-          <a-button type="primary" @click="orderMenu" preIcon="ant-design:shopping-cart-outlined" :disabled="orderDisabled">
-            {{ t('data.order.placeOrder') }}
-          </a-button>
+          <nav class="flex pt-4 gap-2">
+            <a-button type="primary" @click="orderMenu" preIcon="ant-design:shopping-cart-outlined" :disabled="orderDisabled">
+              {{ t('data.order.placeOrder') }}
+            </a-button>
+            <a-tooltip>
+              <template #title>
+                Synchronize selected skus
+              </template>
+              <a-button type="success" @click="handleSync" preIcon="ant-design:reload-outlined" :loading="syncLoading" :disabled="syncDisabled" aria-label="synchronize selected skus">
+                {{ t('common.operation.sync') }}
+              </a-button>
+            </a-tooltip>
+            <transition-group name="fade" tag="div">
+              <a-button v-if="selectAllVisible" type="warning" @click="handleSelectAllSkus" preIcon="ic:outline-library-add-check" :disabled="selectAllDisabled">
+                {{ t('component.table.selectAll') }} Skus
+              </a-button>
+              <a-badge v-if="unselectAllVisible" :count="allSkus.length" show-zero>
+                <a-button type="error" @click="handleUnselectAllSkus" preIcon="ic:outline-indeterminate-check-box" :disabled="unselectAllDisabled">
+                  {{ t('component.table.unSelectAll') }}
+                </a-button>
+              </a-badge>
+            </transition-group>
+          </nav>
         </template>
         <template #availableAmount="{record}">
           {{ record?.availableAmount === null ? '--' : record?.availableAmount }} |
@@ -128,9 +148,9 @@ import {useModal} from '/@/components/Modal';
 import {BasicTable, TableImg, useTable} from "/@/components/Table";
 import {
   downloadInventory,
-  downloadInvoice,
+  downloadInvoice, downloadInvoiceInventory, getAllSelectableSkus,
   getMabangUsername, listClientSkus,
-  listCustomers,
+  listCustomers, syncSkuQty,
 } from "./ProductOrder.api";
 import { columns } from "./ProductOrder.data";
 import ProductOrderModal from "./components/ProductOrder.modal.vue";
@@ -174,11 +194,20 @@ const erpCodes = ref<string[]>();
 const productListDisabled = ref<boolean>(true);
 const productListVisible = ref<boolean>(false);
 
+const allSelected = ref<boolean>(false);
+const allSkus = ref<any>([]);
+
 const client = ref<any>();
 
 const skuList = ref<any>([]);
 
 const orderDisabled = ref<boolean>(true);
+const syncLoading = ref<boolean>(false);
+const syncDisabled = ref<boolean>(true);
+const selectAllDisabled = ref<boolean>(true);
+const selectAllVisible = ref<boolean>(true);
+const unselectAllDisabled = ref<boolean>(true);
+const unselectAllVisible = ref<boolean>(false);
 
 const state = reactive({
   searchText: Array<any>(),
@@ -207,7 +236,7 @@ const ipagination = ref({
   onChange: handlePaginationChange,
   onShowSizeChange: handleShowSizeChange,
 });
-const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, setLoading }] = useTable({
+const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, setLoading, getSelectRowKeys}] = useTable({
   columns: columns,
   dataSource: skuList,
   rowSelection: {
@@ -253,6 +282,12 @@ async function handleClientChange(id) {
   formState.erpCode = [];
   formState.zhName = [];
   formState.enName = [];
+  allSelected.value = false;
+  allSkus.value = [];
+  selectAllDisabled.value = true;
+  selectAllVisible.value = true;
+  unselectAllDisabled.value = true;
+  unselectAllVisible.value = false;
   setLoading(false);
 
   let index = customerList.value.map(i => i.id).indexOf(id);
@@ -288,7 +323,9 @@ async function loadSkuList(arg?:number) {
   }
   let params = getQueryParams();
   setLoading(true);
-  await listClientSkus(params, handleSetSkus);
+  await listClientSkus(params, handleSetSkus).then(() => {
+    selectAllDisabled.value = skuList.value.length <= 0;
+  });
   setLoading(false);
 }
 
@@ -306,11 +343,37 @@ function handleSetSkus(res) {
 function orderMenu() {
   openModal(true, {
     showFooter: true,
-    selectedRows: getSelectRows(),
+    selectedRows: allSelected.value ? allSkus.value : getSelectRows(),
   })
 }
+
 function onSelectChange() {
-  orderDisabled.value = getSelectRows().length <= 0;
+  if(getSelectRows().length === 0) {
+    if(allSelected.value) {
+      selectAllDisabled.value = true;
+      selectAllVisible.value = false;
+      unselectAllDisabled.value = false;
+      unselectAllVisible.value = true;
+      orderDisabled.value = false;
+      syncDisabled.value = false;
+    } else {
+      selectAllDisabled.value = false;
+      selectAllVisible.value = true;
+      unselectAllDisabled.value = true;
+      unselectAllVisible.value = false;
+      orderDisabled.value = true;
+      syncDisabled.value = true;
+    }
+  } else {
+    selectAllDisabled.value = false;
+    selectAllVisible.value = true;
+    unselectAllDisabled.value = true;
+    unselectAllVisible.value = false;
+    orderDisabled.value = false;
+    syncDisabled.value = false;
+    allSelected.value = false;
+    allSkus.value = [];
+  }
 }
 function getCheckboxProps(record: Recordable) {
   if(!!record.skuPrice) {
@@ -364,10 +427,52 @@ function handleShowSizeChange(current:number, size:number) {
   pageSize.value = size;
   loadSkuList(1);
 }
+async function handleSync() {
+  syncLoading.value = true;
+  const erpCodes = getSelectRows().map(i => i.erpCode);
+  await syncSkuQty(erpCodes).then(() => {
+    createMessage.success("Sync successful.");
+    syncLoading.value = false;
+    loadSkuList();
+  });
+}
+async function handleSelectAllSkus() {
+  allSelected.value = true;
+  clearSelectedRowKeys();
+  let params = getQueryParams();
+  setLoading(true);
+  await getAllSelectableSkus(params, handleSetSelectedSkus);
+}
+async function handleUnselectAllSkus() {
+  allSelected.value = false;
+  clearSelectedRowKeys();
+  allSkus.value = [];
+}
+function handleSetSelectedSkus(res) {
+  allSkus.value = res;
+  setLoading(false);
+}
 </script>
 <style lang="less">
 .ant-checkbox-disabled .ant-checkbox-inner{
   background-color: fade(@error-color, 10%);
   border-color: @error-color!important;
+}
+.fade-move, /* apply transition to moving elements */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* ensure leaving items are taken out of layout flow so that moving
+   animations can be calculated correctly. */
+.fade-leave-active {
+  position: absolute;
 }
 </style>

@@ -122,6 +122,7 @@ export default {
     noDataSelected: 'No data selected',
     selectedRows: 'Selected { num } rows',
     selectAll: 'Select all',
+    unSelectAll: 'Unselect all',
 
     index: 'Index',
     total: 'Total of {total}',
