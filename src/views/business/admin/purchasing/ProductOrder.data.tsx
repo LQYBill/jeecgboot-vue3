@@ -23,12 +23,12 @@ export const columns: BasicColumn[] = [
     children: [
       {
         title: t('data.zhName'),
-        dataIndex: 'product',
+        dataIndex: 'zhName',
         align: 'center',
         customFilterDropdown: true,
         onFilter: (value, record:any) => {
           for (let i = 0; i < value.length; i++) {
-            if (record.product.toString().toLowerCase().includes(value[i].toLowerCase())) {
+            if (record.zhName.toString().toLowerCase().includes(value[i].toLowerCase())) {
               return true;
             }
           }
@@ -37,12 +37,12 @@ export const columns: BasicColumn[] = [
       },
       {
         title: t('data.enName'),
-        dataIndex: 'productEn',
+        dataIndex: 'enName',
         align: 'center',
         customFilterDropdown: true,
         onFilter: (value, record:any) => {
           for (let i = 0; i < value.length; i++) {
-            if (record.productEn.toString().toLowerCase().includes(value[i].toLowerCase())) {
+            if (record.enName.toString().toLowerCase().includes(value[i].toLowerCase())) {
               return true;
             }
           }

@@ -3,7 +3,7 @@
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
       <template #tableTitle>
         <PopConfirmButton
-          v-if="checkedKeys && checkedKeys.length > 0"
+          v-if="checkedKeys && checkedKeys.length > 0 && !hasPurchaseInvoice"
           type="success"
           :title="t('component.popConfirm.setInvoicesPaid')"
           preIcon="ant-design:dollar-outlined"
@@ -83,7 +83,7 @@ import {usePermissionStore} from "/@/store/modules/permission";
 import {PopConfirmButton} from "/@/components/Button";
 import { PageWrapper } from '/@/components/Page';
 import {columns, fetchUserList, searchFormSchema} from "./data/InvoiceList.data";
-import {list, Api, setPaid} from "./api/invoiceList.api";
+import {list, Api, setPaid} from "./api/InvoiceList.api";
 import PlainIcon from "/@/views/business/admin/invoiceManagement/components/PlainIcon.vue";
 import BasketIcon from "/@/views/business/admin/invoiceManagement/components/BasketIcon.vue";
 import {useRouter} from "vue-router";
@@ -276,6 +276,14 @@ function handleCopy(invoiceNumber:string) {
   if (unref(copiedRef)) {
     createMessage.warning(t('component.copy.success'));
   }
+}
+function hasPurchaseInvoice() {
+  for (let row of selectRows.value) {
+    if(row.type === 'purchase') {
+      return true;
+    }
+  }
+  return false;
 }
 </script>
 <style lang="less">

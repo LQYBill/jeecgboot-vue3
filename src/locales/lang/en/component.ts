@@ -73,6 +73,7 @@ export default {
     dayAutoPicker1: 'Auto pick quantity for the next :',
     dayAutoPicker2: 'day(s)',
     proofInput: 'Provide a screenshot as payment proof',
+    enNameInput: 'Please enter an English name',
     enterInvoiceNumber: 'Enter an invoice number',
     enterNumberOfDays: 'Please enter the number of days',
     clientInputSearch: "Select a customer",
@@ -81,6 +82,8 @@ export default {
     countrySelectSearch: "Select a country",
     invoiceTypeInputSearch: "Select an invoice type",
     invoiceModeInputSearch: "Select an invoicing mode",
+    isGiftInput: 'Please select whether it is a gift',
+    moqInput: 'Please enter the MOQ',
     orderSelectModeInputSearch: "Choose an order selection mode",
     ordersSelectSearch: "Select orders",
     paidAmountInput: "Please enter the paid amount",
@@ -89,6 +92,9 @@ export default {
     platformOrderIDFilter: 'Filter Platform Order ID',
     reasonInputText: 'Please enter a reason',
     recipientInputText: 'Please enter recipient information',
+    sensitiveAttributeInput: 'Please select a sensitive attribute',
+    serviceFeeInput: 'Please enter the service fee',
+    shippingDiscountInput: 'Please enter the shipping discount',
     shopFilter: "Filter by shop",
     shopInputSearch: "Select a shop",
     shopsInputSearch: "Select shops",
@@ -96,7 +102,8 @@ export default {
     userSelect: 'Select a user',
     userFilter: 'Filter by user',
     warehouseSelect: "Select at least 1 warehouse",
-    weightInputSearch: "Fill the weight"
+    weightInputSearch: "Fill the weight",
+    zhNameInput: 'Please enter a Chinese name',
   },
   table: {
     settingDens: 'Density',
@@ -115,11 +122,16 @@ export default {
     noDataSelected: 'No data selected',
     selectedRows: 'Selected { num } rows',
     selectAll: 'Select all',
+    unSelectAll: 'Unselect all',
 
     index: 'Index',
     total: 'Total of {total}',
 
-    LargeEntryQtySelectedWarning: 'The amount of data selected is very large and may cause the page to freeze. Are you sure you want to perform this operation?'
+    LargeEntryQtySelectedWarning: 'The amount of data selected is very large and may cause the page to freeze. Are you sure you want to perform this operation?',
+
+    edit: {
+      numberMin: 'The minimum value is { num }',
+    },
   },
   time: {
     before: ' ago',
@@ -188,6 +200,7 @@ export default {
   tips : {
     orderNumberSplitComma: 'Seperate order Ids with a comma (",")',
     orderStatus: 'This value is set automatically. Only use this if you want to override the value.',
+    skuProductLatestCode: 'The latest product code is: %{var}',
   },
   advancedSearch: "Advanced Search",
 };

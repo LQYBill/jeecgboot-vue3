@@ -5,13 +5,12 @@
 </template>
 <script lang="ts" setup>
 
-import {defineComponent} from "vue";
 import {BasicForm, useForm} from "/@/components/Form";
 import {BasicModal, useModalInner} from "/@/components/Modal";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {defHttp} from "/@/utils/http/axios";
 import {computed, defineProps, ref, unref, defineEmits} from "vue";
-import {getModalFormSchema} from "/@/views/business/admin/product/tableData";
+import {Api, getModalFormSchema} from "/@/views/business/admin/product/data";
 
 const { t } = useI18n();
 
@@ -26,10 +25,6 @@ const props = defineProps({
     default: false,
   },
 });
-enum Api {
-  // edit = "/product/product/edit",
-  edit = "/product/product/editBatch",
-}
 
 const [registerForm, { resetFields, setFieldsValue, validate }] = useForm({
   schemas: getModalFormSchema(),
@@ -58,11 +53,12 @@ async function handleSubmit() {
   try {
     let value = await validate();
     setModalProps({ confirmLoading: true });
-    let param = {};
     if(isUpdate.value) {
-      param.weight = value.weight;
-      param.ids = record.value;
-      await defHttp.post({url: Api.edit, params: param});
+      let params = {};
+      params.weight = value.weight;
+      params.effectiveDate = value.effectiveDate;
+      params.ids = record.value;
+      await defHttp.post({url: Api.updateBatch, params});
     }
     //关闭弹窗
     closeModal();
