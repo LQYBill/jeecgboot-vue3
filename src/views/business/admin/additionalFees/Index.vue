@@ -143,9 +143,6 @@ const searchState = reactive<Record<string, string>>({
 });
 
 async function handleTableChange(_pagination: PaginationProps, _filters: Partial<Recordable<string[]>>, sorter: SorterResult) {
-  console.group('Table change');
-  console.log('Sorter : ', sorter)
-  console.groupEnd();
   defSort.value.column = sorter.field;
   defSort.value.order = sorter.order === 'ascend' ? 'ASC' : 'DESC';
   await loadFeeList(1);
@@ -212,7 +209,6 @@ async function loadFeeList(arg?:number) {
   await fetchExtraFeeList(handleFetchFeeList, params);
 }
 function handleFetchFeeList(res) {
-  console.log('fetchList result', res)
   feeList.value = res.records;
   setLoading(false);
 }
@@ -222,7 +218,9 @@ async function handleSubmit() {
 }
 
 function handleOpenAddModal() {
-  openModal(true, {});
+  openModal(true, {
+    isUpdate: false,
+  });
 }
 /** shop functions */
 function handleFetchShops(res: ShopResponse[]): void {

@@ -66,8 +66,8 @@ import {statusOptions} from "@/views/business/admin/additionalFees/data";
 const { t } = useI18n();
 const emit = defineEmits(['search']);
 
-const shopMappedByClient: Ref<Record<string, ShopByClient>> = inject('shopMappedByClient');
-const shopOptionList: Ref<SelectProps['options']> = inject('shopOptionList');
+const shopMappedByClient = inject('shopMappedByClient') as Ref<Record<string, ShopByClient>> ;
+const shopOptionList = inject('shopOptionList') as Ref<SelectProps['options']>;
 
 const useForm = Form.useForm;
 const formRef = ref<Nullable<FormActionType>>(null);

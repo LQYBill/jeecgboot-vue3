@@ -65,7 +65,7 @@
           allowClear
           type="text"
           @change="handleDescriptionChange"
-          :disabled="isDescriptionDisabled"
+          :disabled="isDescriptionDisabled || (isUpdate && !!formState.invoiceNumber)"
         ></a-input>
       </a-form-item>
       <a-form-item
@@ -171,14 +171,13 @@ const [registerModal, {setModalProps, closeModal}, ] = useModalInner(async (data
   });
   isUpdate.value = !!data?.isUpdate;
   if (unref(isUpdate)) {
+    feeId.value = data.record.id;
     //表单赋值
     setFieldsValue({
       ...data.record,
     });
     verifyShopExistence(data.record.shop);
     setIsOtherType(typeList.value.find((type) => type.enName === data.record.enName)?.id!);
-  } else {
-    feeId.value = data?.id;
   }
 });
 
@@ -208,10 +207,10 @@ const validatorRules = ref({
 const formState = reactive<Record<string, any>>({
   shop: '',
   optionId: '',
-  description: '',
+  description: null,
   quantity: null,
   unitPrice: null,
-  invoiceNumber: '',
+  invoiceNumber: null,
 });
 const { validateInfos, resetFields,  } = useForm(formState, validatorRules, { immediate: true });
 

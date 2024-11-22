@@ -89,7 +89,7 @@ export const fetchTypeList = async (handler: Function) => {
 }
 
 export const saveOrUpdateExtraFee = async (params: Record<string, any>, isUpdate:boolean, handler: Function) => {
-  const url = isUpdate ? Api.CREATE_EXTRA_FEE : Api.UPDATE_EXTRA_FEE;
+  const url = isUpdate ? Api.UPDATE_EXTRA_FEE : Api.CREATE_EXTRA_FEE;
   return await defHttp.post({url, params}).then((res) => {
     handler(res);
   })
