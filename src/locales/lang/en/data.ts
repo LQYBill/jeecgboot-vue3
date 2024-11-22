@@ -25,6 +25,9 @@ export default {
     accountBalance: "Account Balance",
     estimatedBalance: "Estimated Balance",
   },
+  fee: {
+    type: 'Fee type',
+  },
   order: {
     abnormalOrder: "Abnormal",
     Content: "Order Content",
@@ -98,6 +101,7 @@ export default {
     erpStatus: "ERP Status",
     estimatedFeesForSelectedOrders: "Estimated fees for selected orders",
     export: "Export",
+    feeName: "Fee Name",
     finalAmount: "Final Amount",
     fretFee: "Fret Fee",
     generateCompleteInvoice: "Generate Complete Invoice",
@@ -115,6 +119,7 @@ export default {
     logisticChannelCode: "Logistic Channel Code",
     logisticChannelName: "Logistic Channel Name",
     noOrdersSelected: "No Order Selected",
+    notInvoiced: "Not invoiced",
     orderQty: "Order Quantity",
     orderList: "Order List",
     orderTime:"Order Time",
