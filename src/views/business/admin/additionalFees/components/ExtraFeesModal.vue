@@ -125,7 +125,7 @@
           v-model:value="formState.invoiceNumber"
           allowClear
           @change="handleInvoiceNumberChange"
-          :disabled="isUpdate"
+          :disabled="true"
         />
       </a-form-item>
     </a-form>
@@ -168,9 +168,14 @@ const [registerModal, {setModalProps, closeModal}, ] = useModalInner(async (data
     showCancelBtn: true,
     showOkBtn: true,
     okText: t('common.operation.submit'),
+    okButtonProps: {
+      disabled: false,
+    }
   });
   isUpdate.value = !!data?.isUpdate;
   if (unref(isUpdate)) {
+    if(!!data.record.invoiceNumber)
+      setModalProps({okButtonProps: {disabled: true}});
     feeId.value = data.record.id;
     //表单赋值
     setFieldsValue({
@@ -284,7 +289,6 @@ function buildParam() {
       console.error('Fee ID is not defined');
       return;
     }
-    // TODO : test this
     if(isOther) {
       return {
         id: feeId.value,

@@ -5,7 +5,8 @@
       <template #tableTitle>
         <a-button type="primary" preIcon="ant-design:plus-outlined" @click="handleOpenAddModal">Add</a-button>
       </template>
-      <template #toolBar>
+      <template #toolbar>
+        <a-button type="default" preIcon="ant-design:reload-outlined" @click="loadFeeList">{{ t('common.redo') }}</a-button>
       </template>
       <template #unitPrice="{ record }">
         <p class="font-semibold">{{ (record.unitPrice * record.quantity).toFixed(2) }}{{ getShopCurrency(record.shop) }}</p>
@@ -49,6 +50,7 @@ import {BasicTable, PaginationProps, SorterResult, TableAction, useTable} from "
 import {
   actionColumn,
   additionalFeesColumns,
+  deleteById,
   fetchExtraFeeList,
   fetchShopList
 } from "./data";
@@ -57,7 +59,7 @@ import ExtraFeesModal from "@/views/business/admin/additionalFees/components/Ext
 import {useModal} from "@/components/Modal";
 import {filterObj} from "@/utils/common/compUtils";
 import {ShopByClient, ShopResponse} from "@/views/business/dto/shop.dto";
-import {SelectProps} from "ant-design-vue";
+import {Modal, SelectProps} from "ant-design-vue";
 import SearchForm from "@/views/business/admin/additionalFees/components/SearchForm.vue";
 import {useI18n} from "vue-i18n";
 import {currencyToken} from "@/views/business/dto/currency.dto";
@@ -129,7 +131,10 @@ const [registerTable, { reload, clearSelectedRowKeys, setLoading }] = useTable({
     width: 60,
     title: "#"
   },
-  tableSetting: { fullScreen: true },
+  tableSetting: {
+    fullScreen: true,
+    redo: false,
+  },
   canResize: false,
   rowKey: 'id',
   onChange: handleTableChange,
@@ -177,6 +182,10 @@ function getTableAction(record) {
       onClick: handleEdit.bind(null, record),
       icon: 'clarity:note-edit-line',
     },
+    {
+      onClick: handleDeleteAtion.bind(null, record),
+      icon: 'clarity:trash-line',
+    },
   ]
 }
 function handleEdit(record: Recordable) {
@@ -185,7 +194,37 @@ function handleEdit(record: Recordable) {
     isUpdate: true,
   })
 }
-function openInvoice(invoiceNumber) {
+function handleDeleteAtion(record: Recordable) {
+  if(!!record.invoiceNumber) {
+    Modal.error({
+      title: t('common.operation.delete'),
+      content: t('data.fee.deleteErrorInvoiced'),
+      centered: true,
+      okText: t('component.drawer.okText'),
+      cancelText: t('component.drawer.cancelText'),
+      onOk: () => {
+        Modal.destroyAll();
+      }
+    })
+    return;
+  }
+  Modal.confirm({
+    title: t('common.operation.delete'),
+    content: t('common.operation.deleteConfirmation'),
+    okText: t('component.drawer.okText'),
+    cancelText: t('component.drawer.cancelText'),
+    centered: true,
+    onOk: async () => {
+      await deleteById(record.id, handleDelete);
+    }
+  })
+}
+async function handleDelete(_res) {
+  createMessage.success(t('common.result.deleteSuccessfully'));
+  await reload();
+  await loadFeeList(1);
+}
+function openInvoice(invoiceNumber:string) {
   const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: invoiceNumber}});
   window.open(invoicePreviewRoute.href, '_blank');
 }

@@ -27,6 +27,7 @@ export default {
   },
   fee: {
     type: 'Fee type',
+    deleteErrorInvoiced: 'The fee cannot be deleted because it has already been invoiced, in order to delete it, you must cancel the invoice first.',
   },
   order: {
     abnormalOrder: "Abnormal",

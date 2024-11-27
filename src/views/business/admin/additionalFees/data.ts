@@ -9,6 +9,7 @@ export const Api = {
   EXTRA_FEES_OPTIONS_LIST: '/extraFeeOption/list',
   CREATE_EXTRA_FEE: '/extraFee/create',
   UPDATE_EXTRA_FEE: '/extraFee/update',
+  DELETE_EXTRA_FEE: '/extraFee/delete',
 }
 
 export const additionalFeesColumns: BasicColumn[] = [
@@ -68,6 +69,7 @@ export const additionalFeesColumns: BasicColumn[] = [
 export const actionColumn: BasicColumn = {
   width: 80,
   title: t('common.operation.action'),
+  fixed: 'right',
   dataIndex: 'action',
   slots: { customRender: 'action' },
 };
@@ -91,6 +93,12 @@ export const fetchTypeList = async (handler: Function) => {
 export const saveOrUpdateExtraFee = async (params: Record<string, any>, isUpdate:boolean, handler: Function) => {
   const url = isUpdate ? Api.UPDATE_EXTRA_FEE : Api.CREATE_EXTRA_FEE;
   return await defHttp.post({url, params}).then((res) => {
+    handler(res);
+  })
+}
+
+export const deleteById = async (id: number, handler: Function) => {
+  return await defHttp.delete({url: Api.DELETE_EXTRA_FEE, params: {id}}, {joinParamsToUrl: true}).then((res) => {
     handler(res);
   })
 }

@@ -27,6 +27,7 @@ export default {
   },
   fee: {
     type: '费用类型',
+    deleteErrorInvoiced: '费用已开发票，无法删除，请先取消发票。',
   },
   order: {
     abnormalOrder: "异常订单",

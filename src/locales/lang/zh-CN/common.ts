@@ -89,6 +89,9 @@ export default {
     monthly: '月',
     yearly: '年',
   },
+  result: {
+    deleteSuccessfully: "删除成功",
+  },
   status: {
     status: '状态',
     notSpecified: '未填写',
