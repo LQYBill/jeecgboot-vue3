@@ -168,13 +168,13 @@ export default {
     error: {
       noShopFoundForClient: "没有找到当前客户的相关店铺信息.",
     },
-    purchase: {
-      groupId: "采购批次号",
-      orderAttributionFail : "记录订单采购发票号时出错 : [%{var}]",
-      orderAttributionSuccess : "订单采购发票号记录成功 : [%{var}]",
-      mabangOrderCreateFailForInvoices : "马帮订单创建失败，请在马帮上删除采购订单对应发票号 : %{var}",
-      mabangOrderCreateSuccessForInvoices : "马帮订单创建成功 : %{var}",
-    },
+  },
+  purchase: {
+    groupId: "采购批次号",
+    orderAttributionFail : "记录订单采购发票号时出错 : [%{var}]",
+    orderAttributionSuccess : "订单采购发票号记录成功 : [%{var}]",
+    mabangOrderCreateFailForInvoices : "马帮订单创建失败，请在马帮上删除采购订单对应发票号 : %{var}",
+    mabangOrderCreateSuccessForInvoices : "马帮订单创建成功 : %{var}",
   },
   refund: {
     notRefunded: '未退款',

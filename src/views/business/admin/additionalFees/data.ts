@@ -29,19 +29,21 @@ export const additionalFeesColumns: BasicColumn[] = [
   },
   {
     title: t('data.invoice.createDate'),
+    width: 120,
     align:"center",
     sorter: true,
     dataIndex: 'createTime',
+    slots: { customRender: 'createTime' },
   },
   {
     title: t('data.invoice.shop'),
+    width: 120,
     dataIndex: 'shop',
     sorter: true,
   },
   {
     title: t('data.invoice.feeName'),
     align:"center",
-    sorter: true,
     dataIndex: 'enName',
     slots: { customRender: 'feeName' },
   },
@@ -54,7 +56,6 @@ export const additionalFeesColumns: BasicColumn[] = [
   {
     title: t('data.invoice.totalAmount'),
     align:"center",
-    sorter: true,
     dataIndex: 'unitPrice',
     slots: { customRender: 'unitPrice' },
   },

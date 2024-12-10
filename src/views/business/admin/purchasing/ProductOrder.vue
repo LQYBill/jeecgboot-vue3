@@ -236,7 +236,7 @@ const ipagination = ref({
   onChange: handlePaginationChange,
   onShowSizeChange: handleShowSizeChange,
 });
-const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, setLoading, getSelectRowKeys}] = useTable({
+const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, setLoading}] = useTable({
   columns: columns,
   dataSource: skuList,
   rowSelection: {
@@ -397,7 +397,7 @@ function returnHome() {
 const handleFilterSelectChange = (e, setSelectedKeys) => {
   setSelectedKeys(e ? [e] : [])
 }
-const handleSearch = (selectedKeys, confirm, dataIndex) => {
+const handleSearch = (selectedKeys, _confirm, dataIndex) => {
   // confirm();
   state.searchText = selectedKeys;
   state.searchedColumn = dataIndex;

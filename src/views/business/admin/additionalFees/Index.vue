@@ -17,9 +17,9 @@
       <template #feeName="{ record }">
         <template v-if="!!record.description">
           <p class="font-semibold">{{ record.description }}</p>
-          <p class="font-normal text-xs">({{ record.enName }}/{{ record.zhName }})</p>
+          <p class="font-normal text-xs mb-0">({{ record.enName }}/{{ record.zhName }})</p>
         </template>
-        <p v-else class="font-semibold">{{ record.enName }}/{{ record.zhName }}</p>
+        <p v-else class="font-semibold mb-0">{{ record.enName }}/{{ record.zhName }}</p>
       </template>
       <template #invoiceNumber="{ text }">
         <div v-if="!!text" class="flex flex-row flex-nowrap justify-between items-center">
@@ -36,6 +36,9 @@
         <span v-else class="italic text-gray-300">
           {{ t('data.noData')}}
         </span>
+      </template>
+      <template #createTime="{ text }">
+        <time :datetime="text"><span>{{ text.split(' ')[0] }}</span><br/><span class="font-extralight">{{ text.split(' ')[1] }}</span></time>
       </template>
       <template #action="{ record }">
         <TableAction :actions="getTableAction(record)"/>
@@ -83,9 +86,6 @@ onMounted(async () => {
 })
 
 /** table setups */
-const checkedKeys = ref<Array<string | number>>([]);
-const selectRows = ref<Array<any>>([]);
-
 const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(50);
@@ -107,17 +107,11 @@ const pagination = ref({
   onChange: handlePaginationChange,
   onShowSizeChange: handleShowSizeChange,
 });
-const [registerTable, { reload, clearSelectedRowKeys, setLoading }] = useTable({
+const [registerTable, { reload, setLoading }] = useTable({
   title: 'Additional Fees',
   titleHelpMessage: 'This is the list of additional fees that can be added to the shipping invoice',
   dataSource: feeList,
   columns: additionalFeesColumns,
-  rowSelection : {
-    type: 'checkbox',
-    columnWidth: 30,
-    selectedRowKeys: checkedKeys,
-    onChange: onSelectChange,
-  },
   defSort,
   pagination,
   bordered: true,
@@ -152,10 +146,6 @@ async function handleTableChange(_pagination: PaginationProps, _filters: Partial
   defSort.value.order = sorter.order === 'ascend' ? 'ASC' : 'DESC';
   await loadFeeList(1);
 }
-function onSelectChange(selectedRowKeys: Array<string | number>, selectedRows: Array<any>) {
-  checkedKeys.value = selectedRowKeys;
-  selectRows.value = selectedRows;
-}
 function getQueryParams() {
   let params = Object.assign(defSort.value);
   params.pageNo = currentPage.value;
@@ -183,8 +173,9 @@ function getTableAction(record) {
       icon: 'clarity:note-edit-line',
     },
     {
-      onClick: handleDeleteAtion.bind(null, record),
+      onClick: handleDeleteAction.bind(null, record),
       icon: 'clarity:trash-line',
+      color: 'error',
     },
   ]
 }
@@ -194,7 +185,7 @@ function handleEdit(record: Recordable) {
     isUpdate: true,
   })
 }
-function handleDeleteAtion(record: Recordable) {
+function handleDeleteAction(record: Recordable) {
   if(!!record.invoiceNumber) {
     Modal.error({
       title: t('common.operation.delete'),
@@ -242,7 +233,6 @@ async function loadFeeList(arg?:number) {
   setLoading(true);
   if(arg === 1) {
     currentPage.value = 1;
-    clearSelectedRowKeys();
   }
   const params = getQueryParams();
   await fetchExtraFeeList(handleFetchFeeList, params);
