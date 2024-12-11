@@ -1,6 +1,5 @@
 import {defHttp} from "@/utils/http/axios";
 import {useI18n} from "@/hooks/web/useI18n";
-import {BasicColumn} from "@/components/Table";
 import {JSearchSelectOption} from "@/views/business/dto/JSearchSelectOption.dto";
 import {downloadFile} from "@/api/common/api";
 
@@ -35,38 +34,6 @@ export const downloadInvoiceDetails = async (params: Recordable, handler: Functi
   });
 }
 
-export const columns: BasicColumn[] = [
-  {
-    title: t('data.invoice.invoiceNumber'),
-    dataIndex: 'invoiceNumber',
-    width: 100,
-    align: 'center',
-  },
-  {
-    title: t('data.Client'),
-    dataIndex: 'clientName',
-    width: 100,
-    align: 'center',
-  },
-  {
-    title: t('data.invoice.date'),
-    dataIndex: 'invoiceDate',
-    width: 100,
-    align: 'center',
-  },
-  {
-    title: t('data.transaction.amount'),
-    dataIndex: 'invoiceAmount',
-    width: 100,
-    align: 'center',
-  },
-  {
-    title: t('common.operation.action'),
-    dataIndex: 'action',
-    width: 100,
-    align: 'center',
-  },
-];
 export const typeOptions: JSearchSelectOption[] = [
   {
     text: t('data.invoice.shippingInvoice'),

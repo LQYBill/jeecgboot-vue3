@@ -1,9 +1,6 @@
 <template>
   <PageWrapper title="Export details">
     <search-form @search="handleSearch"/>
-    <BasicTable @register="registerTable">
-
-    </BasicTable>
   </PageWrapper>
 </template>
 <script setup lang="ts">
@@ -11,10 +8,9 @@ import {PageWrapper} from "@/components/Page";
 import {onMounted, provide, reactive, Ref, ref} from "vue";
 import {
   fetchClientList,
-  columns, downloadInvoiceDetails,
+  downloadInvoiceDetails,
 } from "./data/ExportDetails.data";
 import SearchForm from "./components/SearchForm.vue";
-import {BasicTable, useTable} from "@/components/Table";
 import {JSearchSelectOption} from "@/views/business/dto/JSearchSelectOption.dto";
 
 const clientList: Ref<Recordable[]> = ref([]);
@@ -30,10 +26,6 @@ const searchState = reactive<Record<string, string>>({
 onMounted(async () => {
   await fetchClientList(handleFetchClientList);
 });
-
-const [registerTable, { reload }] = useTable({
-  columns: columns,
-})
 
 function handleFetchClientList(res: Recordable[]) {
   clientList.value = res;

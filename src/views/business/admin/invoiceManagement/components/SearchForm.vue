@@ -1,10 +1,11 @@
 <template>
-  <div class="bg-white rounded-5 pt-8 p-4 mb-6">
+  <div class="min-h-sm">
     <a-form ref="formRef"
             :model="searchState"
             :label-col="labelCol"
             :wrapper-col="wrapperCol"
             :rules="validatorRules"
+            class="bg-white rounded-5 pt-8 p-4 "
     >
       <a-row :gutter =8>
         <a-col :span="5">
@@ -47,7 +48,7 @@
             />
           </a-form-item>
         </a-col>
-        <a-col :span="5">
+        <a-col :span="8">
           <a-form-item
             :labelCol="labelCol"
             :wrapperCol="wrapperCol"
@@ -85,7 +86,7 @@
             />
           </a-form-item>
         </a-col>
-        <a-col :span="3">
+        <a-col :span="1">
           <a-form-item>
             <a-button type="primary" preIcon="ant-design:search-outlined" @click="handleSearch"></a-button>
           </a-form-item>
