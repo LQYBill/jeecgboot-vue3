@@ -68,14 +68,16 @@
           <a-tag v-if="!!record?.groupId" class="ant-tag-primary" v-for="group in record?.groupId.split(',').slice(0,5)">{{ group }}</a-tag>
           <a-popover
             v-if="!!record?.groupId && (record?.groupId.split(',').length > 5)"
-            :title="t('data.purchase.groupId') + '(' + record?.groupId.split(',').length + ')'"
+            :title="t('data.purchase.groupId') + ' (' + record?.groupId.split(',').length + ')'"
             trigger="hover"
           >
             <a-tag>
               ...
             </a-tag>
             <template #content>
-              <a-tag class="ant-tag-primary" v-for="group in record.groupId.split(',')">{{ group }}</a-tag>
+              <div class="flex flex-wrap max-w-sm gap-1">
+                <a-tag class="ant-tag-primary" v-for="group in record.groupId.split(',')">{{ group }}</a-tag>
+              </div>
             </template>
           </a-popover>
           <Icon v-if="!!record?.groupId" icon="ant-design:copy-outlined" @click="handleCopy(record.groupId)" class="cursor-pointer"></Icon>
