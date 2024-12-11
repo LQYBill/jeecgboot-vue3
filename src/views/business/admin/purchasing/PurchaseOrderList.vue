@@ -65,7 +65,20 @@
       </template>
       <template #groupId="{record}">
         <div class="flex flex-wrap gap-1">
-          <a-tag v-if="!!record?.groupId" class="ant-tag-primary" v-for="group in record?.groupId.split(',')">{{ group }}</a-tag>
+          <a-tag v-if="!!record?.groupId" class="ant-tag-primary" v-for="group in record?.groupId.split(',').slice(0,5)">{{ group }}</a-tag>
+          <a-popover
+            v-if="!!record?.groupId && (record?.groupId.split(',').length > 5)"
+            :title="t('data.purchase.groupId') + '(' + record?.groupId.split(',').length + ')'"
+            trigger="hover"
+          >
+            <a-tag>
+              ...
+            </a-tag>
+            <template #content>
+              <a-tag class="ant-tag-primary" v-for="group in record.groupId.split(',')">{{ group }}</a-tag>
+            </template>
+          </a-popover>
+          <Icon v-if="!!record?.groupId" icon="ant-design:copy-outlined" @click="handleCopy(record.groupId)" class="cursor-pointer"></Icon>
         </div>
       </template>
       <template #platformOrderId="{record}">
@@ -79,7 +92,7 @@
 </template>
 
 <script lang="ts" name="purchaseOrder" setup>
-import {ref} from 'vue';
+import {ref, unref} from 'vue';
 import {BasicTable, TableAction, TableImg} from '/@/components/Table';
 import {useModal} from '/@/components/Modal';
 import {useListPage} from '/@/hooks/system/useListPage'
@@ -97,16 +110,19 @@ import {useI18n} from "/@/hooks/web/useI18n";
 import {PageWrapper} from "/@/components/Page";
 import {useGlobSetting} from "/@/hooks/setting";
 import Icon from "/@/components/Icon";
+import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
+import {useMessage} from "@/hooks/web/useMessage";
 
 
 const {t} = useI18n();
+const { clipboardRef, copiedRef } = useCopyToClipboard();
+const { createMessage } = useMessage();
 
 const globSetting = useGlobSetting();
 const baseUploadUrl = globSetting.uploadUrl;
 
 const imgPrefix = `${baseUploadUrl}/sys/common/static/`;
 
-const checkedKeys = ref<Array<string | number>>([]);
 let ipagination = ref({
   current: 1,
   defaultPageSize: 100,
@@ -138,7 +154,7 @@ const {tableContext} = useListPage({
     striped: true,
     bordered: false,
     rowSelection: {
-      onChange: (selectedRowKeys, selectedRows) => {
+      onChange: (_selectedRowKeys, selectedRows) => {
         if(selectedRows.length === 0) {
           createOrderDisabled.value = true;
           return;
@@ -273,9 +289,6 @@ function getDropDownAction(record) {
     },
   ]
 }
-function getInvoiceType(invoiceNumber) {
-  return invoiceNumber.slice(-4,-3);
-}
 function handleCreateOrder() {
   openModal(true, {
     isUpdate: false,
@@ -283,6 +296,16 @@ function handleCreateOrder() {
     showFooter: true,
     selectedRows: selectedRows.value,
   })
+}
+function handleCopy(groupIds:string) {
+  if (!groupIds) {
+    createMessage.warning(t('component.copy.noValue'));
+    return;
+  }
+  clipboardRef.value = groupIds;
+  if (unref(copiedRef)) {
+    createMessage.warning(t('component.copy.success'));
+  }
 }
 </script>
 
