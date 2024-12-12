@@ -145,10 +145,10 @@ import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
 import type {FormActionType} from "/@/components/Form";
 import {useModal} from '/@/components/Modal';
-import {BasicTable, TableImg, useTable} from "/@/components/Table";
+import {BasicTable, SorterResult, TableImg, useTable} from "/@/components/Table";
 import {
   downloadInventory,
-  downloadInvoice, downloadInvoiceInventory, getAllSelectableSkus,
+  downloadInvoice, getAllSelectableSkus,
   getMabangUsername, listClientSkus,
   listCustomers, syncSkuQty,
 } from "./ProductOrder.api";
@@ -192,7 +192,6 @@ const productListZh = ref<string[]>();
 const productListEn = ref<string[]>();
 const erpCodes = ref<string[]>();
 const productListDisabled = ref<boolean>(true);
-const productListVisible = ref<boolean>(false);
 
 const allSelected = ref<boolean>(false);
 const allSkus = ref<any>([]);
@@ -219,8 +218,8 @@ const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(50);
 const iSorter = ref({
-  column: 'erpCode',
-  order: 'ASC'
+  column: 'stock',
+  order: 'ASC',
 });
 const ipagination = ref({
   current: currentPage,
@@ -257,8 +256,10 @@ const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, setLoading}
   },
   canResize: true,
   rowKey: 'id',
+  sortFn: handleSorterChange,
 });
 const [registerModal, {openModal}] = useModal();
+
 async function checkUserMabangUsername() {
   await getMabangUsername(handleMabangUsername);
 }
@@ -346,7 +347,16 @@ function orderMenu() {
     selectedRows: allSelected.value ? allSkus.value : getSelectRows(),
   })
 }
-
+function handleModalSuccess (result:{filename: string, invoiceCode: string, invoiceEntity: string, internalCode: string, errorMsg: string}) {
+  downloadInvoice(result.filename, handleDownloadSuccess);
+  downloadInventory(result, handleDownloadSuccess);
+  clearSelectedRowKeys();
+  reload();
+}
+function handleDownloadSuccess() {
+  createMessage.info("Download successful.");
+}
+// table functions
 function onSelectChange() {
   if(getSelectRows().length === 0) {
     if(allSelected.value) {
@@ -382,18 +392,6 @@ function getCheckboxProps(record: Recordable) {
     return { disabled: true }
   }
 }
-function handleModalSuccess (result:{filename: string, invoiceCode: string, invoiceEntity: string, internalCode: string, errorMsg: string}) {
-  downloadInvoice(result.filename, handleDownloadSuccess);
-  downloadInventory(result, handleDownloadSuccess);
-  clearSelectedRowKeys();
-  reload();
-}
-function handleDownloadSuccess() {
-  createMessage.info("Download successful.");
-}
-function returnHome() {
-  go();
-}
 const handleFilterSelectChange = (e, setSelectedKeys) => {
   setSelectedKeys(e ? [e] : [])
 }
@@ -421,6 +419,14 @@ function handlePaginationChange(p:number, pz:number) {
   currentPage.value = p;
   pageSize.value = pz;
   loadSkuList();
+}
+function handleSorterChange(sorter: SorterResult) {
+  if(Object.keys(sorter).length === 0) {
+    return;
+  }
+  iSorter.value.column = sorter.field;
+  iSorter.value.order = sorter.order === 'ascend' ? 'ASC' : 'DESC';
+  loadSkuList(1);
 }
 function handleShowSizeChange(current:number, size:number) {
   currentPage.value = current;
@@ -451,6 +457,10 @@ async function handleUnselectAllSkus() {
 function handleSetSelectedSkus(res) {
   allSkus.value = res;
   setLoading(false);
+}
+// for 404
+function returnHome() {
+  go();
 }
 </script>
 <style lang="less">
