@@ -340,6 +340,7 @@ export default defineComponent({
                 // incrémente la clé
                 index.value+=1;
             }
+            downloadReady.value = true;
             resolve();
           })
           .catch(e => {
