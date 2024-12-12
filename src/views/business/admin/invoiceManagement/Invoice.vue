@@ -324,6 +324,7 @@ export default defineComponent({
                 index.value+=1;
               }
             }
+            downloadReady.value = true;
             resolve();
           })
           .catch(e => {
