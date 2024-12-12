@@ -424,8 +424,12 @@ function handleSorterChange(sorter: SorterResult) {
   if(Object.keys(sorter).length === 0) {
     return;
   }
+  const order = sorter.order === 'ascend' ? 'ASC' : 'DESC';
+  if(iSorter.value.column === sorter.field && iSorter.value.order === order) {
+    return;
+  }
   iSorter.value.column = sorter.field;
-  iSorter.value.order = sorter.order === 'ascend' ? 'ASC' : 'DESC';
+  iSorter.value.order = order;
   loadSkuList(1);
 }
 function handleShowSizeChange(current:number, size:number) {
