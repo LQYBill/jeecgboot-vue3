@@ -18,7 +18,7 @@ export default defineConfig({
     [/^flex-(\d+\.?\d{0,2})$/, match => ({ flex: `${match[1]} ${match[1]} 0%` })],
   ],
   theme: {
-    extend: {
+    extends: {
       zIndex: {
         '-1': '-1',
       },

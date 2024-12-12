@@ -3,7 +3,7 @@
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
       <template #tableTitle>
         <PopConfirmButton
-          v-if="checkedKeys && checkedKeys.length > 0 && !hasPurchaseInvoice"
+          v-if="checkedKeys && checkedKeys.length > 0 && !hasPurchaseInvoice()"
           type="success"
           :title="t('component.popConfirm.setInvoicesPaid')"
           preIcon="ant-design:dollar-outlined"
@@ -19,7 +19,8 @@
         <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('Invoice List', Api.exportXls, exportParams)"> {{ t("common.operation.export") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('detail')" :disabled = 'downloadDetailDisabled'> {{ t("data.invoice.downloadDetails") }}</a-button>
-        <PopConfirmButton
+        <!-- TODO : re-adapt -->
+        <!--<PopConfirmButton
             v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin' || username === 'Gauthier')"
             type="error"
             title="Confirm cancelling invoice ?"
@@ -31,9 +32,9 @@
             :cancelText="t('common.operation.cancel')"
         >
           {{ t("common.operation.delete") }}
-        </PopConfirmButton>
+        </PopConfirmButton>-->
       </template>
-      <template v-slot:action="{ record, column }">
+      <template v-slot:action="{ record }">
         <TableAction
           :actions="[
             {

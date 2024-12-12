@@ -61,12 +61,13 @@ import {downloadFile} from '/@/api/common/api';
 import { defHttp } from '/@/utils/http/axios';
 import { useMessage } from '/@/hooks/web/useMessage';
 import {useI18n} from "/@/hooks/web/useI18n";
-import {defineComponent, onBeforeMount, onMounted, onUnmounted, ref} from 'vue';
+import {defineComponent, onBeforeMount, onUnmounted, ref} from 'vue';
 import {BasicColumn} from "/@/components/Table";
 import { useRoute } from 'vue-router';
 import {Result} from "ant-design-vue";
 import {ExceptionEnum} from "/@/enums/exceptionEnum";
 import {useGo} from "/@/hooks/web/usePage";
+import {Fee} from "@/views/business/dto/fee.dto";
 
 export default defineComponent({
   name: 'Invoice',
@@ -134,7 +135,7 @@ export default defineComponent({
         dataIndex: 'description',
       },
       {
-        title: t("data.invoice.orderQty"),
+        title: t("data.invoice.quantity"),
         align: 'center',
         dataIndex: 'quantity',
       },
@@ -212,19 +213,18 @@ export default defineComponent({
             if (res !== null) {
               downloadReady.value = true;
               for (let i in res.feeAndQtyPerCountry) {
-                for (let key in res.feeAndQtyPerCountry[i]) {
-                  let subtotal = res.feeAndQtyPerCountry[i][key];
-                  final_total_euro.value += subtotal;
-                  total_quantity.value += Number(key);
-                  dataSource.value.push({
-                    key: index.value,
-                    description: "Total shipping cost for " + t("location.country." + i),
-                    quantity: key,
-                    total_amount: subtotal,
-                  });
-                  // incrémente la clé
-                  index.value += 1;
-                }
+                const fee: Fee = res.feeAndQtyPerCountry[i];
+                let subtotal = fee.unitPrice;
+                final_total_euro.value += subtotal;
+                total_quantity.value += Number(fee.quantity);
+                dataSource.value.push({
+                  key: index.value,
+                  description: "Total shipping cost for " + t("location.country." + i),
+                  quantity: fee.quantity,
+                  total_amount: subtotal,
+                });
+                // incrémente la clé
+                index.value += 1;
               }
               // VAT
               dataSource.value.push({
@@ -289,6 +289,23 @@ export default defineComponent({
                 final_total_euro.value -= res.discount;
                 index.value += 1;
               }
+
+              // EXTRA FEES
+              if (!!res.extraFees) {
+                for (let i in res.extraFees) {
+                  const fee: Fee = res.extraFees[i];
+                  let subtotal: number = fee.unitPrice * fee.quantity;
+                  final_total_euro.value += subtotal;
+                  total_quantity.value += fee.quantity;
+                  dataSource.value.push({
+                    key: index.value,
+                    description: i,
+                    quantity: fee.quantity,
+                    total_amount: subtotal
+                  });
+                  index.value += 1;
+                }
+              }
               final_total_euro.value = Number(final_total_euro.value.toFixed(2));
               if (currency.value !== "EUR") {
                 final_total_customer_curr.value = res.finalAmount;
@@ -310,19 +327,18 @@ export default defineComponent({
         defHttp.get({url: Api.purchaseInvoiceData, params: param, signal: signal})
           .then(res=> {
             for(let sku in res.feeAndQtyPerSku) {
-              for(let qty in res.feeAndQtyPerSku[sku]) {
-                let subtotal = res.feeAndQtyPerSku[sku][qty];
+              const fee: Fee = res.feeAndQtyPerSku[sku];
+                let subtotal = fee.unitPrice;
                 final_total_euro.value += subtotal;
-                total_quantity.value += Number(qty);
+                total_quantity.value += fee.quantity;
                 dataSource.value.push({
                   key: index.value,
                   description: sku,
-                  quantity: qty,
+                  quantity: fee.quantity,
                   total_amount: subtotal,
                 });
                 // incrémente la clé
                 index.value+=1;
-              }
             }
             downloadReady.value = true;
             resolve();

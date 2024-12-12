@@ -25,6 +25,10 @@ export default {
     accountBalance: "账户余额",
     estimatedBalance: "预计账户余额",
   },
+  fee: {
+    type: '费用类型',
+    deleteErrorInvoiced: '费用已纳入发票，无法删除，请先取消发票。',
+  },
   order: {
     abnormalOrder: "异常订单",
     Content: "订单内容",
@@ -98,6 +102,7 @@ export default {
     erpStatus: "ERP中状态",
     estimatedFeesForSelectedOrders: "当前已选择订单预计费用",
     export: "导出",
+    feeName: "收费名称",
     finalAmount: "最终金额",
     fretFee: "挂号费",
     generateCompleteInvoice: "生成完整发票文件",
@@ -115,6 +120,7 @@ export default {
     logisticChannelCode: "渠道代码",
     logisticChannelName: "渠道名称",
     noOrdersSelected: "尚未选择订单",
+    notInvoiced: "未开发票",
     orderQty: "订单数量",
     orderList: "订单列表",
     orderTime: "订单交易时间",
@@ -162,13 +168,13 @@ export default {
     error: {
       noShopFoundForClient: "没有找到当前客户的相关店铺信息.",
     },
-    purchase: {
-      groupId: "采购批次号",
-      orderAttributionFail : "记录订单采购发票号时出错 : [%{var}]",
-      orderAttributionSuccess : "订单采购发票号记录成功 : [%{var}]",
-      mabangOrderCreateFailForInvoices : "马帮订单创建失败，请在马帮上删除采购订单对应发票号 : %{var}",
-      mabangOrderCreateSuccessForInvoices : "马帮订单创建成功 : %{var}",
-    },
+  },
+  purchase: {
+    groupId: "采购批次号",
+    orderAttributionFail : "记录订单采购发票号时出错 : [%{var}]",
+    orderAttributionSuccess : "订单采购发票号记录成功 : [%{var}]",
+    mabangOrderCreateFailForInvoices : "马帮订单创建失败，请在马帮上删除采购订单对应发票号 : %{var}",
+    mabangOrderCreateSuccessForInvoices : "马帮订单创建成功 : %{var}",
   },
   refund: {
     notRefunded: '未退款',

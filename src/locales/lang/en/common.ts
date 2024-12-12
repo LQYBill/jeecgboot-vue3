@@ -89,6 +89,9 @@ export default {
     monthly: 'monthly',
     yearly: 'yearly',
   },
+  result: {
+    deleteSuccessfully: "Deleted successfully",
+  },
   status: {
     status: 'Status',
     notSpecified: 'Not Specified',

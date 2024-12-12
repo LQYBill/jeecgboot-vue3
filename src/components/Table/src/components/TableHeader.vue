@@ -10,7 +10,7 @@
         <TableTitle :helpMessage="titleHelpMessage" :title="title" v-if="!$slots.tableTitle && title" />
       </div>
 
-      <div :class="`${prefixCls}__toolbar`">
+      <div :class="`${prefixCls}__toolbar`" class="flex justify-center items-center">
         <slot name="toolbar"></slot>
         <Divider type="vertical" v-if="$slots.toolbar && showTableSetting" />
         <TableSetting :class="`${prefixCls}__toolbar-desktop`" style="white-space: nowrap;" :setting="tableSetting" v-if="showTableSetting" @columns-change="handleColumnChange" />
@@ -112,10 +112,15 @@
 
       > * {
         margin-right: 8px;
+        margin-bottom: 4px;// WIA Sourcing Gauthier
       }
 
       &-desktop {
-        display: block;
+        /* WIA Sourcing Gauthier */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* END edit */
       }
 
       &-mobile {
