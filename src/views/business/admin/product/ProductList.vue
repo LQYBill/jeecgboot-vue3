@@ -1,5 +1,6 @@
 <template>
   <PageWrapper :title="t('data.product.productListPage')">
+    <ProductListResults/>
     <BasicTable @register="registerTable" ref="tableRef">
       <template #tableTitle>
       </template>
@@ -59,11 +60,11 @@
           </span>
       </template>
     </BasicTable>
-    <ProductListModal @register="registerModal" @success="reload" :isDisabled="isDisabled"/>
+    <ProductListModal @register="registerModal" @success="handleSuccess" :isDisabled="isDisabled"/>
   </PageWrapper>
 </template>
 <script lang="ts" setup>
-import {onMounted, reactive, ref} from "vue";
+import {onMounted, provide, reactive, ref} from "vue";
 import { BasicTable, useTable } from "/@/components/Table";
 import { useI18n } from "/@/hooks/web/useI18n";
 import { getProductColumns } from "/@/views/business/admin/product/data";
@@ -73,6 +74,7 @@ import {PageWrapper} from "/@/components/Page"
 import {listSkus} from "@/views/business/admin/product/api";
 import {filterObj} from "@/utils/common/compUtils";
 import {SearchOutlined} from "@ant-design/icons-vue";
+import ProductListResults from "@/views/business/admin/product/modules/ProductListResults.vue";
 
 const { t } = useI18n();
 
@@ -86,6 +88,8 @@ const skuList = ref([]);
 const productListZh = ref<string[]>();
 const productListEn = ref<string[]>();
 const erpCodes = ref<string[]>();
+
+const results = ref<Recordable>({});
 
 // filters
 const filters = reactive<Record<string, any>>({
@@ -238,6 +242,11 @@ function handleShowSizeChange(current:number, size:number) {
   pageSize.value = size;
   loadSkuList(1);
 }
+function handleSuccess(res: Recordable) {
+  results.value = res;
+  loadSkuList();
+}
+provide('results', results);
 </script>
 <style>
 
