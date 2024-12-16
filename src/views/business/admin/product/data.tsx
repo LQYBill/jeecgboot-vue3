@@ -24,12 +24,13 @@ export function getProductColumns(): BasicColumn[] {
       align: 'left',
       sorter: true,
       customFilterDropdown: true,
-      onFilter: (value, record:any) => {
-        for (let i = 0; i < value.length; i++) {
+      onFilter: (value, record: Recordable) => {
+        for (let i = 0; i < (value as string).length; i++) {
           if (record.product.toString().toLowerCase().includes(value[i].toLowerCase())) {
             return true;
           }
         }
+        return false;
       },
     },
     {
@@ -38,12 +39,13 @@ export function getProductColumns(): BasicColumn[] {
       align: 'left',
       sorter: true,
       customFilterDropdown: true,
-      onFilter: (value, record:any) => {
-        for (let i = 0; i < value.length; i++) {
+      onFilter: (value, record: Recordable) => {
+        for (let i = 0; i < (value as string).length; i++) {
           if (record.zhName.toString().toLowerCase().includes(value[i].toLowerCase())) {
             return true;
           }
         }
+        return false;
       },
     },
     {
@@ -52,12 +54,13 @@ export function getProductColumns(): BasicColumn[] {
       align: 'left',
       sorter: true,
       customFilterDropdown: true,
-      onFilter: (value, record:any) => {
-        for (let i = 0; i < value.length; i++) {
+      onFilter: (value, record: Recordable) => {
+        for (let i = 0; i < (value as string).length; i++) {
           if (record.enName.toString().toLowerCase().includes(value[i].toLowerCase())) {
             return true;
           }
         }
+        return false;
       },
     },
     {
