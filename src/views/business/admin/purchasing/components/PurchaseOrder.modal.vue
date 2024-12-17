@@ -71,6 +71,8 @@ const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) 
 //设置标题
 const title = computed(() => (unref(isOrder) ? 'Order' : !unref(isUpdate) ? t('common.operation.addNew') : t('common.operation.edit')));
 
+const results = ref<Recordable>({});
+
 //表单提交事件
 async function handleSubmit(v) {
   if(unref(isOrder)) {
@@ -123,19 +125,14 @@ async function submitMabangPurchaseOrder() {
     }
     // await createMabangPurchaseOrder([invoiceNumbers]);
     await createMabangPurchaseOrder({invoiceNumbers: invoiceNumbers}, handleCreateMabangPurchaseOrder);
-    //关闭弹窗
-    closeModal();
-    //刷新列表
-    emit('success');
   } finally {
     setModalProps({confirmLoading: false});
   }
 }
 function handleCreateMabangPurchaseOrder(data:any) {
-  if(data.success.length > 0)
-    createMessage.success(t('data.purchase.mabangOrderCreateSuccessForInvoices', {var: data.success}));
-  if(data.fail.length > 0)
-    createMessage.error(t('data.purchase.mabangOrderCreateFailForInvoices', {var: data.fail}));
+  results.value = data;
+  closeModal();
+  emit('success', results.value);
 }
 function autofill(model) {
   setFieldsValue({
