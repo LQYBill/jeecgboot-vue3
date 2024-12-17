@@ -15,14 +15,15 @@
     <XMBg1 v-if="xm" class="absolute -top-[140px] z-0"/>
     <div v-if="xm" class="text-center">
       <XMSm v-if="xm" class=""/>
-      <XMG1 v-if="xm" class="relative -right-32 z-1"/>
-      <div class="inline-block relative">
+      <div class="inline-block relative text-center">
+        <XMG1 v-if="xm" class="absolute left-8 bottom-2 z-1"/>
         <XMT1 v-if="xm" class=""/>
       </div>
       <div class="inline-block relative">
         <XMF v-if="xm" class=""/>
         <XMC v-if="xm" class="absolute top-3 right-12"/>
         <XMC1 v-if="xm" class="absolute top-0 left-8"/>
+        <XMC2 v-if="xm" class="absolute -top-20 right-16"/>
       </div>
     </div>
   </div>
@@ -65,6 +66,7 @@
   import XMC from "@/views/dashboard/Analysis/components/Icons/XMC.vue";
   import XMSm from "@/views/dashboard/Analysis/components/Icons/XMSm.vue";
   import XMC1 from "@/views/dashboard/Analysis/components/Icons/XMC1.vue";
+  import XMC2 from "@/views/dashboard/Analysis/components/Icons/XMC2.vue";
 
   const { t } = useI18n();
   const userStore = useUserStore();
