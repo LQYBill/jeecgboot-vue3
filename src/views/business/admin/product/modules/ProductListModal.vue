@@ -17,6 +17,8 @@ const { t } = useI18n();
 const emit = defineEmits(['register', 'success']);
 const isUpdate = ref<boolean>(true);
 const record = ref<any[]>([]);
+
+const results = ref<Recordable>({});
 //自定义接受参数
 const props = defineProps({
   //是否禁用页面
@@ -54,16 +56,18 @@ async function handleSubmit() {
     let value = await validate();
     setModalProps({ confirmLoading: true });
     if(isUpdate.value) {
-      let params = {};
+      let params: Recordable = {};
       params.weight = value.weight;
       params.effectiveDate = value.effectiveDate;
       params.ids = record.value;
-      await defHttp.post({url: Api.updateBatch, params});
+      await defHttp.post({url: Api.updateBatch, params}).then((res) => {
+        results.value = res;
+      });
     }
     //关闭弹窗
     closeModal();
     //刷新列表
-    emit('success', value);
+    emit('success', results.value);
   } catch (e) {
     console.error(e);
   } finally {

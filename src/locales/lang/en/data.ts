@@ -261,6 +261,7 @@ export default {
     productOrderPage: "Product Order Page",
     purchaseOrderManagementPage : "Purchase Order Management",
     shoumanOrderPage : "Shouman Order Management",
+    skuWeightEditResult: "SKU Weight Edit Result",
   },
   shouman:{
     orderToPlace: "Order To Place",
