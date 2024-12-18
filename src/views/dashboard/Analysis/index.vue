@@ -1,17 +1,31 @@
 <template>
-  <div class="mx-auto my-32 pt-20 pb-4 bg-white rounded-3xl w-8/12 relative shadow-sm">
+  <div class="mx-auto my-32 pt-20 pb-4 bg-white rounded-3xl w-8/12 relative shadow-sm" :class="xm ? 'mt-42' : ''">
     <S5Icon v-if="bd" class="w-16 h-16 absolute -top-28 right-0 left-0 mx-auto z-10"/>
-    <img :src="avatarImgUrl" alt="avatar" class="w-32 h-32 avatar absolute -top-16 right-0 left-0 mx-auto bg-gray">
+    <img :src="avatarImgUrl" alt="avatar" class="w-32 h-32 avatar absolute -top-16 right-0 left-0 mx-auto bg-gray z-1">
     <h1 class="text-center text-2xl font-normal">Welcome back to <span class="text-yellow-500">WIA App</span><br/> <span class="text-primary">{{userStore.getUserInfo.realname}}</span></h1>
     <div v-if="bd" class="text-center text-2xl mt-4">
       <h2 class="text-[#b0d5d7]">{{ t('sys.bd')}}</h2>
       <SurpriseIcon class="w-42 m-auto"/>
     </div>
-    <S1Icon v-if="bd" class="absolute top-0 left-8 w-16 h-16"/>
-    <S1Icon v-if="bd" class="absolute top-0 right-8 w-16 h-16"/>
-    <S2Icon v-if="bd" class="absolute bottom-0 left-0 w-16 h-16"/>
-    <S3Icon v-if="bd" class="absolute bottom-0 right-0 w-16 h-16 -scale-x-100"/>
+    <S1Icon v-if="bd || xm" class="absolute top-0 left-8 w-16 h-16"/>
+    <S1Icon v-if="bd || xm" class="absolute top-0 right-8 w-16 h-16"/>
+    <S2Icon v-if="bd || xm" class="absolute bottom-0 left-0 w-16 h-16"/>
+    <S3Icon v-if="bd || xm" class="absolute bottom-0 right-0 w-16 h-16 -scale-x-100"/>
     <S4Icon v-if="bd" class="absolute -bottom-16 right-0 left-0 mx-auto w-16 h-16 infinite-rotate"/>
+    <XMBg1 v-if="xm" class="absolute -top-[140px] z-0"/>
+    <div v-if="xm" class="text-center">
+      <XMSm v-if="xm" class=""/>
+      <div class="inline-block relative text-center">
+        <XMG1 v-if="xm" class="absolute left-8 bottom-2 z-1"/>
+        <XMT1 v-if="xm" class=""/>
+      </div>
+      <div class="inline-block relative">
+        <XMF v-if="xm" class=""/>
+        <XMC v-if="xm" class="absolute top-3 right-12"/>
+        <XMC1 v-if="xm" class="absolute top-0 left-8"/>
+        <XMC2 v-if="xm" class="absolute -top-20 right-16"/>
+      </div>
+    </div>
   </div>
 
   <IndexDef v-if="indexStyle === 0 && isEmployee" :isEmployee="isEmployee"></IndexDef>
@@ -45,11 +59,20 @@
   import S2Icon from "/@/views/dashboard/Analysis/components/Icons/S2Icon.vue";
   import S3Icon from "/@/views/dashboard/Analysis/components/Icons/S3Icon.vue";
   import S4Icon from "/@/views/dashboard/Analysis/components/Icons/S4Icon.vue";
+  import XMBg1 from "@/views/dashboard/Analysis/components/Icons/XMBg1.vue";
+  import XMT1 from "@/views/dashboard/Analysis/components/Icons/XMT1.vue";
+  import XMG1 from "@/views/dashboard/Analysis/components/Icons/XMG1.vue";
+  import XMF from "@/views/dashboard/Analysis/components/Icons/XMF.vue";
+  import XMC from "@/views/dashboard/Analysis/components/Icons/XMC.vue";
+  import XMSm from "@/views/dashboard/Analysis/components/Icons/XMSm.vue";
+  import XMC1 from "@/views/dashboard/Analysis/components/Icons/XMC1.vue";
+  import XMC2 from "@/views/dashboard/Analysis/components/Icons/XMC2.vue";
 
   const { t } = useI18n();
   const userStore = useUserStore();
   const indexStyle = ref(0);
   const bd = ref(false);
+  const xm = new Date().getMonth() == 11;
 
   const globSetting = useGlobSetting();
   const baseUploadUrl = globSetting.uploadUrl;

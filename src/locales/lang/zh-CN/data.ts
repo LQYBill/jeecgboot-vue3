@@ -175,6 +175,7 @@ export default {
     orderAttributionSuccess : "订单采购发票号记录成功 : [%{var}]",
     mabangOrderCreateFailForInvoices : "马帮订单创建失败，请在马帮上删除采购订单对应发票号 : %{var}",
     mabangOrderCreateSuccessForInvoices : "马帮订单创建成功 : %{var}",
+    groupIdDeleteResults: "在马帮采购订单取消的结果",
   },
   refund: {
     notRefunded: '未退款',
@@ -261,6 +262,7 @@ export default {
     productOrderPage: "商品采购页",
     purchaseOrderManagementPage : "采购订单管理",
     shoumanOrderPage : "首曼订单管理",
+    createPurchaseResult: "生成采购结果",
     skuWeightEditResult: "SKU重量编辑结果",
   },
   shouman:{

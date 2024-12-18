@@ -6,6 +6,7 @@
       {{t('guide.purchaseInvoice.line2')}}<a-button type="primary" @click="" preIcon="ant-design:plus-outlined">{{ t('common.operation.addNew') }}</a-button><br/>
       {{t('guide.purchaseInvoice.line3')}}<a-button type="warning" @click="" preIcon="ant-design:shopping-cart-outlined"></a-button>
     </template>
+    <PurchaseOrderResult/>
     <!--引用表格-->
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
       <!--插槽:table标题-->
@@ -89,12 +90,12 @@
       </template>
     </BasicTable>
     <!-- 表单区域 -->
-    <PurchaseOrderModal @register="registerModal" @success="handleSuccess"></PurchaseOrderModal>
+    <PurchaseOrderModal @register="registerModal" @success="handleCreateSuccess"></PurchaseOrderModal>
   </PageWrapper>
 </template>
 
 <script lang="ts" name="purchaseOrder" setup>
-import {ref, unref} from 'vue';
+import {provide, ref, unref} from 'vue';
 import {BasicTable, TableAction, TableImg} from '/@/components/Table';
 import {useModal} from '/@/components/Modal';
 import {useListPage} from '/@/hooks/system/useListPage'
@@ -114,6 +115,8 @@ import {useGlobSetting} from "/@/hooks/setting";
 import Icon from "/@/components/Icon";
 import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 import {useMessage} from "@/hooks/web/useMessage";
+import PurchaseOrderResult
+  from "@/views/business/admin/purchasing/components/PurchaseOrderResult.vue";
 
 
 const {t} = useI18n();
@@ -124,6 +127,8 @@ const globSetting = useGlobSetting();
 const baseUploadUrl = globSetting.uploadUrl;
 
 const imgPrefix = `${baseUploadUrl}/sys/common/static/`;
+
+const results = ref<Recordable>({});
 
 let ipagination = ref({
   current: 1,
@@ -309,6 +314,11 @@ function handleCopy(groupIds:string) {
     createMessage.warning(t('component.copy.success'));
   }
 }
+function handleCreateSuccess(data: Recordable) {
+  results.value = data;
+  handleSuccess();
+}
+provide('apiResponse', results);
 </script>
 
 <style lang="less" scoped>
