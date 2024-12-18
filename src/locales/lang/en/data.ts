@@ -263,6 +263,7 @@ export default {
     purchaseOrderManagementPage : "Purchase Order Management",
     shoumanOrderPage : "Shouman Order Management",
     createPurchaseResult: "Create Purchase Result",
+    skuWeightEditResult: "SKU Weight Edit Result",
   },
   shouman:{
     orderToPlace: "Order To Place",
