@@ -124,10 +124,8 @@
                 allowClear
                 class="flex-1"
               >
-                <a-select-option value="0">{{t("common.available") }}</a-select-option>
-                <a-select-option value="1">{{ t('data.invoice.invoiced') }}</a-select-option>
-                <a-select-option value="2">{{ t("data.invoice.paid") }}</a-select-option>
-                <a-select-option value="-1">{{ t("common.unavailable") }}</a-select-option>
+                <a-select-option v-if="column?.dataIndex === 'productAvailable'" v-for="(value, _index) in inStockFilter" :value="value.value">{{ value.text }}</a-select-option>
+                <a-select-option v-else v-for="(value, _index) in invoiceFilter" :value="value.value">{{ value.text }}</a-select-option>
               </a-select>
               <a-button type="primary" @click="handleSearch(selectedKeys, confirm, column?.dataIndex)" preIcon="ant-design:search-outlined" class=""/>
             </div>
@@ -152,7 +150,7 @@ import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
 import {useTable} from "/@/components/Table";
 import { PageWrapper } from '/@/components/Page';
-import {getColumns} from "/@/views/business/client/invoicing/data";
+import {getColumns, inStockFilter, invoiceFilter} from "/@/views/business/client/invoicing/data";
 import {defHttp} from "/@/utils/http/axios";
 import JSelectMultiple from "/@/components/Form/src/jeecg/components/JSelectMultiple.vue";
 import {Badge, Form, Tag} from "ant-design-vue";
@@ -189,6 +187,7 @@ const formState = reactive<Record<string, any>>({
   shop: '',
   shippingAvailable: [],
   purchaseAvailable: [],
+  productAvailable: [],
 });
 const state = reactive({
   searchText: Array<any>(),
@@ -206,7 +205,6 @@ const customerListDisabled = ref<boolean>(false);
 const client = ref();
 
 const orderList = ref<any[]>([]);
-const ordersAndStatusList = ref<any[]>([]);
 const shopList = ref<any[]>([]);
 
 const selectedShopIds = ref<any[]>([]);
@@ -334,11 +332,10 @@ function loadShopList(clientId) {
 function handleShopChange(shops) {
   // value returned is array of shop
   page.value = 1;
-  pageSize.value = 50;
+  // pageSize.value = 50;
   total.value = 0;
   clearSelectedRowKeys();
   orderList.value = [];
-  ordersAndStatusList.value = [];
   selectedShopIds.value = shops;
   makeShippingDisabled.value = true;
   makeShippingLoading.value = false;
@@ -383,7 +380,6 @@ function loadOrders(arg?:number) {
   }
   let params = getQueryParams();
   orderList.value = [];
-  ordersAndStatusList.value = [];
   makeShippingDisabled.value = true;
   makeShippingLoading.value = false;
   makePurchaseDisabled.value = true;
@@ -393,7 +389,6 @@ function loadOrders(arg?:number) {
   setLoading(true);
   defHttp.get({url : Api.getOrderStatusByShop, params})
     .then(res => {
-      ordersAndStatusList.value = res.records;
       orderList.value = res.records;
       total.value = res.total;
       page.value = res.current;
@@ -682,6 +677,7 @@ const handleReset = (clearFilters) => {
   clearFilters({ confirm: true });
   formState.shippingAvailable = [];
   formState.purchaseAvailable = [];
+  formState.productAvailable = [];
 };
 </script>
 <style lang="less">

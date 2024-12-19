@@ -40,6 +40,10 @@ export function getColumns(): BasicColumn[] {
       sorter: (a, b) => a.productAvailable - b.productAvailable,
       dataIndex: 'productAvailable',
       slots: { customRender: 'productAvailability' },
+      customFilterDropdown: true,
+      onFilter(value: Array<string | number | boolean >, record) {
+        return value.includes(record.productAvailable);
+      }
     },
     {
       title: t('data.invoice.shippingInvoice'),
@@ -67,3 +71,15 @@ export function getColumns(): BasicColumn[] {
     },
   ];
 }
+export const invoiceFilter = [
+  { text: t("common.available"), value: "0" },
+  { text: t('data.invoice.invoiced'), value: "1" },
+  { text: t("data.invoice.paid"), value: '2' },
+  { text: t("common.unavailable"), value: "-1"}
+];
+
+export const inStockFilter = [
+  { text: t("data.order.outOfStock"), value: "0" },
+  { text: t("data.order.inStock"), value: "1" },
+  { text: t('data.order.ordered'), value: "2" }
+]
