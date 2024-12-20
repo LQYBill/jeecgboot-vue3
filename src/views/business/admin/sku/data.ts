@@ -11,6 +11,7 @@ const { t } = useI18n();
 export const Api = {
   CATEGORY_LIST: '/skuCategory/list',
   PRODUCT_LIST: '/product/listByCategory',
+  SHOP_LIST: '/shop/shopGroupedByClient',
   SUBCATEGORY_LIST: '/skuSubcategory/listByCategory',
   CRITERIA_LIST: '/skuCriteria/listByCategory',
   CRITERIA_VALUE_LIST: '/skuCriteriaValue/listByCriteria',
@@ -58,6 +59,13 @@ export const skuSyncApi = async (skus: string[]) => {
 export const productListApi = async (categoryCode: string) => {
   return await defHttp.get({ url: Api.PRODUCT_LIST, params: {categoryCode} });
 }
+export const shopListApi = async (handler:Function) => {
+  return await defHttp.get({url: Api.SHOP_LIST}).then((res) => {
+    handler(res);
+  });
+}
+
+
 export function skuCodeBuilderFormSchema(
   categoryList: Ref<Array<any>>,
   clientList: Ref<Array<any>>,
@@ -333,3 +341,101 @@ export const skuStatus = {
   4: '清仓',
   5: '停止销售',
 }
+
+export const SkuColumns: BasicColumn[] = [
+  {
+    title: 'SKU ID',
+    dataIndex: 'id',
+    key: 'id',
+    defaultHidden: true,
+  },
+  {
+    title: t('data.sku.erpCode'),
+    dataIndex: 'erpCode',
+    key: 'erpCode',
+  },
+  {
+    title: 'EN Name',
+    dataIndex: 'enName',
+    key: 'enName',
+  },
+  {
+    title: 'ZH Name',
+    dataIndex: 'zhName',
+    key: 'zhName',
+  },
+  {
+    title: 'Weight',
+    dataIndex: 'weight',
+    key: 'weight',
+    width: 80,
+  },
+  {
+    title: 'Weight Effective Date',
+    dataIndex: 'weightEffectiveDate',
+    key: 'weightEffectDate',
+    width: 110,
+    slots: { customRender: 'weightEffectDate' },
+  },
+  {
+    title: 'Available Amount',
+    dataIndex: 'availableAmount',
+    key: 'availableAmount',
+    width: 80,
+  },
+  {
+    title: 'Purchasing Amount',
+    dataIndex: 'purchasingAmount',
+    key: 'purchasingAmount',
+    width: 90,
+  },
+  {
+    title: 'Image Source',
+    dataIndex: 'imageSource',
+    key: 'imageSource',
+    slots: {customRender: 'image'}
+  },
+  {
+    title: 'Shipping Discount',
+    dataIndex: 'shippingDiscount',
+    key: 'shippingDiscount',
+    width: 80,
+  },
+  {
+    title: 'Service Fee',
+    dataIndex: 'serviceFee',
+    key: 'serviceFee',
+    width: 80,
+  },
+  {
+    title: 'Status',
+    dataIndex: 'status',
+    key: 'status',
+    width: 70,
+  },
+  {
+    title: 'MOQ',
+    dataIndex: 'moq',
+    key: 'moq',
+    width: 70,
+    defaultHidden: true,
+  },
+  {
+    title: 'Sensitive Attribute',
+    dataIndex: 'sensitiveAttribute',
+    key: 'sensitiveAttribute',
+    width: 100,
+  },
+  {
+    title: 'Is Gift',
+    dataIndex: 'isGift',
+    key: 'isGift',
+    width: 70,
+  },
+  {
+    title: 'SKU Price',
+    dataIndex: 'skuPrice',
+    key: 'skuPrice',
+    width: 80
+  }
+];
