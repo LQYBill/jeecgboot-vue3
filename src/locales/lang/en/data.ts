@@ -175,6 +175,7 @@ export default {
     orderAttributionSuccess : "Purchase order was successfully attributed to orders [%{var}]",
     mabangOrderCreateFailForInvoices : "Error while creating Mabang order for invoice(s) %{var}, please delete the orders corresponding to the invoices in Mabang.",
     mabangOrderCreateSuccessForInvoices : "Mabang order was successfully created for invoice(s) %{var}",
+    groupIdDeleteResults: "Results of purchase order cancel in Mabang ",
   },
   refund: {
     notRefunded: 'Not Settled',
@@ -261,6 +262,8 @@ export default {
     productOrderPage: "Product Order Page",
     purchaseOrderManagementPage : "Purchase Order Management",
     shoumanOrderPage : "Shouman Order Management",
+    createPurchaseResult: "Create Purchase Result",
+    skuWeightEditResult: "SKU Weight Edit Result",
   },
   shouman:{
     orderToPlace: "Order To Place",
