@@ -352,6 +352,10 @@ function getQueryParams() {
   params.order = toUpper(iSorter.value.order);
   params.column = iSorter.value.column;
   params.shopIds = selectedShopIds.value;
+  params.shippingAvailable = formState.shippingAvailable.length === 0 ? null : formState.shippingAvailable;
+  params.purchaseAvailable = formState.purchaseAvailable.length === 0 ? null : formState.purchaseAvailable;
+  params.productAvailable = formState.productAvailable.length === 0 ? null : formState.productAvailable;
+
   return filterObj(params);
 }
 // function handleTableChange(pagination, sorter) {
@@ -669,9 +673,10 @@ const handleFilterSelectChange = (e, setSelectedKeys) => {
   setSelectedKeys(e ? [e] : [])
 }
 const handleSearch = (selectedKeys, confirm, dataIndex) => {
-  confirm();
+  // confirm();
   state.searchText = selectedKeys;
   state.searchedColumn = dataIndex;
+  loadOrders(1);
 };
 const handleReset = (clearFilters) => {
   clearFilters({ confirm: true });
