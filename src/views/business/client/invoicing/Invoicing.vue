@@ -148,7 +148,7 @@ import {onBeforeMount, reactive, ref} from "vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
-import {useTable} from "/@/components/Table";
+import {SorterResult, useTable} from "/@/components/Table";
 import { PageWrapper } from '/@/components/Page';
 import {getColumns, inStockFilter, invoiceFilter} from "/@/views/business/client/invoicing/data";
 import {defHttp} from "/@/utils/http/axios";
@@ -263,6 +263,7 @@ const [registerTable, { clearSelectedRowKeys, getSelectRows, getSelectRowKeys, s
   },
   canResize: false,
   rowKey: 'id',
+  sortFn: handleSorterChange,
 });
 
 function checkUser() {
@@ -366,6 +367,18 @@ function getQueryParams() {
   // }
   // loadOrders();
 // }
+function handleSorterChange(sorter: SorterResult) {
+  if(Object.keys(sorter).length === 0) {
+    return;
+  }
+  const order = sorter.order === 'ascend' ? 'ASC' : 'DESC';
+  if(iSorter.value.column === sorter.field && iSorter.value.order === order) {
+    return;
+  }
+  iSorter.value.column = sorter.field;
+  iSorter.value.order = order;
+  loadOrders(1);
+}
 function handlePaginationChange(p:number, pz:number) {
   page.value = p;
   pageSize.value = pz;
