@@ -272,7 +272,13 @@ function checkUser() {
     .then(res => {
       if(res.internal) {
         internalUse.value = true;
-        loadClientList();
+        customerList.value = res.internal;
+        customerSelectList.value = res.internal.map(
+          client => ({
+            text: `${client.firstName} ${client.surname} (${client.internalCode})`,
+            value: client.id,
+          })
+        );
       }
       else {
         client.value = res.client;
@@ -283,21 +289,6 @@ function checkUser() {
     .catch(e => {
       console.error(e);
     });
-}
-function loadClientList() {
-  defHttp.get({url: Api.getSelfServiceClients})
-    .then(res => {
-      customerList.value = res;
-      customerSelectList.value = res.map(
-        client => ({
-          text: `${client.firstName} ${client.surname} (${client.internalCode})`,
-          value: client.id,
-        })
-      );
-    })
-    .catch(e => {
-      console.error(e);
-    })
 }
 async function handleClientChange(id: any) {
   client.value = [];

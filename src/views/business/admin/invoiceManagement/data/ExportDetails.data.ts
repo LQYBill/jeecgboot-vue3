@@ -2,20 +2,23 @@ import {defHttp} from "@/utils/http/axios";
 import {useI18n} from "@/hooks/web/useI18n";
 import {JSearchSelectOption} from "@/views/business/dto/JSearchSelectOption.dto";
 import {downloadFile} from "@/api/common/api";
+import {ref} from "vue";
 
 const { t } = useI18n();
 const FILE_NAME = 'Détail_de_facture_';
 const FILE_EXTENSION = '.xlsx';
 export const Api = {
   CLIENT_LIST: '/client/client/all',
+  USER_OR_CLIENT: '/userClient/getClient',
   SHOP_LIST: '/shippingInvoice/shopsByClient',
   INVOICE_DETAILS: '/shippingInvoice/downloadInvoiceDetailByClientAndPeriod',
 }
 
-export const fetchClientList = async (handler: Function) => {
-  return defHttp.get({url: Api.CLIENT_LIST}).then((res) => {
-    handler(res);
-  })
+export const checkUser = async () => {
+  return defHttp.get({url: Api.USER_OR_CLIENT});
+}
+export const fetchClientList = async () => {
+  return defHttp.get({url: Api.CLIENT_LIST});
 }
 export const fetchShopList = async (clientID: string, handler: Function) => {
   return defHttp.get({url: Api.SHOP_LIST , params: {clientID}}).then((res) => {
@@ -44,3 +47,33 @@ export const typeOptions: JSearchSelectOption[] = [
     value: '7',
   }
 ]
+
+
+const clientOptions = ref<JSearchSelectOption[]>([]);
+const internalUse = ref(false);
+
+async function initialize() {
+  const res = await checkUser();
+  if (res.internal) {
+    internalUse.value = true;
+    const clients = await fetchClientList();
+    clientOptions.value = clients.map((client: Recordable) => ({
+      text: `${client.firstName} ${client.surname} (${client.internalCode})`,
+      value: client.id,
+    }));
+  } else {
+    const client = res.client;
+    clientOptions.value = [{
+      text: `${client.firstName} ${client.surname} (${client.internalCode})`,
+      value: client.id,
+    }];
+  }
+}
+
+export function useClient() {
+  return {
+    clientOptions,
+    internalUse,
+    initialize,
+  }
+}
