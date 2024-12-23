@@ -30,7 +30,7 @@ async function handleSearch(state: Recordable) {
   searchState.date = state.date;
   searchState.type = state.type;
   const params = buildParams();
-  await downloadInvoiceDetails(paramss);
+  await downloadInvoiceDetails(params);
 }
 function buildParams() {
   const startDate = searchState.date.split(',')[0];
