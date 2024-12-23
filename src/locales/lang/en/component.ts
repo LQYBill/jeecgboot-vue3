@@ -198,7 +198,7 @@ export default {
     wrongInvoiceNumberFormat: 'Wrong format : YYYY-MM-XXXX',
   },
   tips : {
-    orderNumberSplitComma: 'Seperate order Ids with a comma (",")',
+    orderNumberSplitComma: 'Seperate order Ids with a comma, space or line break',
     orderStatus: 'This value is set automatically. Only use this if you want to override the value.',
     skuProductLatestCode: 'The latest product code is: %{var}',
   },

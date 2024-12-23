@@ -197,7 +197,7 @@ export default {
     wrongInvoiceNumberFormat: '格式错误 : YYYY-MM-XXXX',
   },
   tips : {
-    orderNumberSplitComma: '订单号用逗号分开',
+    orderNumberSplitComma: '订单号用逗号、空格分开或回车',
     orderStatus: '此值是自动设置的。只有在您想要覆盖该值时才使用。',
     skuProductLatestCode: 'SKU产品最新号码: %{var}',
   },

@@ -85,7 +85,24 @@
         </div>
       </template>
       <template #platformOrderId="{record}">
-        <a-tag v-if="!!record?.platformOrderId" class="ant-tag-primary" v-for="order in record?.platformOrderId.split(',')">{{ order }}</a-tag>
+        <div class="flex flex-wrap gap-1" v-if="!!record.platformOrderId">
+          <a-tag class="ant-tag-primary" v-for="orderId in record?.platformOrderId.split(',').slice(0,5)">{{ orderId }}</a-tag>
+          <a-popover
+            v-if="!!record?.platformOrderId && (record?.platformOrderId.split(',').length > 5)"
+            :title="t('data.purchase.platformOrderId') + ' (' + record?.platformOrderId.split(',').length + ')'"
+            trigger="hover"
+          >
+            <a-tag>
+              ...
+            </a-tag>
+            <template #content>
+              <div class="flex flex-wrap max-w-sm gap-1">
+                <a-tag class="ant-tag-primary" v-for="orderId in record.platformOrderId.split(',')">{{ orderId }}</a-tag>
+              </div>
+            </template>
+          </a-popover>
+          <Icon icon="ant-design:copy-outlined" @click="handleCopy(record.platformOrderId)" class="cursor-pointer"></Icon>
+        </div>
         <span v-else class="text-xs italic text-gray-300">{{t('data.noData')}}</span>
       </template>
     </BasicTable>
@@ -304,12 +321,12 @@ function handleCreateOrder() {
     selectedRows: selectedRows.value,
   })
 }
-function handleCopy(groupIds:string) {
-  if (!groupIds) {
+function handleCopy(numbers:string) {
+  if (!numbers) {
     createMessage.warning(t('component.copy.noValue'));
     return;
   }
-  clipboardRef.value = groupIds;
+  clipboardRef.value = numbers;
   if (unref(copiedRef)) {
     createMessage.warning(t('component.copy.success'));
   }

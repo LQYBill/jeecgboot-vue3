@@ -264,7 +264,7 @@ export default {
     productOrderPage: "商品采购页",
     purchaseOrderManagementPage : "采购订单管理",
     shoumanOrderPage : "首曼订单管理",
-    createPurchaseResult: "生成采购结果",
+    createOrEditPurchaseResult: "创建/编辑采购结果",
     skuWeightEditResult: "SKU重量编辑结果",
   },
   shouman:{

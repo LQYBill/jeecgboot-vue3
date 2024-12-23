@@ -25,13 +25,12 @@ onBeforeMount(async () => {
 });
 
 async function handleSearch(state: Recordable) {
-  console.log("search", state);
   searchState.client = state.client;
   searchState.shops = state.shops;
   searchState.date = state.date;
   searchState.type = state.type;
   const params = buildParams();
-  await downloadInvoiceDetails(params, handleDownloadInvoiceDetails);
+  await downloadInvoiceDetails(paramss);
 }
 function buildParams() {
   const startDate = searchState.date.split(',')[0];
@@ -43,9 +42,6 @@ function buildParams() {
     endDate,
     type: searchState.type,
   };
-}
-function handleDownloadInvoiceDetails() {
-  console.log("fetchInvoiceDetails");
 }
 provide('clientOptions', clientOptions);
 provide('internalUse', internalUse);

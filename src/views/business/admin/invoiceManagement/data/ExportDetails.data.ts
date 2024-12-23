@@ -30,11 +30,9 @@ export const fetchInvoicePeriod = async (shopIds: string, handler: Function)  =>
     handler(res);
   });
 }
-export const downloadInvoiceDetails = async (params: Recordable, handler: Function) => {
+export const downloadInvoiceDetails = async (params: Recordable) => {
   const filename = FILE_NAME + params.startDate + '-' + params.endDate + FILE_EXTENSION;
-  return downloadFile(Api.INVOICE_DETAILS,filename, params).then(() => {
-    handler();
-  });
+  return downloadFile(Api.INVOICE_DETAILS,filename, params);
 }
 
 export const typeOptions: JSearchSelectOption[] = [

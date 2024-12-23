@@ -87,6 +87,7 @@ export const columns: BasicColumn[] = [
   },
   {
     title: t('data.invoice.platformOrderID'),
+    width: 180,
     align: "center",
     dataIndex: 'platformOrderId',
     slots: {customRender: 'platformOrderId'},
@@ -310,4 +311,8 @@ export function listFormatting(values:string) {
   res = res.replace(/(,{2,})/g, ",");
   res = res.replace(/(^,)|(,$)/g, "");
   return res;
+}
+
+export function isInvoiceNumber(value:string) {
+  return /^[0-9]{4}-[0-9]{2}-[127][0-9]{3}$/g.test(value);
 }
