@@ -11,6 +11,7 @@ const { t } = useI18n();
 export const Api = {
   CATEGORY_LIST: '/skuCategory/list',
   PRODUCT_LIST: '/product/listByCategory',
+  SHOP_LIST: '/shop/shopGroupedByClient',
   SUBCATEGORY_LIST: '/skuSubcategory/listByCategory',
   CRITERIA_LIST: '/skuCriteria/listByCategory',
   CRITERIA_VALUE_LIST: '/skuCriteriaValue/listByCriteria',
@@ -58,6 +59,13 @@ export const skuSyncApi = async (skus: string[]) => {
 export const productListApi = async (categoryCode: string) => {
   return await defHttp.get({ url: Api.PRODUCT_LIST, params: {categoryCode} });
 }
+export const shopListApi = async (handler:Function) => {
+  return await defHttp.get({url: Api.SHOP_LIST}).then((res) => {
+    handler(res);
+  });
+}
+
+
 export function skuCodeBuilderFormSchema(
   categoryList: Ref<Array<any>>,
   clientList: Ref<Array<any>>,
@@ -333,3 +341,65 @@ export const skuStatus = {
   4: '清仓',
   5: '停止销售',
 }
+
+export const SkuColumns: BasicColumn[] = [
+  {
+    title: 'Mabang SKU ID',
+    dataIndex: 'stockSkuId',
+    defaultHidden: true,
+  },
+  {
+    title: t('data.sku.erpCode'),
+    dataIndex: 'erpCode',
+  },
+  {
+    title: 'EN Name',
+    dataIndex: 'enName',
+  },
+  {
+    title: 'ZH Name',
+    dataIndex: 'zhName',
+  },
+  {
+    title: t('data.sku.salePicture'),
+    align: 'center',
+    dataIndex: 'salePicture',
+    slots: {customRender: 'image'}
+  },
+  {
+    title: t('data.sku.stockPicture'),
+    align: 'center',
+    dataIndex: 'stockPicture',
+    slots: {customRender: 'image'}
+  },
+  {
+    title: 'Status',
+    dataIndex: 'status',
+    width: 70,
+  },
+  {
+    title: 'Weight',
+    dataIndex: 'weight',
+    width: 80,
+  },
+  {
+    title: 'SKU Price',
+    dataIndex: 'salePrice',
+    width: 80
+  },
+  {
+    title: 'Declared Value',
+    dataIndex: 'declareValue',
+    width: 80
+  },
+  {
+    title: 'Is Gift',
+    dataIndex: 'isGift',
+    width: 70,
+  },
+  {
+    title: 'Sensitive Attribute',
+    dataIndex: 'sensitiveAttribute',
+    width: 100,
+  },
+];

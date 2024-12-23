@@ -272,7 +272,13 @@ function checkUser() {
     .then(res => {
       if(res.internal) {
         internalUse.value = true;
-        loadClientList();
+        customerList.value = res.internal;
+        customerSelectList.value = res.internal.map(
+          client => ({
+            text: `${client.firstName} ${client.surname} (${client.internalCode})`,
+            value: client.id,
+          })
+        );
       }
       else {
         client.value = res.client;
@@ -283,21 +289,6 @@ function checkUser() {
     .catch(e => {
       console.error(e);
     });
-}
-function loadClientList() {
-  defHttp.get({url: Api.getSelfServiceClients})
-    .then(res => {
-      customerList.value = res;
-      customerSelectList.value = res.map(
-        client => ({
-          text: `${client.firstName} ${client.surname} (${client.internalCode})`,
-          value: client.id,
-        })
-      );
-    })
-    .catch(e => {
-      console.error(e);
-    })
 }
 async function handleClientChange(id: any) {
   client.value = [];
@@ -447,8 +438,8 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
       shippingInvoiceAvailable = false;
     if(['-1', '1', '2'].indexOf(row.purchaseAvailable) > -1)
       purchaseInvoiceAvailable = false;
-    if(row.productAvailable == '1') // product already in stock
-      purchaseInvoiceAvailable = false;
+    // if(row.productAvailable == '1') // product already in stock
+    //   purchaseInvoiceAvailable = false;
   }
   makeShippingDisabled.value = !shippingInvoiceAvailable;
   makePurchaseDisabled.value = !purchaseInvoiceAvailable;

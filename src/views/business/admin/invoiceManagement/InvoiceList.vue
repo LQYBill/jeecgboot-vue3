@@ -17,8 +17,9 @@
       </template>
       <template #toolbar>
         <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('Invoice List', Api.exportXls, exportParams)"> {{ t("common.operation.export") }}</a-button>
-        <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
-        <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ant-design:download-outlined" @click="downloadExcelInvoice('detail')" :disabled = 'downloadDetailDisabled'> {{ t("data.invoice.downloadDetails") }}</a-button>
+        <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ic:outline-receipt-long" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
+        <a-button v-if="checkedKeys && checkedKeys.length > 0" type="success" preIcon="ic:round-list-alt" @click="downloadExcelInvoice('detail')" :disabled = 'downloadDetailDisabled'> {{ t("data.invoice.downloadDetails") }}</a-button>
+        <a-button v-if="checkedKeys && checkedKeys.length > 0" type="warning" preIcon="ic:outline-inventory" @click="downloadExcelInvoice('inventory')" :disabled = 'downloadInventoryDisabled'> {{ t("data.upload.inventoryRecap") }}</a-button>
         <!-- TODO : re-adapt -->
         <!--<PopConfirmButton
             v-if="checkedKeys && checkedKeys.length > 0 && (username === 'admin' || username === 'Gauthier')"
@@ -107,6 +108,7 @@ onMounted(async () => {
 const deleteBatchDisabled = ref(true);
 const downloadInvoiceDisabled = ref(true);
 const downloadDetailDisabled = ref(true);
+const downloadInventoryDisabled = ref(true);
 const paidDisabled = ref(false);
 
 const deleteBatchLoading = ref<boolean>(false);
@@ -164,10 +166,11 @@ const exportParams = computed(()=>{
   return filterObj(paramsForm)
 });
 
-function downloadExcelInvoice(type) {
+function downloadExcelInvoice(type : string) {
   if(checkedKeys.value.length === 0) {
     downloadInvoiceDisabled.value = true;
     downloadDetailDisabled.value = true;
+    downloadInventoryDisabled.value = true;
     return;
   }
   let today = new Date();
@@ -187,8 +190,10 @@ function downloadExcelInvoice(type) {
         if(type === "invoice") {
           filename = "Invoice N°" + invoiceNum + " (" + res.invoiceEntity + ").xlsx";
         }
-        else {
+        else if (type === "detail") {
           filename = res.internalCode + "_" + invoiceNum + '_Détail_calcul_de_facture_' + date + '.xlsx';
+        } else {
+          filename = invoiceNum + "_Inventaire_SKU.xlsx";
         }
         console.log("Filename : " + filename);
         downloadFile(Api.downloadCompleteInvoiceExcel, filename, param).then(() => {
@@ -217,13 +222,17 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
   checkedKeys.value = selectedRowKeys;
   selectRows.value = selectRow;
   if(checkedKeys.value.length > 0) {
+    const purchaseInvoices = selectRows.value.filter((row) => row.type === 'purchase' || row.type === 'complete');
+    const shippingInvoices = selectRows.value.filter((row) => row.type === 'shipping' || row.type === 'complete');
     downloadInvoiceDisabled.value = false;
-    downloadDetailDisabled.value = false;
+    downloadDetailDisabled.value = shippingInvoices.length === 0;
+    downloadInventoryDisabled.value = purchaseInvoices.length === 0;
     deleteBatchDisabled.value = false;
   }
   else {
     downloadInvoiceDisabled.value = true;
     downloadDetailDisabled.value = true;
+    downloadInventoryDisabled.value = true;
     deleteBatchDisabled.value = true;
   }
 }

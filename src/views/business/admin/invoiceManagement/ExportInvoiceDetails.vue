@@ -5,16 +5,13 @@
 </template>
 <script setup lang="ts">
 import {PageWrapper} from "@/components/Page";
-import {onMounted, provide, reactive, Ref, ref} from "vue";
+import {onBeforeMount, provide, reactive} from "vue";
 import {
-  fetchClientList,
-  downloadInvoiceDetails,
+  downloadInvoiceDetails, useClient,
 } from "./data/ExportDetails.data";
 import SearchForm from "./components/SearchForm.vue";
-import {JSearchSelectOption} from "@/views/business/dto/JSearchSelectOption.dto";
 
-const clientList: Ref<Recordable[]> = ref([]);
-const clientOptions: Ref<JSearchSelectOption[]> = ref([]);
+const { clientOptions, internalUse, initialize } = useClient();
 
 const searchState = reactive<Record<string, string>>({
   client: '',
@@ -23,26 +20,17 @@ const searchState = reactive<Record<string, string>>({
   type: '',
 });
 
-onMounted(async () => {
-  await fetchClientList(handleFetchClientList);
+onBeforeMount(async () => {
+  await initialize();
 });
 
-function handleFetchClientList(res: Recordable[]) {
-  clientList.value = res;
-  clientOptions.value = res.map((client) => ({
-    text: `${client.firstName} ${client.surname} (${client.internalCode})`,
-    value: client.id,
-  })) as JSearchSelectOption[];
-}
-
 async function handleSearch(state: Recordable) {
-  console.log("search", state);
   searchState.client = state.client;
   searchState.shops = state.shops;
   searchState.date = state.date;
   searchState.type = state.type;
   const params = buildParams();
-  await downloadInvoiceDetails(params, handleDownloadInvoiceDetails);
+  await downloadInvoiceDetails(paramss);
 }
 function buildParams() {
   const startDate = searchState.date.split(',')[0];
@@ -55,8 +43,6 @@ function buildParams() {
     type: searchState.type,
   };
 }
-function handleDownloadInvoiceDetails() {
-  console.log("fetchInvoiceDetails");
-}
 provide('clientOptions', clientOptions);
+provide('internalUse', internalUse);
 </script>

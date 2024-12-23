@@ -8,7 +8,8 @@
             class="bg-white rounded-5 pt-8 p-4 "
     >
       <a-row :gutter =8>
-        <a-col :span="5">
+        <a-col :span="colSpan.client"
+               v-if="internalUse">
           <a-form-item
             :labelCol="labelCol"
             :wrapperCol="wrapperCol"
@@ -27,7 +28,7 @@
             />
           </a-form-item>
         </a-col>
-        <a-col :span="5">
+        <a-col :span="colSpan.shops">
           <a-form-item
             :labelCol="labelCol"
             :wrapperCol="wrapperCol"
@@ -48,10 +49,10 @@
             />
           </a-form-item>
         </a-col>
-        <a-col :span="8">
+        <a-col :span="colSpan.type">
           <a-form-item
-            :labelCol="labelCol"
-            :wrapperCol="wrapperCol"
+            :labelCol="largeLabelCol"
+            :wrapperCol="largeWrapperCol"
             v-bind="validateInfos.name"
             name="type"
           >
@@ -67,7 +68,7 @@
             />
           </a-form-item>
         </a-col>
-        <a-col :span="5">
+        <a-col :span="colSpan.date">
           <a-form-item
             :labelCol="labelCol"
             :wrapperCol="wrapperCol"
@@ -97,7 +98,7 @@
 </template>
 <script lang="ts" setup>
 import {JSearchSelect, JSelectMultiple} from "@/components/Form";
-import {inject, reactive, Ref, ref} from "vue";
+import {inject, reactive, Ref, ref, watch} from "vue";
 import {Form} from "ant-design-vue";
 import {useI18n} from "vue-i18n";
 import JRangeDate from "@/components/Form/src/jeecg/components/JRangeDate.vue";
@@ -105,14 +106,27 @@ import {fetchInvoicePeriod, fetchShopList, typeOptions} from "../data/ExportDeta
 import dayjs, {Dayjs} from "dayjs";
 import {JSelectInputOptions} from "@/views/business/dto/JSelectInputOptions.dto";
 import {JSearchSelectOption} from "@/views/business/dto/JSearchSelectOption.dto";
+import {cloneDeep} from "lodash-es";
 
 const { t } = useI18n();
 const emit = defineEmits(['search']);
 
 const clientOptions = inject('clientOptions') as Ref<JSearchSelectOption[]>;
+const internalUse = inject('internalUse') as Ref<boolean>;
 
 const shopOptions = ref<JSelectInputOptions[]>([]);
-const isShopDisabled = ref<boolean>(true);
+const isShopDisabled = ref<boolean>(internalUse.value);
+
+watch(
+  () => clientOptions.value,
+  (newOptions) => {
+    if (newOptions.length > 0 && !internalUse.value) {
+      colSpan.value = cloneDeep(clientColSpan.value);
+      handleClientChange(newOptions[0].value);
+    }
+  },
+  { immediate: true }
+);
 
 const startDate = ref<Dayjs>(dayjs('2023-01-01').startOf("day"));
 const endDate = ref<Dayjs>(dayjs().endOf("day"));
@@ -121,7 +135,21 @@ const isDateDisabled = ref(true);
 const useForm = Form.useForm;
 const formRef = ref();
 const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 4 } });
+const largeLabelCol = ref<any>({ xs: { span: 24 }, sm: { span: 8 } });
 const wrapperCol = ref<any>({ xs: { span: 24 }, sm: { span: 20 } });
+const largeWrapperCol = ref<any>({ xs: { span: 24 }, sm: { span: 16 } });
+const colSpan = ref({
+  client: 5,
+  shops: 5,
+  type: 8,
+  date: 5,
+})
+const clientColSpan = ref({
+  client: 0,
+  shops: 8,
+  type: 8,
+  date: 7,
+})
 const validatorRules = ref({
   client: [{ required: true, message: t('component.searchForm.clientInputSearch'), trigger: 'blur' }],
   shops: [{ required: true, message: t('component.searchForm.shopsInputSearch'), trigger: 'blur' }],
@@ -180,7 +208,7 @@ function clearField(field: string) {
   switch (field) {
     case "client" :
       searchState.client = '';
-      isShopDisabled.value = true;
+      isShopDisabled.value = !internalUse;
       // falls through because we want to clear any other fields when we change client, except for invoice type
     case "shops" :
       searchState.shops = '';

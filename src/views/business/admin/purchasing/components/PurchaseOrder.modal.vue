@@ -100,15 +100,12 @@ async function submitPurchaseOrder() {
     //提交表单
     await saveOrUpdate(values, isUpdate.value)
       .then(res => {
-        if(!!res.success)
-          createMessage.success(t('data.purchase.orderAttributionSuccess', {var : res.success}));
-        if(!!res.fail)
-          createMessage.error(t(`data.purchase.orderAttributionFail`, {var: res.fail}));
+        results.value = res;
       });
     //关闭弹窗
     closeModal();
     //刷新列表
-    emit('success');
+    emit('success', results.value);
   } finally {
     setModalProps({confirmLoading: false});
   }

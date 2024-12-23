@@ -65,7 +65,8 @@ export const formSchema: FormSchema[] = [
     field: 'currencyId',
     component: 'JSearchSelect',
     componentProps: {
-      dict: "currency%20WHERE%20code%20%3C%3E%20'RMB'%2Ccode%2Cid" //currency WHERE code <> 'RMB',code,id
+      dict: "currency WHERE code <> 'RMB',code,id" // for prod
+      // dict: "currency%20WHERE%20code%20%3C%3E%20'RMB'%2Ccode%2Cid" //currency WHERE code <> 'RMB',code,id for localhost
     },
     dynamicDisabled: ({ values }) => {
       return !!values.id;
