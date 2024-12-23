@@ -344,98 +344,62 @@ export const skuStatus = {
 
 export const SkuColumns: BasicColumn[] = [
   {
-    title: 'SKU ID',
-    dataIndex: 'id',
-    key: 'id',
+    title: 'Mabang SKU ID',
+    dataIndex: 'stockSkuId',
     defaultHidden: true,
   },
   {
     title: t('data.sku.erpCode'),
     dataIndex: 'erpCode',
-    key: 'erpCode',
   },
   {
     title: 'EN Name',
     dataIndex: 'enName',
-    key: 'enName',
   },
   {
     title: 'ZH Name',
     dataIndex: 'zhName',
-    key: 'zhName',
   },
   {
-    title: 'Weight',
-    dataIndex: 'weight',
-    key: 'weight',
-    width: 80,
-  },
-  {
-    title: 'Weight Effective Date',
-    dataIndex: 'weightEffectiveDate',
-    key: 'weightEffectDate',
-    width: 110,
-    slots: { customRender: 'weightEffectDate' },
-  },
-  {
-    title: 'Available Amount',
-    dataIndex: 'availableAmount',
-    key: 'availableAmount',
-    width: 80,
-  },
-  {
-    title: 'Purchasing Amount',
-    dataIndex: 'purchasingAmount',
-    key: 'purchasingAmount',
-    width: 90,
-  },
-  {
-    title: 'Image Source',
-    dataIndex: 'imageSource',
-    key: 'imageSource',
+    title: t('data.sku.salePicture'),
+    align: 'center',
+    dataIndex: 'salePicture',
     slots: {customRender: 'image'}
   },
   {
-    title: 'Shipping Discount',
-    dataIndex: 'shippingDiscount',
-    key: 'shippingDiscount',
-    width: 80,
-  },
-  {
-    title: 'Service Fee',
-    dataIndex: 'serviceFee',
-    key: 'serviceFee',
-    width: 80,
+    title: t('data.sku.stockPicture'),
+    align: 'center',
+    dataIndex: 'stockPicture',
+    slots: {customRender: 'image'}
   },
   {
     title: 'Status',
     dataIndex: 'status',
-    key: 'status',
     width: 70,
   },
   {
-    title: 'MOQ',
-    dataIndex: 'moq',
-    key: 'moq',
-    width: 70,
-    defaultHidden: true,
+    title: 'Weight',
+    dataIndex: 'weight',
+    width: 80,
   },
   {
-    title: 'Sensitive Attribute',
-    dataIndex: 'sensitiveAttribute',
-    key: 'sensitiveAttribute',
-    width: 100,
+    title: 'SKU Price',
+    dataIndex: 'salePrice',
+    width: 80
+  },
+  {
+    title: 'Declared Value',
+    dataIndex: 'declareValue',
+    width: 80
   },
   {
     title: 'Is Gift',
     dataIndex: 'isGift',
-    key: 'isGift',
     width: 70,
   },
   {
-    title: 'SKU Price',
-    dataIndex: 'skuPrice',
-    key: 'skuPrice',
-    width: 80
-  }
+    title: 'Sensitive Attribute',
+    dataIndex: 'sensitiveAttribute',
+    width: 100,
+  },
 ];
