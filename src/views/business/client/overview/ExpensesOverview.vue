@@ -727,7 +727,7 @@ export default defineComponent({
 @balancePositive : #5cc290;
 @volcano: #c73333;
 
-.jeecg-basic-table {
+.main-card .jeecg-basic-table {
   border-radius: 1em;
   .ant-table-wrapper {
     padding: 0 0 1em 0 !important;
@@ -746,14 +746,14 @@ export default defineComponent({
     min-height: 50vh;
   }
 }
-.ant-card.card-header {
+.main-card .ant-card.card-header {
   margin: 10px;
   border-radius: 1em;
   h1 {
     font-size: 2em;
   }
 }
-.ant-tabs-top > .ant-tabs-nav{
+.main-card .ant-tabs-top > .ant-tabs-nav{
   margin: 0;
   .ant-tabs-tab {
     padding: 12px 20px;
@@ -774,7 +774,7 @@ export default defineComponent({
     }
   }
 }
-.jeecg-basic-table-header__tableTitle {
+.main-card .jeecg-basic-table-header__tableTitle {
   h1 {
     font-size: 2rem;
   }
@@ -793,10 +793,10 @@ export default defineComponent({
     margin-right: 0;
   }
 }
-.jeecg-basic-table-header__toolbar {
+.main-card .jeecg-basic-table-header__toolbar {
   display: none;
 }
-.ant-tag {
+.main-card .ant-tag {
   border-radius: 1em;
   &.num-tag {
     font-size: 1em;
@@ -834,7 +834,7 @@ export default defineComponent({
   color: @balancePositive;
   font-weight: 600;
 }
-.ant-btn-primary,.ant-pagination.mini .ant-pagination-item-active {
+.main-card .ant-btn-primary,.ant-pagination.mini .ant-pagination-item-active {
   border-color: @geekBlue !important;
   background-color: @geekBlue !important;
   color: @geekBlueBg !important;
@@ -843,12 +843,12 @@ export default defineComponent({
     border-color: @lightGeekBlue !important;
   }
 }
-.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn ,
-.ant-tabs-tab-btn:focus, .ant-tabs-tab-remove:focus, .ant-tabs-tab-btn:active, .ant-tabs-tab-remove:active,.ant-tabs-tab:hover,
-.ant-pagination.mini .ant-pagination-prev:hover a, .ant-pagination.mini .ant-pagination-next:hover a, .ant-pagination.mini .ant-pagination-item:focus a, .ant-pagination.mini .ant-pagination-item:hover a{
+.main-card .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn ,
+.main-card .ant-tabs-tab-btn:focus, .main-card .ant-tabs-tab-remove:focus, .main-card .ant-tabs-tab-btn:active, .main-card .ant-tabs-tab-remove:active,.main-card .ant-tabs-tab:hover,
+.main-card .ant-pagination.mini .ant-pagination-prev:hover a, .main-card .ant-pagination.mini .ant-pagination-next:hover a, .main-card .ant-pagination.mini .ant-pagination-item:focus a, .main-card .ant-pagination.mini .ant-pagination-item:hover a{
   color: @geekBlue;
 }
-.ant-tabs-ink-bar {
+.main-card .ant-tabs-ink-bar {
   background: @geekBlue;
 }
 </style>
