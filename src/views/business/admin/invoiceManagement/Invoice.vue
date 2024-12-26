@@ -10,6 +10,11 @@
       <a-button v-if="downloadReady && hasEmail" type='primary' shape="round" @click='sendEmail()' preIcon="ant-design:mail" size="large">
         {{ t("data.invoice.receiveDetailsByEmail") }}
       </a-button>
+
+      <!-- button to download invoice inventory -->
+      <a-button v-if="downloadReady && (invoice_type === '1' || invoice_type === '7')" type='primary' shape="round" @click='downloadInvoiceInventory()' preIcon="ic:outline-inventory" size="large">
+        {{ t("data.upload.inventoryRecap") }}
+      </a-button>
     </div>
     <section>
       <a-table
@@ -116,6 +121,7 @@ export default defineComponent({
     const Api = {
       checkInvoiceValidity: '/shippingInvoice/checkInvoiceValidity',
       downloadInvoice: '/shippingInvoice/download',
+      downloadCompleteInvoiceExcel: "/generated/shippingInvoice/downloadCompleteInvoiceExcel",
       invoiceData: '/shippingInvoice/invoiceData',
       purchaseInvoiceData: '/shippingInvoice/purchaseInvoiceData',
       downloadCompleteInvoicePdf: "/generated/shippingInvoice/downloadPdf",
@@ -370,6 +376,14 @@ export default defineComponent({
           createMessage.error(error);
         });
     }
+    function downloadInvoiceInventory() {
+      const params = {
+        invoiceNumber: invoice_number.value,
+        filetype: "inventory"
+      }
+      let filename = invoice_number.value + "_Inventaire_SKU.xlsx";
+      downloadFile(Api.downloadCompleteInvoiceExcel, filename, params);
+    }
     function getInvoiceType() {
       let re = new RegExp('^[0-9]{4}-[0-9]{2}-([0-9])[0-9]{3}$');
       if (re.test(invoice_number.value)) {
@@ -399,6 +413,7 @@ export default defineComponent({
     return {
       downloadPdf,
       sendEmail,
+      downloadInvoiceInventory,
       returnHome,
       status,
       pageReady,
