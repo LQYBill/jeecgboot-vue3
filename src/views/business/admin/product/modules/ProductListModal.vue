@@ -1,6 +1,6 @@
 <template>
-  <BasicModal @register="registerModal" :title="title" @ok="handleSubmit">
-    <BasicForm @register="registerForm"  :disabled="isDisabled" />
+  <BasicModal @register="registerModal" :title="title" @ok="handleSubmit" :height="350">
+    <BasicForm @register="registerForm"  :disabled="isDisabled" class="pt-8 px-10"/>
   </BasicModal>
 </template>
 <script lang="ts" setup>
@@ -31,6 +31,8 @@ const props = defineProps({
 const [registerForm, { resetFields, setFieldsValue, validate }] = useForm({
   schemas: getModalFormSchema(),
   showActionButtonGroup: false,
+  labelWidth: 120,
+  labelAlign: 'left',
 });
 const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data) => {
   //重置表单

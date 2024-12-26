@@ -3,6 +3,9 @@
     <ProductListResults/>
     <BasicTable @register="registerTable" ref="tableRef">
       <template #tableTitle>
+        <a-upload name="file" :showUploadList="false" :customRequest="(file) => handleImportXls(file, Api.importExcel, handleImport)">
+          <a-button preIcon="ant-design:import-outlined" type="primary">{{ t('common.operation.import') }}</a-button>
+        </a-upload>
       </template>
       <template #toolbar>
         <a-button type="warning" preIcon="ant-design:edit-outlined" @click="handleBatchEdit" :disabled="batchEditDisabled">{{ t('common.operation.edit') }}</a-button>
@@ -75,8 +78,11 @@ import {listSkus} from "@/views/business/admin/product/api";
 import {filterObj} from "@/utils/common/compUtils";
 import {SearchOutlined} from "@ant-design/icons-vue";
 import ProductListResults from "@/views/business/admin/product/modules/ProductListResults.vue";
+import {useMethods} from "@/hooks/system/useMethods";
+import { Api } from "./data";
 
 const { t } = useI18n();
+const { handleImportXls } = useMethods();
 
 const tableRef = ref();
 
@@ -154,7 +160,7 @@ const handleBuildSkuList = (data) => {
 
   setLoading(false);
 }
-const [registerTable, { reload, getSelectRows, getSelectRowKeys, clearSelectedRowKeys, setLoading }] = useTable({
+const [registerTable, { getSelectRows, getSelectRowKeys, clearSelectedRowKeys, setLoading }] = useTable({
   title: 'Product List',
   dataSource: skuList,
   columns: getProductColumns(),
@@ -212,7 +218,7 @@ function getQueryParams() {
 const handleFilterSelectChange = (e, setSelectedKeys) => {
   setSelectedKeys(e ? [e] : [])
 }
-const handleSearch = async (selectedKeys, confirm, dataIndex) => {
+const handleSearch = async (selectedKeys: string[], _confirm: Function, dataIndex: string) => {
   // confirm();
   filterState.searchText = selectedKeys;
   filterState.searchedColumn = dataIndex;
@@ -225,7 +231,7 @@ const handleReset = (clearFilters) => {
   filters.zhName = [];
   filters.enName = [];
 };
-const splitText = (text, column) => {
+const splitText = (text: string, _column: string) => {
   const regexPattern = new RegExp(
     filterState.searchText[0].map(keyword => `(?<=${keyword})|(?=${keyword})`).join('|'),
     'i'
@@ -244,6 +250,10 @@ function handleShowSizeChange(current:number, size:number) {
 }
 function handleSuccess(res: Recordable) {
   results.value = res;
+  loadSkuList();
+}
+function handleImport(res) {
+  results.value = res.result;
   loadSkuList();
 }
 provide('results', results);

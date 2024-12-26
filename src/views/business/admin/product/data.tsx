@@ -8,6 +8,7 @@ export const Api = {
   list: '/sku/listWithFilters',
   update: '/skuWeight/update',
   updateBatch: '/skuWeight/updateBatch',
+  importExcel: '/skuWeight/importExcel',
 };
 export function getProductColumns(): BasicColumn[] {
   return [

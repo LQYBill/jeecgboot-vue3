@@ -438,8 +438,8 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
       shippingInvoiceAvailable = false;
     if(['-1', '1', '2'].indexOf(row.purchaseAvailable) > -1)
       purchaseInvoiceAvailable = false;
-    // if(row.productAvailable == '1') // product already in stock
-    //   purchaseInvoiceAvailable = false;
+    if(row.productAvailable == '1') // product already in stock
+      purchaseInvoiceAvailable = false;
   }
   makeShippingDisabled.value = !shippingInvoiceAvailable;
   makePurchaseDisabled.value = !purchaseInvoiceAvailable;
@@ -676,7 +676,7 @@ function openHelpModal() {
 const handleFilterSelectChange = (e, setSelectedKeys) => {
   setSelectedKeys(e ? [e] : [])
 }
-const handleSearch = (selectedKeys, confirm, dataIndex) => {
+const handleSearch = (selectedKeys, _confirm, dataIndex) => {
   // confirm();
   state.searchText = selectedKeys;
   state.searchedColumn = dataIndex;
