@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto my-32 pt-20 pb-4 bg-white rounded-3xl w-8/12 relative shadow-sm" :class="xm ? 'mt-42' : ''">
     <S5Icon v-if="bd" class="w-16 h-16 absolute -top-28 right-0 left-0 mx-auto z-10"/>
-    <img :src="avatarImgUrl" alt="avatar" class="w-32 h-32 avatar absolute -top-16 right-0 left-0 mx-auto bg-gray z-1">
+    <img :src="avatarImgUrl" alt="avatar" class="w-32 h-32 avatar absolute -top-16 right-0 left-0 mx-auto bg-customGray z-1">
     <h1 class="text-center text-2xl font-normal">Welcome back to <span class="text-yellow-500">WIA App</span><br/> <span class="text-primary">{{userStore.getUserInfo.realname}}</span></h1>
     <div v-if="bd" class="text-center text-2xl mt-4">
       <h2 class="text-[#b0d5d7]">{{ t('sys.bd')}}</h2>

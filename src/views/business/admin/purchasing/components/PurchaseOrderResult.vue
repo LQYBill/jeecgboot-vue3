@@ -9,7 +9,22 @@
           <div v-for="(value, index) in apiResponse">
             <h3 v-if="isInvoiceNumber(index)" class="bg-gray-200 p-4">{{ t('data.invoice.invoiceNumber')}} : <span class="border rounded-2 border-gray-500 p-2 bg-white">{{ index }}</span></h3>
             <h3 v-else-if="index == 'groupIdDelete'" class="bg-gray-200 p-4">{{ t('data.purchase.groupIdDeleteResults') }}</h3>
-            <h3 v-else class="bg-gray-200 p-4">{{ index }}</h3>
+            <h3 v-else class="bg-gray-200 p-4">
+              <template v-for="(v, _i) in index.split(':')">
+                <template v-if="v.trim() == 'orderUpdate'">
+                  {{ t('data.purchase.orderUpdate') }} :
+                </template>
+                <template v-else-if="v.trim() == 'orderIdUpdate'">
+                  {{ t('data.purchase.orderIdUpdate') }} :
+                </template>
+                <template v-else-if="isInvoiceNumber(v.trim())">
+                  <span class="border rounded-2 border-gray-500 p-2 bg-white">{{ v }}</span>
+                </template>
+                <template v-else>
+                  {{ index }}
+                </template>
+              </template>
+            </h3>
             <div class="grid grid-cols-2">
               <div class="p-6">
                 <h3>Successes</h3>

@@ -32,7 +32,7 @@
               @focus="handleFocus('enName')"
               required
               size="large"
-              class="border-gray"
+              class="border-customGray"
             />
           </a-form-item>
         </a-col>
@@ -48,7 +48,7 @@
               @focus="handleFocus('zhName')"
               required
               size="large"
-              class="border-gray"
+              class="border-customGray"
             />
           </a-form-item>
         </a-col>
@@ -66,7 +66,7 @@
               @focus="handleFocus('declareEnName')"
               required
               size="large"
-              class="border-gray"
+              class="border-customGray"
             />
           </a-form-item>
         </a-col>
@@ -82,7 +82,7 @@
               @focus="handleFocus('declareZhName')"
               required
               size="large"
-              class="border-gray"
+              class="border-customGray"
             />
           </a-form-item>
         </a-col>
@@ -99,7 +99,7 @@
               @blur="handleSupplierChange"
               required
               size="large"
-              class="border-gray"
+              class="border-customGray"
             />
           </a-form-item>
         </a-col>
@@ -114,7 +114,7 @@
               @blur="handleSupplierLinkChange"
               required
               size="large"
-              class="border-gray"
+              class="border-customGray"
             />
           </a-form-item>
         </a-col>

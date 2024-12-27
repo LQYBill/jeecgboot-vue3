@@ -66,11 +66,11 @@
         {{ record.TotalCost }}
         <span v-if="record.CostDifference < 0" class="text-error"> ( {{ record.CostDifference }} % )</span>
         <span v-else-if="record.CostDifference > 0" class="text-success"> ( + {{ record.CostDifference }} % )</span>
-        <span v-else class="text-gray"> ( +{{ record.CostDifference }} % )</span>
+        <span v-else class="text-customGray"> ( +{{ record.CostDifference }} % )</span>
       </template>
       <template #effectiveDate="{ record }">
         {{ record.effectiveDate }}<br/>
-        <small v-if="record.effectiveDate !== record.previousEffectiveDate" class="text-gray italic">{{ record.previousEffectiveDate }}</small>
+        <small v-if="record.effectiveDate !== record.previousEffectiveDate" class="text-customGray italic">{{ record.previousEffectiveDate }}</small>
       </template>
     </BasicTable>
   </a-card>

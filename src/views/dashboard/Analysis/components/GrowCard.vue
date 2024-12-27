@@ -25,7 +25,7 @@
           <div class="flex flex-col flex-2 justify-start items-start">
             <div class="flex flex-row flex-wrap items-end justify-start">
               <CountTo :prefix="item.prefix" :suffix="item.suffix" :startVal="1" :endVal="item.value" class="text-3xl font-bold kpi-number kpi-number-main duck--color leading-full" />
-              <span :class="[item.growthQty > 0 ? 'text-growth kpi-growth-pos' : item.growthQty == 0 ? 'text-gray kpi-growth-neutral' : 'text-error kpi-growth-neg']" class="kpi-growth">{{ item?.growthQty }}%</span>
+              <span :class="[item.growthQty > 0 ? 'text-growth kpi-growth-pos' : item.growthQty == 0 ? 'text-customGray kpi-growth-neutral' : 'text-error kpi-growth-neg']" class="kpi-growth">{{ item?.growthQty }}%</span>
             </div>
             <span class="font-light"> {{t(item?.suffixText)}}</span>
           </div>
@@ -39,7 +39,7 @@
           <span class="text-primary">{{ t(item?.totalTitle).toUpperCase() }} : </span>
           <div class="flex justify-start items-end" :class="item.hasOwnProperty('growthTotal') ? 'mr-4' : ''">
             <CountTo :prefix="item.totalPrefix" :suffix="item.totalSuffix" :startVal="1" :endVal="item.total" class="kpi-number leading-full"/>
-            <span v-if="item.hasOwnProperty('growthTotal')" :class="[item.growthTotal > 0 ? 'text-growth kpi-growth-pos' : item.growthTotal == 0 ? 'text-gray kpi-growth-neutral' : 'text-error kpi-growth-neg']" class="kpi-growth kpi-growth-small">{{ item?.growthTotal }}%</span>
+            <span v-if="item.hasOwnProperty('growthTotal')" :class="[item.growthTotal > 0 ? 'text-growth kpi-growth-pos' : item.growthTotal == 0 ? 'text-customGray kpi-growth-neutral' : 'text-error kpi-growth-neg']" class="kpi-growth kpi-growth-small">{{ item?.growthTotal }}%</span>
           </div>
         </div>
       </Card>

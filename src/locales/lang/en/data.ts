@@ -176,6 +176,8 @@ export default {
     mabangOrderCreateFailForInvoices : "Error while creating Mabang order for invoice(s) %{var}, please delete the orders corresponding to the invoices in Mabang.",
     mabangOrderCreateSuccessForInvoices : "Mabang order was successfully created for invoice(s) %{var}",
     groupIdDeleteResults: "Results of purchase order cancel in Mabang ",
+    orderIdUpdate: "Platform Order IDs Update",
+    orderUpdate: "Purchase Order Update",
   },
   refund: {
     notRefunded: 'Not Settled',
@@ -281,4 +283,6 @@ export default {
   enName: "En name",
   zhName: "Zh name",
   noData: "No Data",
+  database: "Database",
+  mabang: "Mabang",
 }
