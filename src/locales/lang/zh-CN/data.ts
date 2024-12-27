@@ -176,6 +176,8 @@ export default {
     mabangOrderCreateFailForInvoices : "马帮订单创建失败，请在马帮上删除采购订单对应发票号 : %{var}",
     mabangOrderCreateSuccessForInvoices : "马帮订单创建成功 : %{var}",
     groupIdDeleteResults: "在马帮采购订单取消的结果",
+    orderIdUpdate: "平台订单号码更新",
+    orderUpdate: "采购订单更新",
   },
   refund: {
     notRefunded: '未退款',
@@ -281,4 +283,6 @@ export default {
   enName: '英文名称',
   zhName: '中文名称',
   noData: '无数据',
+  database: '系统',
+  mabang: '马帮',
 }
