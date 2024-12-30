@@ -6,6 +6,9 @@
         <a-upload name="file" :showUploadList="false" :customRequest="(file) => handleImportXls(file, Api.importExcel, handleImport)">
           <a-button preIcon="ant-design:import-outlined" type="primary">{{ t('common.operation.import') }}</a-button>
         </a-upload>
+        <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('Sku Weight List', Api.exportExcel, exportParams)">
+          {{ t("common.operation.export") }}
+        </a-button>
       </template>
       <template #toolbar>
         <a-button type="warning" preIcon="ant-design:edit-outlined" @click="handleBatchEdit" :disabled="batchEditDisabled">{{ t('common.operation.edit') }}</a-button>
@@ -67,7 +70,7 @@
   </PageWrapper>
 </template>
 <script lang="ts" setup>
-import {onMounted, provide, reactive, ref} from "vue";
+import {computed, onMounted, provide, reactive, ref} from "vue";
 import { BasicTable, useTable } from "/@/components/Table";
 import { useI18n } from "/@/hooks/web/useI18n";
 import { getProductColumns } from "/@/views/business/admin/product/data";
@@ -82,7 +85,7 @@ import {useMethods} from "@/hooks/system/useMethods";
 import { Api } from "./data";
 
 const { t } = useI18n();
-const { handleImportXls } = useMethods();
+const { handleImportXls, handleExportXls } = useMethods();
 
 const tableRef = ref();
 
@@ -97,6 +100,17 @@ const erpCodes = ref<string[]>();
 
 const results = ref<Recordable>({});
 
+const exportParams = computed(()=>{
+  let paramsForm = {};
+  let list:any[] = [];
+  if (selectRows.value && selectRows.value.length > 0) {
+    for(let item of selectRows.value) {
+      list.push(item.id);
+    }
+  }
+  paramsForm['selections'] = list;
+  return filterObj(paramsForm)
+});
 // filters
 const filters = reactive<Record<string, any>>({
   erpCode: [],

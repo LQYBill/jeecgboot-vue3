@@ -9,6 +9,7 @@ export const Api = {
   update: '/skuWeight/update',
   updateBatch: '/skuWeight/updateBatch',
   importExcel: '/skuWeight/importExcel',
+  exportExcel: '/skuWeight/exportXls',
 };
 export function getProductColumns(): BasicColumn[] {
   return [
