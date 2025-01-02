@@ -51,6 +51,7 @@ const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) 
     confirmLoading: false,
     showCancelBtn: !!data?.showFooter,
     showOkBtn: !!data?.showFooter,
+    destroyOnClose: true,
     okType: computed(() => (isOrder.value ? "warning" : "primary")),
     okText: computed(() => (isOrder.value ? t('data.order.createOrder') : t('common.okText'))),
   });
