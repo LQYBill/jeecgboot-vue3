@@ -1,9 +1,9 @@
 <template>
-  <PageWrapper title="Temp Sku builder">
+  <PageWrapper title="Sku builder">
     <template #headerContent>
       <a-steps :current="current" :items="items" />
     </template>
-    <tempBuilder> v-if="current == 0" @submit="handleSkuBuildSubmit"></tempBuilder>
+    <Builder v-if="current == 0" @submit="handleSkuBuildSubmit"></Builder>
     <Review v-if="current == 1"></Review>
     <BuildResult v-if="current == 2"></BuildResult>
     <div class="bg-white p-4 text-center mt-4 flex gap-2 justify-center">
@@ -38,17 +38,16 @@
 </template>
 <script lang="ts" setup>
 
-import { PageWrapper } from "/src/components/Page";
+import { PageWrapper } from "@/components/Page";
 import {provide, ref} from "vue";
 import { Sku } from "@/views/business/dto/sku.dto";
 import { createMabangSkuApi } from "@/views/business/admin/sku/data";
 import { useMessage } from "@/hooks/web/useMessage";
 
-import Builder from "@/views/business/admin/sku/Builder.vue";
-import Review from "@/views/business/admin/sku/Review.vue";
+import Builder from "@/views/business/admin/sku/SkuBuilder/Builder.vue";
+import Review from "@/views/business/admin/sku/components/Review.vue";
 import BuildResult from "@/views/business/admin/sku/BuildResult.vue";
 import {useI18n} from "vue-i18n";
-import TempBuilder from "@/views/business/admin/sku/tempBuilder.vue";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();

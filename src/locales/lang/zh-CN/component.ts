@@ -44,6 +44,10 @@ export default {
     unfold: '展开',
     maxTip: '字符数应小于{0}位',
     apiSelectNotFound: '请等待数据加载完成...',
+    saving: '正在保存...',
+    saveSuccess: '数据已保存',
+    saveError: '保存失败',
+    incorrectData: '请填写正确的数据',
   },
   icon: {
     placeholder: '点击选择图标',

@@ -22,6 +22,8 @@ export const Api = {
   SENSITIVE_ATTRIBUTE_LIST: '/sensitiveAttribute/list',
   CREATE_MABANG_SKU: '/sku/createMabangSku',
   SKU_SYNC: '/sku/syncSkus',
+  UNPAIRED_SKU_LIST: '/sku/unpairedSkus',
+  EXCEL_EXPORT_MABANG_CREATED_SKU: '/sku/exportNewMabangSkusXls',
 }
 export const categoryListApi = async () => {
   return await defHttp.get({ url: Api.CATEGORY_LIST });
@@ -64,7 +66,11 @@ export const shopListApi = async (handler:Function) => {
     handler(res);
   });
 }
-
+export const listUnpairedSkus = async (params, handler:Function) => {
+  return await defHttp.get({url: Api.UNPAIRED_SKU_LIST, params}).then((res) => {
+    handler(res);
+  });
+}
 
 export function skuCodeBuilderFormSchema(
   categoryList: Ref<Array<any>>,
@@ -82,7 +88,6 @@ export function skuCodeBuilderFormSchema(
         showSearch: true,
         placeholder: 'Category',
         onChange: (value: any) => {
-          console.log('onChange', value);
           updateErpCode('category', value);
         },
       },
@@ -122,7 +127,6 @@ export function skuCodeBuilderFormSchema(
         showSearch: true,
         placeholder: 'Client',
         onChange: (value: any) => {
-          console.log('onChange', value);
           updateErpCode('client', value);
         },
       },
@@ -246,45 +250,68 @@ export const tableColumns: BasicColumn[] = [
 ];
 export const reviewColumns: BasicColumn[] = [
   {
+    title: 'ID',
+    dataIndex: 'id',
+    defaultHidden: true,
+  },
+  {
     title: 'ERP Code',
     dataIndex: 'erpCode',
-   width: 200,
+    width: 200,
   },
   {
     title: t('data.enName'),
     dataIndex: 'enName',
-   width: 200,
+    width: 200,
+    editRow: true,
   },
   {
     title: t('data.zhName'),
     dataIndex: 'zhName',
     width: 200,
+    editRow: true,
   },
   {
-    title: t('data.sku.declareEnName'),
+    title: t('data.sku.declareEname'),
     dataIndex: 'declareEname',
     width: 200,
+    editRow: true,
   },
   {
-    title: t('data.sku.declareZhName'),
+    title: t('data.sku.declareName'),
     dataIndex: 'declareName',
     width: 200,
+    editRow: true,
   },
   {
     title: t('data.sku.weight'),
     dataIndex: 'weight',
-    width: 80,
+    editRow: true,
+    width: 150,
+    editComponentProps: {
+      prefix: t('data.shipping.gram'),
+    },
+    editComponent: 'InputNumber',
   },
   {
     title: t('data.sku.shippingDiscount'),
     dataIndex: 'shippingDiscount',
-    width: 80,
-    slots: { customRender: 'shippingDiscount' },
+    editRow: true,
+    width: 150,
+    editComponentProps: {
+      prefix: '€',
+    },
+    editComponent: 'InputNumber',
   },
   {
     title: t('data.sku.serviceFee'),
     dataIndex: 'serviceFee',
-    width: 80,
+    editRow: true,
+    width: 150,
+    editComponentProps: {
+      prefix: '€',
+    },
+    editComponent: 'InputNumber',
   },
   {
     title: 'Status',
@@ -295,33 +322,57 @@ export const reviewColumns: BasicColumn[] = [
   {
     title: t('data.sku.sensitiveAttribute'),
     dataIndex: 'sensitiveAttribute',
-    width: 100,
-    slots: { customRender: 'sensitiveAttribute' },
+    width: 200,
+    editRow: true,
+    editComponent: 'ApiSelect',
+    editComponentProps: {
+      api: sensitiveAttributeListApi,
+      resultField: 'records',
+      labelField: 'zhName',
+      valueField: 'zhName',
+    },
   },
   {
     title: t('data.sku.isGift'),
     dataIndex: 'isGift',
-    width: 70,
+    width: 150,
+    editRow: true,
+    editComponent: 'Switch',
+    editValueMap: (value) => {
+      return value === 1 ? t('common.yes') : t('common.no');
+    },
   },
   {
     title: t('data.sku.skuPrice'),
     dataIndex: 'skuPrice',
-    width: 80,
+    editRow: true,
+    width: 150,
+    editComponentProps: {
+      prefix: '€',
+    },
+    editComponent: 'InputNumber',
   },
   {
     title: t('data.sku.declaredValue'),
     dataIndex: 'declaredValue',
-    width: 100,
+    editRow: true,
+    width: 150,
+    editComponentProps: {
+      prefix: '€',
+    },
+    editComponent: 'InputNumber',
   },
   {
     title: t('data.sku.supplier'),
     dataIndex: 'supplier',
     width: 200,
+    editRow: true,
   },
   {
     title: t('data.sku.supplierLink'),
     dataIndex: 'supplierLink',
     width: 200,
+    editRow: true,
   },
 ];
 export function formatDateTime(date: string) {
@@ -345,7 +396,7 @@ export const skuStatus = {
 export const SkuColumns: BasicColumn[] = [
   {
     title: 'Mabang SKU ID',
-    dataIndex: 'stockSkuId',
+    dataIndex: 'id',
     defaultHidden: true,
   },
   {
@@ -353,53 +404,212 @@ export const SkuColumns: BasicColumn[] = [
     dataIndex: 'erpCode',
   },
   {
-    title: 'EN Name',
+    title: t('data.enName'),
     dataIndex: 'enName',
   },
   {
-    title: 'ZH Name',
+    title: t('data.zhName'),
     dataIndex: 'zhName',
   },
   {
     title: t('data.sku.salePicture'),
     align: 'center',
-    dataIndex: 'salePicture',
+    dataIndex: 'imageSource',
     slots: {customRender: 'image'}
   },
   {
-    title: t('data.sku.stockPicture'),
-    align: 'center',
-    dataIndex: 'stockPicture',
-    slots: {customRender: 'image'}
-  },
-  {
-    title: 'Status',
+    title: t('common.status.status'),
     dataIndex: 'status',
+    slots: { customRender: 'status' },
     width: 70,
   },
   {
-    title: 'Weight',
-    dataIndex: 'weight',
-    width: 80,
-  },
-  {
-    title: 'SKU Price',
-    dataIndex: 'salePrice',
+    title: t('data.sku.skuPrice'),
+    dataIndex: 'skuPrice',
     width: 80
   },
   {
-    title: 'Declared Value',
-    dataIndex: 'declareValue',
+    title: t('data.sku.declaredValue'),
+    dataIndex: 'declaredValue',
     width: 80
   },
   {
-    title: 'Is Gift',
+    title: t('data.sku.isGift'),
     dataIndex: 'isGift',
     width: 70,
+    slots: { customRender: 'isGift' },
   },
   {
-    title: 'Sensitive Attribute',
+    title: t('data.sku.sensitiveAttribute'),
     dataIndex: 'sensitiveAttribute',
     width: 100,
+    slots: { customRender: 'sensitiveAttribute' },
   },
+  {
+    title: t('data.invoice.warehouse'),
+    dataIndex: 'warehouse',
+  }
 ];
+
+export const numberColumns = ['weight', 'shippingDiscount', 'serviceFee', 'skuPrice', 'declaredValue', 'isGift'];
+
+
+export const tempSkuCommonSchema = (updateFieldsValue:Function): FormSchema[] =>
+{
+  return [
+    {
+      field: 'skuPrice',
+      label: t('data.sku.skuPrice'),
+      component: 'InputNumber',
+      componentProps: {
+        placeholder: t('data.sku.skuPrice'),
+        min: 0,
+        style: {width: '100%'},
+        addonAfter: '€',
+        onBlur: (e: FocusEvent) => {
+          updateFieldsValue('skuPrice', (e.target as HTMLInputElement).value);
+        },
+      },
+      itemProps: {
+        id: 'skuPrice',
+      },
+      defaultValue: 0
+    },
+    {
+      field: 'declaredValue',
+      label: t('data.sku.declaredValue'),
+      component: 'InputNumber',
+      componentProps: {
+        placeholder: t('data.sku.declaredValue'),
+        min: 0,
+        style: {width: '100%'},
+        addonAfter: '€',
+        onBlur: (e: FocusEvent) => {
+          updateFieldsValue('declaredValue', (e.target as HTMLInputElement).value);
+        },
+      },
+      itemProps: {
+        id: 'declaredValue',
+      },
+      defaultValue: 0
+    },
+    {
+      field: 'serviceFee',
+      label: t('data.sku.serviceFee'),
+      component: 'InputNumber',
+      componentProps: {
+        placeholder: t('data.sku.serviceFee'),
+        min: 0,
+        style: {width: '100%'},
+        addonAfter: '€',
+        onBlur: (e: FocusEvent) => {
+          updateFieldsValue('serviceFee', (e.target as HTMLInputElement).value);
+        },
+      },
+      itemProps: {
+        id: 'serviceFee',
+      },
+      defaultValue: 0
+    },
+    {
+      field: 'shippingDiscount',
+      label: t('data.sku.shippingDiscount'),
+      component: 'InputNumber',
+      componentProps: {
+        placeholder: t('data.sku.shippingDiscount'),
+        min: 0,
+        precision: 0,
+        style: {width: '100%'},
+        addonAfter: '%',
+        onBlur: (e: FocusEvent) => {
+          updateFieldsValue('shippingDiscount', (e.target as HTMLInputElement).value);
+        },
+      },
+      itemProps: {
+        id: 'shippingDiscount',
+      },
+      defaultValue: 0
+    },
+    {
+      field: 'weight',
+      label: t('data.sku.weight'),
+      component: 'InputNumber',
+      componentProps: {
+        placeholder: t('data.sku.weight'),
+        min: 0,
+        style: {width: '100%'},
+        onBlur: (e: FocusEvent) => {
+          updateFieldsValue('weight', (e.target as HTMLInputElement).value);
+        },
+      },
+      itemProps: {
+        addonAfter: t('data.shipping.gram'),
+        id: 'weight',
+      },
+      defaultValue: 0
+    },
+    {
+      field: 'sensitiveAttribute',
+      label: t('data.sku.sensitiveAttribute'),
+      component: 'JSearchSelect',
+      componentProps: {
+        dict: 'sensitive_attribute, zh_name, zh_name',
+        placeholder: t('data.sku.sensitiveAttribute'),
+        style: {width: '100%'},
+        onBlur: (e: FocusEvent) => {
+          updateFieldsValue('sensitiveAttribute', (e.target as HTMLInputElement).value);
+        },
+      },
+      itemProps: {
+        id: 'sensitiveAttribute',
+      }
+    },
+    {
+      field: 'supplier',
+      label: t('data.sku.supplier'),
+      component: 'Input',
+      componentProps: {
+        placeholder: t('data.sku.supplier'),
+        style: {width: '100%'},
+        onBlur: (e: FocusEvent) => {
+          updateFieldsValue('supplier', (e.target as HTMLInputElement).value);
+        },
+      },
+      itemProps: {
+        id: 'supplier',
+      },
+      defaultValue: '临时供货商'
+    },
+    {
+      field: 'supplierLink',
+      label: t('data.sku.supplierLink'),
+      component: 'Input',
+      componentProps: {
+        placeholder: t('data.sku.supplierLink'),
+        style: {width: '100%'},
+        onBlur: (e: Event) => {
+          updateFieldsValue('supplierLink', (e.target as HTMLInputElement).value);
+        },
+      },
+      itemProps: {
+        id: 'supplierLink',
+      }
+    },
+    {
+      field: 'provider',
+      label: t('data.sku.warehouse'),
+      component: 'Input',
+      componentProps: {
+        placeholder: t('data.sku.warehouse'),
+        style: {width: '100%'},
+        onBlur: (e: FocusEvent) => {
+          updateFieldsValue('provider', (e.target as HTMLInputElement)?.value);
+        },
+      },
+      itemProps: {
+        id: 'provider',
+      },
+      defaultValue: 'SZBA宝安仓'
+    }
+  ] as FormSchema[];
+};

@@ -10,7 +10,7 @@
       :rules="validatorRules"
     >
       <a-row class="flex gap-2 mb-4">
-        <div class="w-auto" v-for="(value, index) in Object.values(fieldMapByEnName)">
+        <div class="w-auto" v-for="(value, _index) in Object.values(fieldMapByEnName)">
           <a-button
             type="primary"
             @click="handleAddFieldName(value)"
@@ -57,7 +57,7 @@
         <a-col :span="12">
           <a-form-item>
             <template #label>
-              <span class="font-semibold text-lg">{{ t('data.sku.declareEnName') }}</span>
+              <span class="font-semibold text-lg">{{ t('data.sku.declareEname') }}</span>
             </template>
             <a-input
               v-model:value="formState.declareEnName"
@@ -73,7 +73,7 @@
         <a-col :span="12">
           <a-form-item>
             <template #label>
-              <span class="font-semibold text-lg">{{ t('data.sku.declareZhName') }}</span>
+              <span class="font-semibold text-lg">{{ t('data.sku.declareName') }}</span>
             </template>
             <a-input
               v-model:value="formState.declareZhName"
@@ -164,7 +164,7 @@
               v-bind="validateInfos.name"
             >
               <template #label>
-                {{ t('data.sku.declareEnName') }}
+                {{ t('data.sku.declareEname') }}
               </template>
               <a-input
                 placeholder="Declare Name En"
@@ -180,7 +180,7 @@
               v-bind="validateInfos.name"
             >
               <template #label>
-                {{ t('data.sku.declareZhName') }}
+                {{ t('data.sku.declareName') }}
               </template>
               <a-input
                 placeholder="Declare Name Zh"

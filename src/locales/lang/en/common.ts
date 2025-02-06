@@ -47,10 +47,12 @@ export default {
   operation: {
     action: "Action",
     add: "Add",
+    addMore: 'Add More',
     addNew: "New Entry",
     adSearch: "Advanced Search",
     batchOperation: "Batch Operation",
     cancel: 'Cancel',
+    cancelConfirmation: 'Are you sure you want to cancel ?',
     copy: 'Copy',
     clear: "Clear all",
     close: 'Close',

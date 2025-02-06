@@ -176,7 +176,6 @@ import {filterObj} from "@/utils/common/compUtils";
 
 import {
   discountDecimalToPercentage,
-  discountPercentageToDecimal,
   sensitiveAttributeListApi
 } from "@/views/business/admin/sku/data";
 
@@ -271,7 +270,7 @@ function getParam(): Record<string, string | number> {
     skuPrice: formState.skuPrice,
     declaredValue: formState.declaredValue,
     sensitiveAttribute: formState.sensitiveAttribute,
-    shippingDiscount: discountPercentageToDecimal(formState.shippingDiscount),
+    shippingDiscount: formState.shippingDiscount,
     isGift: formState.isGift,
     serviceFee: formState.serviceFee,
     availableAmount: 0,

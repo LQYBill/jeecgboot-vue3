@@ -44,9 +44,6 @@ dependencies:
   china-area-data:
     specifier: ^5.0.1
     version: registry.npmmirror.com/china-area-data@5.0.1
-  clipboard:
-    specifier: ^2.0.11
-    version: 2.0.11
   codemirror:
     specifier: ^5.65.3
     version: registry.npmmirror.com/codemirror@5.65.12
@@ -262,6 +259,9 @@ devDependencies:
   autoprefixer:
     specifier: ^10.4.16
     version: 10.4.19(postcss@8.4.38)
+  clipboard:
+    specifier: ^2.0.11
+    version: 2.0.11
   commitizen:
     specifier: ^4.3.0
     version: 4.3.0(@types/node@20.12.6)(typescript@4.9.5)
@@ -325,6 +325,9 @@ devDependencies:
   lint-staged:
     specifier: 15.2.0
     version: 15.2.0
+  nanoid:
+    specifier: ^5.0.9
+    version: 5.0.9
   npm-run-all:
     specifier: ^4.1.5
     version: registry.npmmirror.com/npm-run-all@4.1.5
@@ -3945,7 +3948,7 @@ packages:
       good-listener: 1.2.2
       select: 1.1.2
       tiny-emitter: 2.1.0
-    dev: false
+    dev: true
 
   /cliui@6.0.0:
     resolution: {integrity: sha512-t6wbgtoCXvAzst7QgXxJYqPt0usEfbgQdftEPbLL/cvv6HPE5VgvqCuAIDR0NgU52ds6rFwqrgakNLrHEjCbrQ==}
@@ -4557,7 +4560,7 @@ packages:
 
   /delegate@3.2.0:
     resolution: {integrity: sha512-IofjkYBZaZivn0V8nnsMJGBr4jVLxHDheKSW88PyxS5QC4Vo9ZbZVvhzlSxY87fVq3STR6r+4cGepyHkcWOQSw==}
-    dev: false
+    dev: true
 
   /deprecation@2.3.1:
     resolution: {integrity: sha512-xmHIy4F3scKVwMsQ4WnVaS8bHOx0DmVwRywosKhaILI0ywMDWPtBSku2HNxRvF7jtwDRsoEwYQSfbxj8b7RlJQ==}
@@ -5689,7 +5692,7 @@ packages:
     resolution: {integrity: sha512-goW1b+d9q/HIwbVYZzZ6SsTr4IgE+WA44A0GmPIQstuOrgsFcT7VEJ48nmr9GaRtNu0XTKacFLGnBPAM6Afouw==}
     dependencies:
       delegate: 3.2.0
-    dev: false
+    dev: true
 
   /gopd@1.0.1:
     resolution: {integrity: sha512-d65bNlIadxvpb/A2abVdlqKqV563juRnZ1Wtk6s1sIR8uNsXR70xqIzVqxVf1eTqDunwT2MkczEeaezCKTZhwA==}
@@ -7372,6 +7375,12 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
+  /nanoid@5.0.9:
+    resolution: {integrity: sha512-Aooyr6MXU6HpvvWXKoVoXwKMs/KyVakWwg7xQfv5/S/RIgJMy0Ifa45H9qqYy7pTCszrHzP21Uk4PZq2HpEM8Q==}
+    engines: {node: ^18 || >=20}
+    hasBin: true
+    dev: true
+
   /nanopop@2.2.0:
     resolution: {integrity: sha512-E9JaHcxh3ere8/BEZHAcnuD10RluTSPyTToBvoFWS9/7DcCx6gyKjbn7M7Bx7E1veCxCuY1iO6h4+gdAf1j73Q==}
     dev: false
@@ -8294,7 +8303,7 @@ packages:
 
   /select@1.1.2:
     resolution: {integrity: sha512-OwpTSOfy6xSs1+pwcNrv0RBMOzI39Lp3qQKUTPVVPRjCdNa5JH/oPRiqsesIskK8TVgmRiHwO4KXlV2Li9dANA==}
-    dev: false
+    dev: true
 
   /semver@5.7.1:
     resolution: {integrity: sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==}
@@ -8849,7 +8858,7 @@ packages:
 
   /tiny-emitter@2.1.0:
     resolution: {integrity: sha512-NB6Dk1A9xgQPMoGqC5CVXn123gWyte215ONT5Pp5a0yt4nlEoO1ZWeCwpncaekPHXO60i47ihFnZPiRPjRMq4Q==}
-    dev: false
+    dev: true
 
   /tinymce@5.10.7:
     resolution: {integrity: sha512-9UUjaO0R7FxcFo0oxnd1lMs7H+D0Eh+dDVo5hKbVe1a+VB0nit97vOqlinj+YwgoBDt6/DSCUoWqAYlLI8BLYA==}

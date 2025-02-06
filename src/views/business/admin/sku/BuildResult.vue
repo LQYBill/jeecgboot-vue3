@@ -2,15 +2,15 @@
   <div class="bg-white px-12 py-6">
     <Result
       status="success"
-      :title="`${apiResponse.successes.length}/${apiResponse.successes.length + apiResponse.failures.length} Sku(s) successfully created`"
+      :title="`${Object.keys(apiResponse.successes).length}/${Object.keys(apiResponse.successes).length + Object.keys(apiResponse.failures).length} Sku(s) successfully created`"
       sub-title="Now please sync the sku to the system"
     >
       <template #extra>
         <a-button type="primary" @click="handleSync"> {{ t('common.operation.sync') }} </a-button>
-        <a-button @click="handleReload"> retour </a-button>
+        <a-button @click="handleReload"> {{ t('common.back') }} </a-button>
       </template>
     </Result>
-    <a-collapse :bordered="false" class="w-full mb-6">
+    <a-collapse :bordered="false" class="w-full mb-6 bg-gray-100">
       <a-collapse-panel key="1">
         <template #header>
           <h2>API response's details</h2>
@@ -20,7 +20,7 @@
             <div class="p-6">
               <h3>Successes</h3>
               <ul class="columns-3">
-                <li v-if="apiResponse.successes.length" v-for="(value, index) in apiResponse.successes">
+                <li v-if="Object.keys(apiResponse.successes).length" v-for="(value, _index) in Object.keys(apiResponse.successes)">
                   {{ value }}
                 </li>
                 <li v-else>
@@ -30,9 +30,16 @@
             </div>
             <div class="border-l p-6">
               <h3>Failures</h3>
-              <ul class="columns-2">
-                <li v-if="apiResponse.failures.length > 0" v-for="(value, index) in apiResponse.failures">
-                  {{ value }}
+              <ul>
+                <li v-if="Object.keys(apiResponse.failures).length > 0" v-for="(value, _index) in Object.keys(apiResponse.failures)" class="bg-gray-100 flex p-2 rounded-2 mb-2 break-inside-avoid-column">
+                  <strong class="flex-1 font-semibold">{{ value }}</strong>
+                  <template v-if="apiResponse.failures[value].length > 0">
+                    <ul class="list-disc flex-1">
+                      <li v-for="(v, _i) in apiResponse.failures[value]">
+                        {{ v }}
+                      </li>
+                    </ul>
+                  </template>
                 </li>
                 <li v-else>
                   None
@@ -53,13 +60,11 @@ import {useI18n} from "vue-i18n";
 
 const { t } = useI18n();
 
-const apiResponse = inject('apiResponse') as Ref<{successes:string[], failures:string[]}>;
+const apiResponse = inject('apiResponse') as Ref<{successes:Record<string, string[]>, failures:Record<string, string[]>}>;
 
 async function handleSync() {
-  const skus = apiResponse.value.successes;
-  await skuSyncApi(skus).then((res) => {
-    console.log('res', res);
-  });
+  const skus = Object.keys(apiResponse.value.successes);
+  await skuSyncApi(skus);
 }
 function handleReload() {
   location.reload();

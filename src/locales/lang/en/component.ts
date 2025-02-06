@@ -44,6 +44,10 @@ export default {
     unfold: 'Unfold',
     maxTip: 'The number of characters should be less than {0}',
     apiSelectNotFound: 'Wait for data loading to complete...',
+    saving: 'Saving...',
+    saveSuccess: 'Data saved successfully',
+    saveError: 'An error occurred while saving data',
+    incorrectData: 'Incorrect format or empty',
   },
   icon: {
     placeholder: 'Click the select icon',
