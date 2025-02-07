@@ -20,6 +20,7 @@ export const Api = {
   CLIENT_LIST: "/client/client/all",
   SEARCH_EXISTING_SKU: '/sku/searchExistingSkuByKeywords',
   SENSITIVE_ATTRIBUTE_LIST: '/sensitiveAttribute/list',
+  LABEL_DATA_LIST: '/labelData/list',
   CREATE_MABANG_SKU: '/sku/createMabangSku',
   SKU_SYNC: '/sku/syncSkus',
   UNPAIRED_SKU_LIST: '/sku/unpairedSkus',
@@ -51,6 +52,9 @@ export const searchExistingSkuApi = async (keywords: string, signal: AbortSignal
 }
 export const sensitiveAttributeListApi = async () => {
   return await defHttp.get({ url: Api.SENSITIVE_ATTRIBUTE_LIST });
+}
+export const labelDataListApi = async () => {
+  return await defHttp.get({ url: Api.LABEL_DATA_LIST });
 }
 export const createMabangSkuApi = async (skus: Sku[]) => {
   return await defHttp.post({ url: Api.CREATE_MABANG_SKU, params: skus });
@@ -333,6 +337,19 @@ export const reviewColumns: BasicColumn[] = [
     },
   },
   {
+    title: t('data.sku.labelData'),
+    dataIndex: 'labelData',
+    width: 200,
+    editRow: true,
+    editComponent: 'ApiSelect',
+    editComponentProps: {
+      api: labelDataListApi,
+      resultField: 'records',
+      labelField: 'name',
+      valueField: 'name',
+    },
+  },
+  {
     title: t('data.sku.isGift'),
     dataIndex: 'isGift',
     width: 150,
@@ -556,12 +573,28 @@ export const tempSkuCommonSchema = (updateFieldsValue:Function): FormSchema[] =>
         dict: 'sensitive_attribute, zh_name, zh_name',
         placeholder: t('data.sku.sensitiveAttribute'),
         style: {width: '100%'},
-        onBlur: (e: FocusEvent) => {
-          updateFieldsValue('sensitiveAttribute', (e.target as HTMLInputElement).value);
+        onChange: (e: string) => {
+          updateFieldsValue('sensitiveAttribute', e);
         },
       },
       itemProps: {
         id: 'sensitiveAttribute',
+      }
+    },
+    {
+      field: 'labelData',
+      label: t('data.sku.labelData'),
+      component: 'JSelectMultiple',
+      componentProps: {
+        dictCode: 'label_data,name,name',
+        placeholder: t('data.sku.labelData'),
+        style: {width: '100%'},
+        onChange: (e: string) => {
+          updateFieldsValue('labelData', e);
+        },
+      },
+      itemProps: {
+        id: 'labelData',
       }
     },
     {

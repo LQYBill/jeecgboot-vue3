@@ -217,6 +217,7 @@ export default {
     id: 'ID',
     imageSource: '图片链接',
     isGift: '是否赠品',
+    labelData: '自定义分类',
     missingPrice: '缺价格',
     purchasingAmount: '在途数量',
     quantityInOrders: '未发货数量',

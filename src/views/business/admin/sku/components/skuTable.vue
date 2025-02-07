@@ -194,6 +194,7 @@ function generateSkus() {
       supplier: row.supplier,
       supplierLink: row.supplierLink,
       imageSource: row.imageSource,
+      labelData: row.labelData,
     } as Sku
   }));
   emit('generate', selectedRows );

@@ -20,14 +20,19 @@
             :wrapperCol="wrapperCol"
             v-bind="validateInfos.name"
             :name="fieldName + '_' + index"
-            :required="fieldName !== 'imageSource' && fieldName !== 'supplierLink' && fieldName !== 'weight'"
           >
             <template #label>
-              {{ t('data.sku.' + fieldName) }}
+              {{ t('data.sku.' + fieldName) }} : {{ fieldName }}
             </template>
             <JSearchSelect
               v-if="fieldName === 'sensitiveAttribute'"
               dict="sensitive_attribute, zh_name, zh_name"
+              allowclear
+              v-model:value="formState[index][fieldName]"
+            />
+            <JSelectMultiple
+              v-else-if="fieldName === 'labelData'"
+              dictCode="label_data,name,name"
               allowclear
               v-model:value="formState[index][fieldName]"
             />
@@ -74,10 +79,11 @@ import {Ref, inject, ref, watch} from 'vue';
 import {Form} from "ant-design-vue";
 import { useI18n } from 'vue-i18n';
 import {Sku} from "@/views/business/dto/sku.dto";
-import {JSearchSelect} from "@/components/Form";
+import {JSearchSelect, JSelectMultiple} from "@/components/Form";
 import {ImagePreview} from "@/components/Preview";
 import {numberColumns} from "@/views/business/admin/sku/data";
 import TempSkuCommonForm from "@/views/business/admin/sku/components/tempSkuCommonForm.vue";
+import JSelectInput from "@/components/Form/src/jeecg/components/JSelectInput.vue";
 
 const { t } = useI18n();
 
@@ -151,8 +157,6 @@ async function handleSubmit() {
           continue;
         }
       }
-      if(fieldName === 'weight')
-        continue;
       formRef.value.validateFields([fieldName + '_' + index]);
       isValid = false;
     }

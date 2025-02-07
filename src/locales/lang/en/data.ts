@@ -217,6 +217,7 @@ export default {
     id: 'ID',
     imageSource: 'Image Source',
     isGift: 'Is Gift',
+    labelData: 'Label Data',
     missingPrice: 'Missing Price',
     purchasingAmount: 'Purchasing Amount',
     quantityInOrders: 'Quantity In Orders',

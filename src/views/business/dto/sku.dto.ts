@@ -35,6 +35,7 @@ export interface Sku {
   supplier?:string,
   supplierLink?:string,
   warehouse?: string,
+  labelData?: string,
 }
 
 export const SkuStatus = {
