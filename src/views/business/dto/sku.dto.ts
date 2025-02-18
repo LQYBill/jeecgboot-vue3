@@ -34,4 +34,17 @@ export interface Sku {
 
   supplier?:string,
   supplierLink?:string,
+  warehouse?: string,
+  labelData?: string,
+}
+
+export const SkuStatus = {
+  "AUTOMATIC": { code: 1, name: '自动创建'},
+  "PENDING":{ code: 2, name: '待开发'},
+  "NORMAL":{ code: 3, name: '正常'},
+  "CLEARANCE": { code: 4, name: '清仓'},
+  "STOP":{ code: 5, name: '停止销售'},
+}
+export function getStatusNameByCode(status : number) {
+  return Object.values(SkuStatus).find(item => item.code === status)?.name
 }

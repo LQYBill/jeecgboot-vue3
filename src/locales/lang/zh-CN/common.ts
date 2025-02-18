@@ -47,10 +47,12 @@ export default {
   operation: {
     action: "操作",
     add: "增加",
+    addMore: '继续添加',
     addNew: "新增",
     adSearch: "高级搜索",
     batchOperation: "批量操作",
     cancel: '取消',
+    cancelConfirmation: '确定要取消吗？',
     copy: '复制',
     clear: "清除",
     close: '关闭',

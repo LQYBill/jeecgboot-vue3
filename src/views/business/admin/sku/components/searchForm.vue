@@ -7,7 +7,7 @@
             :wrapper-col="wrapperCol"
             :rules="validatorRules"
     >
-      <a-row :gutter =8>
+      <a-row :gutter=8>
         <a-col :span="10">
           <a-form-item
             :labelCol="labelCol"
@@ -27,11 +27,6 @@
             />
           </a-form-item>
         </a-col>
-        <a-col :span="4">
-          <a-form-item>
-            <a-button type="primary" preIcon="ant-design:search-outlined" @click="handleSearch"></a-button>
-          </a-form-item>
-        </a-col>
       </a-row>
     </a-form>
   </section>
@@ -41,10 +36,11 @@ import JSelectInput from "@/components/Form/src/jeecg/components/JSelectInput.vu
 import {useI18n} from "vue-i18n";
 import {onMounted, reactive, Ref, ref} from "vue";
 import {Form, SelectProps} from "ant-design-vue";
-import type {FormActionType} from "@/components/Form";
 import {shopListApi} from "@/views/business/admin/sku/data";
-import {ShopByClient} from "@/views/business/dto/shop.dto";
+import {ShopByClient, ShopResponse} from "@/views/business/dto/shop.dto";
 const { t } = useI18n();
+
+const emit = defineEmits(['search']);
 
 const shopMappedByClient: Ref<Record<string, ShopByClient>> = ref({});
 const shopOptionList = ref<SelectProps['options']>([]);
@@ -98,12 +94,11 @@ function createShopOptions() {
   });
 }
 /** search */
-async function handleSearch(state: Record<string, string>) {
-  searchState.shop = state.shop;
-  // await loadFeeList(1);
-}
 function handleShopChange(value: string) {
   searchState.shop = value;
-  emit('search', searchState);
+  emit('search', {
+    shop: searchState.shop,
+    client: Object.keys(shopMappedByClient.value).find(clientCode => shopMappedByClient.value[clientCode].shops.includes(value)),
+  });
 }
 </script>

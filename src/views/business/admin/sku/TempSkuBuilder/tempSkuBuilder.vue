@@ -1,10 +1,10 @@
 <template>
-  <PageWrapper title="Sku builder">
+  <PageWrapper title="Temp Sku builder">
     <template #headerContent>
       <a-steps :current="current" :items="items" />
     </template>
-    <Builder v-if="current == 0" @submit="handleSkuBuildSubmit"></Builder>
-    <Review v-if="current == 1"></Review>
+    <tempBuilder v-if="current == 0" @generate="handleGenerate" @submit="handleSkuBuildSubmit" @error="handleError" @addMore="handleAddMore"></tempBuilder>
+    <Review v-if="current == 1" @update="handleUpdateSku"></Review>
     <BuildResult v-if="current == 2"></BuildResult>
     <div class="bg-white p-4 text-center mt-4 flex gap-2 justify-center">
       <a-button
@@ -38,19 +38,22 @@
 </template>
 <script lang="ts" setup>
 
-import { PageWrapper } from "/@/components/Page";
+import { PageWrapper } from "/src/components/Page";
 import {provide, ref} from "vue";
 import { Sku } from "@/views/business/dto/sku.dto";
-import { createMabangSkuApi } from "@/views/business/admin/sku/data";
+import {Api, createMabangSkuApi} from "@/views/business/admin/sku/data";
 import { useMessage } from "@/hooks/web/useMessage";
-
-import Builder from "@/views/business/admin/sku/Builder.vue";
-import Review from "@/views/business/admin/sku/Review.vue";
+import Review from "@/views/business/admin/sku/components/Review.vue";
 import BuildResult from "@/views/business/admin/sku/BuildResult.vue";
 import {useI18n} from "vue-i18n";
+import TempBuilder from "@/views/business/admin/sku/TempSkuBuilder/tempBuilder.vue";
+import {useMethods} from "@/hooks/system/useMethods";
+import dayjs from "dayjs";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
+const { handleExportXls } = useMethods();
+
 
 const current = ref(0);
 const steps = [
@@ -66,8 +69,11 @@ const steps = [
 ];
 const items = steps.map(item => ({ key: item.title, title: item.title }));
 
+const isAddMore = ref(false);
+
 const nextButtonDisabled = ref(true);
 
+const currentFormSkuList = ref<Sku[]>([]);
 const skuListResult = ref<Sku[]>([]);
 
 const apiResponse = ref<{successes:string[], failures:string[]}>({successes: [], failures: []});
@@ -79,25 +85,69 @@ async function createSku() {
   });
 }
 
+function handleGenerate(data: Sku[]) {
+  currentFormSkuList.value = data;
+  nextButtonDisabled.value = true;
+}
 function handleSkuBuildSubmit(data: Sku[]) {
-  skuListResult.value = data;
+  currentFormSkuList.value = data;
+  const skuMap = new Map(skuListResult.value.map(sku => [sku.id, sku]));
+  // Merge or replace items
+  data.forEach(sku => {
+    skuMap.set(sku.id, sku);
+  });
+  skuListResult.value = Array.from(skuMap.values());
   nextButtonDisabled.value = false;
 }
+function handleUpdateSku({id, data}) {
+  skuListResult.value = skuListResult.value.map((item) => {
+    if(item.id === id) {
+      return {
+        ...item,
+        ...data
+      };
+    }
+    return item;
+  });
+  currentFormSkuList.value = [...skuListResult.value];
+}
 async function handlePublish() {
-  await createSku().then(() => {
+  await createSku().then(async () => {
     current.value++;
-    createMessage.success('Processing complete!');
+
+    let exportParams = {};
+    exportParams['selections'] = skuListResult.value;
+    const today = dayjs().format('YYYY-MM-DD');
+    await handleExportXls('new_skus_' + today, Api.EXCEL_EXPORT_MABANG_CREATED_SKU,exportParams)
+      .then(() => {
+        createMessage.success('Excel exported successfully!');
+      }).catch((e) => {
+        console.error('error', e);
+      });
   });
 }
+
+function handleError() {
+  nextButtonDisabled.value = true;
+}
+
 const next = () => {
   current.value++;
+  currentFormSkuList.value = [...skuListResult.value];
+  isAddMore.value = false;
 };
 const prev = () => {
   current.value--;
+  isAddMore.value = false;
 };
 
+function handleAddMore() {
+  isAddMore.value = true;
+}
+provide('isAddMore', isAddMore);
 provide('skuList', skuListResult);
 provide('apiResponse', apiResponse);
+provide('currentFormSkuList', currentFormSkuList);
 </script>
 <style>
 .jeecg-page-wrapper-content .sku-builder-div .jeecg-basic-table div.ant-table-wrapper {
