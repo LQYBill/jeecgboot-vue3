@@ -25,6 +25,8 @@ export const Api = {
   SKU_SYNC: '/sku/syncSkus',
   UNPAIRED_SKU_LIST: '/sku/unpairedSkus',
   EXCEL_EXPORT_MABANG_CREATED_SKU: '/sku/exportNewMabangSkusXls',
+  USER_CODE: '/sys/user/userCode',
+  SKU_COUNTER: '/sku/latestSkuCounter',
 }
 export const categoryListApi = async () => {
   return await defHttp.get({ url: Api.CATEGORY_LIST });
@@ -74,6 +76,12 @@ export const listUnpairedSkus = async (params, handler:Function) => {
   return await defHttp.get({url: Api.UNPAIRED_SKU_LIST, params}).then((res) => {
     handler(res);
   });
+}
+export const fetchUserCode = async () => {
+  return await defHttp.get({url: Api.USER_CODE});
+}
+export const fetchLatestSkuCounter = async (userCode: string, clientCode: string, date: string) => {
+  return await defHttp.get({url: Api.SKU_COUNTER, params: {userCode, clientCode, date}});
 }
 
 export function skuCodeBuilderFormSchema(
@@ -629,18 +637,18 @@ export const tempSkuCommonSchema = (updateFieldsValue:Function): FormSchema[] =>
       }
     },
     {
-      field: 'provider',
+      field: 'warehouse',
       label: t('data.sku.warehouse'),
       component: 'Input',
       componentProps: {
         placeholder: t('data.sku.warehouse'),
         style: {width: '100%'},
         onBlur: (e: FocusEvent) => {
-          updateFieldsValue('provider', (e.target as HTMLInputElement)?.value);
+          updateFieldsValue('warehouse', (e.target as HTMLInputElement)?.value);
         },
       },
       itemProps: {
-        id: 'provider',
+        id: 'warehouse',
       },
       defaultValue: 'SZBA宝安仓'
     }

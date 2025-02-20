@@ -1,10 +1,10 @@
 <template>
-  <PageWrapper title="Temp Sku builder">
+  <PageWrapper title="Temp Sku builder" v-if="userCode">
     <template #headerContent>
       <a-steps :current="current" :items="items" />
     </template>
     <tempBuilder v-if="current == 0" @generate="handleGenerate" @submit="handleSkuBuildSubmit" @error="handleError" @addMore="handleAddMore"></tempBuilder>
-    <Review v-if="current == 1" @update="handleUpdateSku"></Review>
+    <Review v-if="current == 1" @update="handleUpdateSku" @delete="handleDeleteSku"></Review>
     <BuildResult v-if="current == 2"></BuildResult>
     <div class="bg-white p-4 text-center mt-4 flex gap-2 justify-center">
       <a-button
@@ -16,7 +16,7 @@
         {{ t('common.operation.previous') }}
       </a-button>
       <a-button
-        :disabled="current !== 1"
+        :disabled="current !== 1 || currentFormSkuList.length === 0"
         type="primary"
         @click="handlePublish"
         size="large"
@@ -35,13 +35,18 @@
       </a-button>
     </div>
   </PageWrapper>
+  <Result v-else :status="Number(ExceptionEnum.PAGE_NOT_FOUND)" :title="ExceptionEnum.PAGE_NOT_FOUND" :sub-title="t('sys.invoice.missingUserCode')">
+    <template #extra>
+      <a-button key="console" type="primary" @click="returnHome()"> {{ t('sys.exception.backHome') }} </a-button>
+    </template>
+  </Result>
 </template>
 <script lang="ts" setup>
 
 import { PageWrapper } from "/src/components/Page";
-import {provide, ref} from "vue";
+import {onMounted, provide, ref} from "vue";
 import { Sku } from "@/views/business/dto/sku.dto";
-import {Api, createMabangSkuApi} from "@/views/business/admin/sku/data";
+import {Api, createMabangSkuApi, fetchUserCode} from "@/views/business/admin/sku/data";
 import { useMessage } from "@/hooks/web/useMessage";
 import Review from "@/views/business/admin/sku/components/Review.vue";
 import BuildResult from "@/views/business/admin/sku/BuildResult.vue";
@@ -49,6 +54,8 @@ import {useI18n} from "vue-i18n";
 import TempBuilder from "@/views/business/admin/sku/TempSkuBuilder/tempBuilder.vue";
 import {useMethods} from "@/hooks/system/useMethods";
 import dayjs from "dayjs";
+import {ExceptionEnum} from "/@/enums/exceptionEnum";
+import {Result} from "ant-design-vue";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -76,7 +83,17 @@ const nextButtonDisabled = ref(true);
 const currentFormSkuList = ref<Sku[]>([]);
 const skuListResult = ref<Sku[]>([]);
 
+const userCode = ref();
+
 const apiResponse = ref<{successes:string[], failures:string[]}>({successes: [], failures: []});
+
+onMounted(async () => {
+  await fetchUserCode().then((res) => {
+    userCode.value = res;
+  }).catch(e => {
+    console.error('error', e);
+  });
+});
 
 async function createSku() {
   await createMabangSkuApi(skuListResult.value).then((res) => {
@@ -110,6 +127,12 @@ function handleUpdateSku({id, data}) {
     return item;
   });
   currentFormSkuList.value = [...skuListResult.value];
+}
+function handleDeleteSku(id: string) {
+  skuListResult.value = skuListResult.value.filter((item) => item.id !== id);
+  currentFormSkuList.value = [...skuListResult.value];
+  if(currentFormSkuList.value.length === 0)
+    nextButtonDisabled.value = true;
 }
 async function handlePublish() {
   await createSku().then(async () => {
@@ -148,6 +171,7 @@ provide('isAddMore', isAddMore);
 provide('skuList', skuListResult);
 provide('apiResponse', apiResponse);
 provide('currentFormSkuList', currentFormSkuList);
+provide('userCode', userCode);
 </script>
 <style>
 .jeecg-page-wrapper-content .sku-builder-div .jeecg-basic-table div.ant-table-wrapper {

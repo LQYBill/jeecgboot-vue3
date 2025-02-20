@@ -45,8 +45,8 @@
             <a-col :span="3"><div class='center' style='font-size: 1.5em;'>{{total_quantity}}</div></a-col>
             <a-col :span="3"><h2 class='center'>{{ t("data.invoice.totalAmount") }} : </h2></a-col>
             <a-col :span="3">
-              <div class='center'  style='font-size: 1.5em;'>€{{final_total_euro}} EUR</div>
-              <div class='center' v-if='currency !== "EUR"'>({{currencySymbol}}{{final_total_customer_curr}} {{currency}})</div>
+              <div class='center'  style='font-size: 1.5em;'>€{{final_total_euro.toFixed(2)}} EUR</div>
+              <div class='center' v-if='currency !== "EUR"'>({{currencySymbol}}{{final_total_customer_curr.toFixed(2)}} {{currency}})</div>
             </a-col>
           </a-row>
         </template>

@@ -26,15 +26,15 @@
 </template>
 <script lang="ts" setup>
 import {BasicTable, TableImg, useTable} from "@/components/Table";
-import {listUnpairedSkus, SkuColumns} from "@/views/business/admin/sku/data";
+import {fetchLatestSkuCounter, listUnpairedSkus, SkuColumns} from "@/views/business/admin/sku/data";
 import {ref, inject, watch, Ref} from "vue";
 import {filterObj} from "@/utils/common/compUtils";
 import SearchForm from "@/views/business/admin/sku/components/searchForm.vue";
 import {getStatusNameByCode, Sku, SkuStatus} from "../../../dto/sku.dto";
-import {nanoid} from "nanoid";
 
 const emit = defineEmits(['generate']);
 
+const userCode = inject('userCode', ref('')) as Ref<string>;
 const isAddMore = inject('isAddMore', ref(false)) as Ref<boolean>;
 watch(isAddMore, (_val) => {
    handleAddMore();
@@ -44,6 +44,7 @@ const unpairedSkus = ref([]);
 
 const client = ref<string>();
 const shopCode = ref<string>();
+const skuCounter = ref(1);
 
 // table settings
 const tableRef = ref();
@@ -172,12 +173,18 @@ function getStatusBadgeColor(status: number) {
     return 'warning';
   }
 }
-function generateSkus() {
+async function generateSkus() {
+  const date = formatDate(new Date());
+  await fetchLatestSkuCounter(userCode.value, client.value!, date).then(res => {
+    skuCounter.value = Number(res);
+  }).catch(e => {
+    console.error('error while fetching latest sku counter', e);
+  });
+  let counter = 0;
   const selectedRows: Sku[] = selectRows.value.map(((row) => {
-    let date = new Date();
     return {
       id: row.erpCode,
-      erpCode: formatDate(date) + nanoid(10) + '-' + client.value,
+      erpCode: date + userCode.value + skuCounterXLength(skuCounter.value + counter++, 3) + '-' + client.value,
       enName: row.enName,
       zhName: row.zhName,
       declareEname: row.declareEname,
@@ -205,6 +212,10 @@ function handleAddMore() {
     clearSelectedRowKeys();
     emit('generate', []);
   }
+}
+function skuCounterXLength(value: number, length: number) {
+  let zeroes = new Array(length+1).join("0");
+  return (zeroes + value).slice(-length);
 }
 
 const formatDate = (date:Date) => {

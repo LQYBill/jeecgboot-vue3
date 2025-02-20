@@ -22,7 +22,7 @@
             :name="fieldName + '_' + index"
           >
             <template #label>
-              {{ t('data.sku.' + fieldName) }} : {{ fieldName }}
+              {{ t('data.sku.' + fieldName) }}
             </template>
             <JSearchSelect
               v-if="fieldName === 'sensitiveAttribute'"
@@ -83,7 +83,6 @@ import {JSearchSelect, JSelectMultiple} from "@/components/Form";
 import {ImagePreview} from "@/components/Preview";
 import {numberColumns} from "@/views/business/admin/sku/data";
 import TempSkuCommonForm from "@/views/business/admin/sku/components/tempSkuCommonForm.vue";
-import JSelectInput from "@/components/Form/src/jeecg/components/JSelectInput.vue";
 
 const { t } = useI18n();
 
@@ -113,7 +112,9 @@ function initializeForm() {
   source.value = unpairedSkuList.value;
   formState.value = [];
   for(let i = 0; i < source.value.length; i++) {
+    console.log('creating form state for', i);
     for(const key in source.value[i]) {
+      console.log('key', key);
       if (!formState.value[i]) {
         formState.value[i] = {} as Sku;
       }
@@ -149,6 +150,11 @@ async function handleSubmit() {
       if(fieldName === 'id' || fieldName === 'status' || fieldName === 'imageSource' || fieldName === 'supplierLink') {
         continue;
       }
+      console.group('maybe error ?');
+      console.log('field : ' + fieldName + '_' + index);
+      console.log('validatorRules', validatorRules.value[fieldName + '_' + index]);
+      console.log('fieldValue', fieldValue);
+      console.groupEnd();
       if(fieldValue !== null && fieldValue !== '') {
         if (validatorRules.value[fieldName + '_' + index][0].type !== 'number')
           continue;
