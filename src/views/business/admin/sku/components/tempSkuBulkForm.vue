@@ -118,10 +118,7 @@ function initializeForm() {
       if (!formState.value[i]) {
         formState.value[i] = {} as Sku;
       }
-      if(key === 'declareEname') {
-        formState.value[i][key] = source.value[i].enName;
-      }
-      else if(key === 'shippingDiscount' || key === 'serviceFee' ) {
+      if(key === 'shippingDiscount' || key === 'serviceFee' ) {
         formState.value[i][key] = 0.0;
       } else if(key === 'supplier') {
         formState.value[i][key] = '临时供货商';
