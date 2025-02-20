@@ -32,7 +32,7 @@ import {cloneDeep} from "lodash-es";
 const { t } = useI18n();
 const { createMessage: msg } = useMessage();
 
-const emit = defineEmits(["update"]);
+const emit = defineEmits(['update', 'delete']);
 
 const skuList:Ref<Sku[]> = inject('skuList') as Ref<Sku[]>;
 const currentEditKeyRef = ref('');
@@ -105,6 +105,15 @@ function createActions(record: EditRecordRow, column: BasicColumn): ActionItem[]
         disabled: currentEditKeyRef.value ? currentEditKeyRef.value !== record.key : false,
         onClick: handleEdit.bind(null, record),
       },
+      {
+        label: t('common.operation.delete'),
+        popConfirm: {
+          title: t('common.operation.deleteConfirmation'),
+          confirm: () => {
+            emit('delete', record.id);
+          },
+        },
+      }
     ];
   }
   return [

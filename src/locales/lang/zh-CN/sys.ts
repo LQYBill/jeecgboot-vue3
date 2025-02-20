@@ -73,6 +73,7 @@ export default {
     success: '发票生成成功',
     fail: '发票生成失败',
     missingMabangUsername: '请联系管理员设置马帮用户名',
+    missingUserCode: '请联系管理员设置用户代码',
   },
   lock: {
     unlock: '点击解锁',
