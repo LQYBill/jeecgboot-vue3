@@ -483,6 +483,36 @@ export const tempSkuCommonSchema = (updateFieldsValue:Function): FormSchema[] =>
 {
   return [
     {
+      field: 'declareEname',
+      label: t('data.sku.declareEname'),
+      component: 'Input',
+      componentProps: {
+        placeholder: t('data.sku.declareEname'),
+        style: {width: '100%'},
+        onBlur: (e: FocusEvent) => {
+          updateFieldsValue('declareEname', (e.target as HTMLInputElement).value);
+        },
+      },
+      itemProps: {
+        id: 'declareEname',
+      },
+    },
+    {
+      field: 'declareName',
+      label: t('data.sku.declareName'),
+      component: 'Input',
+      componentProps: {
+        placeholder: t('data.sku.declareName'),
+        style: {width: '100%'},
+        onBlur: (e: FocusEvent) => {
+          updateFieldsValue('declareName', (e.target as HTMLInputElement).value);
+        },
+      },
+      itemProps: {
+        id: 'declareName',
+      },
+    },
+    {
       field: 'skuPrice',
       label: t('data.sku.skuPrice'),
       component: 'InputNumber',
