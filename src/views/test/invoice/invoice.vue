@@ -21,7 +21,11 @@
   </a-row>
   <a-row>
     <a-col>
-      <a-button type="primary" @click="handleGenerate">Generate</a-button>
+      <a-button-group>
+        <a-button type="primary" @click="handleGenerateShipping">Generate shipping</a-button>
+        <a-button type="primary" @click="handleGeneratePurchase">Generate purchase</a-button>
+        <a-button type="primary" @click="handleGenerateComplete">Generate complete</a-button>
+      </a-button-group>
     </a-col>
   </a-row>
 </a-form>
@@ -31,7 +35,7 @@
 import {PageWrapper} from "/@/components/Page"
 import { ref, reactive } from "vue";
 import {Form} from "ant-design-vue";
-import {makePurchaseTest} from "./data";
+import {makePurchaseTest, makeShippingTest, makeCompleteTest} from "./data";
 
 const formRef = ref();
 const useForm = Form.useForm;
@@ -43,8 +47,22 @@ const formState = reactive<Record<string, string>>({
 });
 const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
-async function handleGenerate() {
+async function handleGenerateShipping() {
+  await makeShippingTest((+ formState.input)).then(res => {
+    console.log("res", res);
+  }).catch(e => {
+    console.error(e);
+  });
+}
+async function handleGeneratePurchase() {
   await makePurchaseTest((+ formState.input)).then(res => {
+    console.log("res", res);
+  }).catch(e => {
+    console.error(e);
+  });
+}
+async function handleGenerateComplete() {
+  await makeCompleteTest((+ formState.input)).then(res => {
     console.log("res", res);
   }).catch(e => {
     console.error(e);
