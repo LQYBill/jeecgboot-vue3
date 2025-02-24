@@ -102,7 +102,7 @@ function handleConvert() {
   const prefixSuffixChange = handlePrefixSuffixChange(caseChange);
   const lineChange = handleLineChange(prefixSuffixChange);
   const wrapChange = handleWrapChange(lineChange);
-  emit('update', wrapChange);
+  emit('update', {data: wrapChange, lineMode: formState.line});
 }
 function getInputLineMode() {
   inputLineMode.value = state.input.includes('\n') ? 1 : 0;

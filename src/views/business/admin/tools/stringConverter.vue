@@ -42,7 +42,7 @@
                 <a-button type="primary" preIcon="ant-design:copy-outlined" @click="handleCopy(formState.output)">
                   {{ t('common.operation.copy') }}
                 </a-button>
-                <a-button type="success" @click="handleDownloadExcel">
+                <a-button type="success" @click="handleDownloadExcel" :disabled="lineModeRef === 0 || !formState.output">
                   {{ `${t('common.operation.download')} Excel` }}
                 </a-button>
               </a-button-group>
@@ -77,10 +77,13 @@ const formState = reactive<Record<string, string>>({
   input: '',
   output: '',
 });
-const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
-function handleUpdate(res: string) {
-  formState.output = res;
+const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
+const lineModeRef = ref(0); // 0 : one line, 1 : multi lines
+
+function handleUpdate({data, lineMode}: {data: string, lineMode: number}) {
+  formState.output = data;
+  lineModeRef.value = lineMode;
 }
 function handleCopy(numbers:string) {
   if (!numbers) {
