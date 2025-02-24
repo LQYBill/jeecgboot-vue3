@@ -1,33 +1,29 @@
 <template>
   <aside class="flex flex-col gap-4">
-    <a-card title="Clean up" class="w-md">
-      <nav class="flex flex-col gap-2">
-        <a-button-group>
-          <a-button type="primary">trim</a-button>
-          <a-button type="primary">remove empty lines</a-button>
-        </a-button-group>
+    <a-card title="Transformation" class="w-md">
+      <nav>
+        <a-radio-group v-model:value="formState.case" button-style="solid" @change="handleConvert">
+          <a-radio-button type="primary" :value="Case.raw">raw</a-radio-button>
+          <a-radio-button type="primary" :value="Case.lower">lowercase</a-radio-button>
+          <a-radio-button type="primary" :value="Case.upper">UPPERCASE</a-radio-button>
+          <a-radio-button type="primary" :value="Case.camel">camelCase</a-radio-button>
+          <a-radio-button type="primary" :value="Case.pascal">PascalCase</a-radio-button>
+          <a-radio-button type="primary" :value="Case.snake">snake_case</a-radio-button>
+          <a-radio-button type="primary" :value="Case.kebab">kebab-case</a-radio-button>
+        </a-radio-group>
       </nav>
     </a-card>
     <a-card title="Transformation" class="w-md">
-      <nav>
-        <a-button-group>
-          <a-button type="primary">lowercase</a-button>
-          <a-button type="primary">CamelCase</a-button>
-          <a-button type="primary">snake_case</a-button>
-          <a-button type="primary">kebab-case</a-button>
-        </a-button-group>
-      </nav>
-    </a-card>
-    <a-card title="Trasnformation" class="w-md">
       <a-form ref="formRef"
               :model="formState"
               layout="vertical"
-              :rules="validatorRules">
+              :rules="validatorRules"
+      >
         <a-row>
           <a-col :span="24">
             <a-form-item v-bind="validateInfos.name" name="separator">
               <template #label>Separator</template>
-              <a-input v-model:value="formState.separator"/>
+              <a-input v-model:value="formState.separator" @change="handleConvert"/>
             </a-form-item>
           </a-col>
         </a-row>
@@ -35,13 +31,13 @@
           <a-col :span="12">
             <a-form-item v-bind="validateInfos.name" name="itemPrefix">
               <template #label>Item prefix</template>
-              <a-input v-model:value="formState.itemPrefix"/>
+              <a-input v-model:value="formState.itemPrefix" @change="handleConvert"/>
             </a-form-item>
           </a-col>
           <a-col :span="12">
             <a-form-item v-bind="validateInfos.name" name="itemSuffix">
               <template #label>Item suffix</template>
-              <a-input v-model:value="formState.itemSuffix" />
+              <a-input v-model:value="formState.itemSuffix" @change="handleConvert"/>
             </a-form-item>
           </a-col>
         </a-row>
@@ -49,13 +45,13 @@
           <a-col :span="12">
             <a-form-item v-bind="validateInfos.name" name="listPrefix">
               <template #label>List prefix</template>
-              <a-input v-model:value="formState.listPrefix"/>
+              <a-input v-model:value="formState.listPrefix" @change="handleConvert"/>
             </a-form-item>
           </a-col>
           <a-col :span="12">
             <a-form-item v-bind="validateInfos.name" name="listSuffix">
               <template #label>List suffix</template>
-              <a-input v-model:value="formState.listSuffix"/>
+              <a-input v-model:value="formState.listSuffix" @change="handleConvert"/>
             </a-form-item>
           </a-col>
         </a-row>
@@ -63,23 +59,34 @@
     </a-card>
     <a-card title="Multiple lines" class="w-md">
       <nav>
-        <a-button-group >
-          <a-button type="primary">one line</a-button>
-          <a-button type="primary">multi lines</a-button>
-        </a-button-group>
+        <a-radio-group v-model:value="formState.line" button-style="solid" @change="handleConvert">
+          <a-radio-button type="primary" :value="0">one line</a-radio-button>
+          <a-radio-button type="primary" :value="1">multi lines</a-radio-button>
+        </a-radio-group>
       </nav>
     </a-card>
   </aside>
 </template>
 <script lang="ts" setup>
 import {Form} from "ant-design-vue";
-import {reactive, ref} from "vue";
+import {inject, reactive, ref, watch} from "vue";
+import {Case} from "@/views/business/admin/tools/data";
+
+const emit = defineEmits(['update']);
+
+const state = inject('state') as Record<string, string>;
+
+watch(() => state.input, handleConvert);
+
+const inputLineMode = ref(0); // 0 : one line, 1 : multi lines
 
 const useForm = Form.useForm;
 const formRef = ref();
 const validatorRules = ref({
 });
-const formState = reactive<Record<string, string>>({
+const formState = reactive<Record<string, string | boolean | number>>({
+  case: 0,
+  line: 0,
   separator: '',
   itemPrefix: '',
   itemSuffix: '',
@@ -88,4 +95,93 @@ const formState = reactive<Record<string, string>>({
 });
 const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
+function handleConvert() {
+  getInputLineMode();
+  const extractedStrings = handleExtractStrings(state.input);
+  const caseChange = handleCaseChange(extractedStrings);
+  const prefixSuffixChange = handlePrefixSuffixChange(caseChange);
+  const lineChange = handleLineChange(prefixSuffixChange);
+  const wrapChange = handleWrapChange(lineChange);
+  emit('update', {data: wrapChange, lineMode: formState.line});
+}
+function getInputLineMode() {
+  inputLineMode.value = state.input.includes('\n') ? 1 : 0;
+}
+function handleExtractStrings(input:string): string[] {
+  if(inputLineMode.value === 0)
+    return extractStrings(input);
+  return multiLineTrim(input);
+}
+function extractStrings(entry: string): string[] {
+  // Check if the string contains any single or double quotes.
+  if (/['"]/.test(entry)) {
+    // Use a regex to capture content between matching quotes.
+    // This regex matches a quote (single or double), then lazily captures any content until the same quote is encountered.
+    const regex = /(['"])(.*?)\1/g;
+    const results: string[] = [];
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(entry)) !== null) {
+      // match[2] contains the content inside the quotes.
+      results.push(match[2].trim());
+    }
+    return results;
+  } else if (/[,;]/.test(entry)) {
+    // If the string contains a comma or semicolon, split on these characters.
+    // Trim each element and filter out any empty strings.
+    return entry
+      .split(/[,;]/)
+      .map(part => part.trim())
+      .filter(part => part.length > 0);
+  } else {
+    // Otherwise, split by one or more whitespace characters.
+    return entry.split(/\s+/).filter(part => part.length > 0);
+  }
+}
+function multiLineTrim(input:string) {
+  return input.split('\n').flatMap((line) => extractStrings(line));
+}
+function handleCaseChange(input:string[]):string[] {
+  switch(formState.case) {
+    case Case.lower:
+      return input.map((item) => item.toLowerCase());
+    case Case.upper:
+      return input.map((item) => item.toUpperCase());
+    case Case.camel:
+      return input.map((item) => toCamelCase(item));
+    case Case.pascal:
+      return input.map((item) => toPascalCase(item));
+    case Case.snake:
+      return input.map((item) => toSnakeCase(item));
+    case Case.kebab:
+      return input.map((item) => toKebabCase(item));
+    default:
+      return input;
+  }
+}
+function toCamelCase(input:string) {
+  return input.replace(/(?:^\w|(?<![-_])\b\w)/g, (word, index) =>
+      index === 0 ? word.toLowerCase() : word.toUpperCase()
+    ).replace(/\s+/g, '');
+}
+function toPascalCase(input:string) {
+  return input.replace(/(?:^\w|(?<![-_])\b\w)/g, (word, _index) => word.toUpperCase()).replace(/\s+/g, '');
+}
+function toSnakeCase(input:string) {
+  return input.replace(/\s+/g, '_');
+}
+function toKebabCase(input:string) {
+  return input.replace(/\s+/g, '-');
+}
+function handlePrefixSuffixChange(input: string[]) {
+  return input.map((item) => formState.itemPrefix + item + formState.itemSuffix);
+}
+function handleLineChange(input:string[]) {
+  return formState.line === 0 ? input.join(formState.separator as string) : input.join(formState.separator + '\n');
+}
+function handleWrapChange(input:string) {
+  return formState.line === 0 ?
+    formState.listPrefix + input + formState.listSuffix :
+    (formState.listPrefix + '\n' + input + '\n' + formState.listSuffix).trim();
+}
 </script>
