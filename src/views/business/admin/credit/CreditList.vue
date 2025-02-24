@@ -42,29 +42,25 @@
 </template>
 
 <script lang="ts" name="credit" setup>
-import {ref, computed, unref, reactive, watch, toRaw} from 'vue';
-import {BasicTable, useTable, TableAction, TableImg} from '/@/components/Table';
+import {ref, reactive, toRaw} from 'vue';
+import {BasicTable, TableAction, TableImg} from '/@/components/Table';
 import {useModal} from '/@/components/Modal';
 import {useListPage} from '/@/hooks/system/useListPage'
 import CreditModal from './components/CreditModal.vue'
 import {columns} from './Credit.data';
 import {list, deleteOne, batchDelete, getImportUrl, getExportUrl} from './Credit.api';
-import {downloadFile} from '/@/utils/common/renderUtils';
 import {useI18n} from "/@/hooks/web/useI18n";
-import {useMessage} from "/@/hooks/web/useMessage";
 import { PageWrapper } from '/@/components/Page';
 import {useGlobSetting} from "/@/hooks/setting";
 
 const {t} = useI18n();
-const {createMessage} = useMessage();
 const globSetting = useGlobSetting();
 const baseUploadUrl = globSetting.uploadUrl;
 const imgPrefix = `${baseUploadUrl}/sys/common/static/`;
-const checkedKeys = ref<Array<string | number>>([]);
 //注册model
 const [registerModal, {openModal}] = useModal();
 //注册table数据
-const {prefixCls, tableContext, onExportXls, onImportXls} = useListPage({
+const {tableContext, onExportXls, onImportXls} = useListPage({
   tableProps: {
     title: 'Credit Page',
     api: list,

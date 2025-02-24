@@ -73,6 +73,7 @@ export default {
     addressInput: '请输入地址',
     amountInput: '请输入金额',
     currencyInputSearch: '请选择货币',
+    descriptionInput: '请输入描述',
     qtyAutoPicker: '设置所有 SKU 的数量',
     dayAutoPicker1: '按照过去7/28/42天销量，自动计算 :',
     dayAutoPicker2: '天产品采购量',
