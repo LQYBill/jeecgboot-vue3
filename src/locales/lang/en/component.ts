@@ -73,6 +73,7 @@ export default {
     addressInput: 'Please enter an address',
     amountInput: 'Enter an amount',
     currencyInputSearch: 'Select a currency',
+    descriptionInput: 'Please enter a description',
     qtyAutoPicker: 'Set quantity for all Skus',
     dayAutoPicker1: 'Auto pick quantity for the next :',
     dayAutoPicker2: 'day(s)',

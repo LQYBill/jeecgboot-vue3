@@ -11,6 +11,11 @@ export const columns: BasicColumn[] = [
     dataIndex: 'clientId_dictText',
   },
   {
+    title: t('data.invoice.description'),
+    align: "center",
+    dataIndex: 'description',
+  },
+  {
     title: t('data.invoice.createDate'),
     align: "center",
     dataIndex: 'createTime',
@@ -39,22 +44,34 @@ export const formSchema: FormSchema[] = [
     field: 'clientId',
     component: 'JSearchSelect',
     componentProps: {
+      placeholder: t('component.searchForm.clientInputSearch'),
       dict: "client WHERE active = '1',internal_code,id"
     },
     dynamicDisabled: ({ values }) => {
       return !!values.id;
     },
-    dynamicRules: ({model, schema}) => {
+    dynamicRules: () => {
       return [
         {required: true, message: t('component.searchForm.clientInputSearch')},
       ];
     },
   },
   {
+    label: t('data.invoice.description'),
+    field: 'description',
+    component: 'Input',
+    componentProps: {
+      placeholder: t('component.searchForm.descriptionInput')
+    }
+  },
+  {
     label: t('data.transaction.amount'),
     field: 'amount',
     component: 'InputNumber',
-    dynamicRules: ({model, schema}) => {
+    componentProps: {
+      placeholder: t('component.searchForm.amountInput')
+    },
+    dynamicRules: () => {
       return [
         {required: true, message: t('component.searchForm.amountInput')},
       ];
@@ -65,13 +82,14 @@ export const formSchema: FormSchema[] = [
     field: 'currencyId',
     component: 'JSearchSelect',
     componentProps: {
+      placeholder: t('component.searchForm.currencyInputSearch'),
       dict: "currency WHERE code != 'RMB',code,id" // for prod
       // dict: "currency%20WHERE%20code%20%3C%3E%20'RMB'%2Ccode%2Cid" //currency WHERE code <> 'RMB',code,id for localhost
     },
     dynamicDisabled: ({ values }) => {
       return !!values.id;
     },
-    dynamicRules: ({model, schema}) => {
+    dynamicRules: () => {
       return [
         {required: true, message: t('component.searchForm.currencyInputSearch')},
       ];
@@ -87,7 +105,7 @@ export const formSchema: FormSchema[] = [
       text: t('component.upload.upload'),
       bizPath: 'credit/screenshots',
     },
-    dynamicRules: ({model, schema}) => {
+    dynamicRules: () => {
       return [
         {required: true, message: t('component.searchForm.proofInput')},
       ];
