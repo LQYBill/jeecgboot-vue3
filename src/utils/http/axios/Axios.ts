@@ -126,6 +126,7 @@ export class VAxios {
     }
     const glob = useGlobSetting();
     config.baseURL = glob.uploadUrl;
+    config.timeout = 100 * 1000;
     if (params.data) {
       Object.keys(params.data).forEach((key) => {
         const value = params.data![key];
