@@ -89,7 +89,7 @@
           <a-tag class="ant-tag-primary" v-for="orderId in record?.platformOrderId.split(',').slice(0,5)">{{ orderId }}</a-tag>
           <a-popover
             v-if="!!record?.platformOrderId && (record?.platformOrderId.split(',').length > 5)"
-            :title="t('data.purchase.platformOrderId') + ' (' + record?.platformOrderId.split(',').length + ')'"
+            :title="t('data.invoice.platformOrderID') + ' (' + record?.platformOrderId.split(',').length + ')'"
             trigger="hover"
           >
             <a-tag>

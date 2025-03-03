@@ -1,6 +1,12 @@
 <template>
   <aside class="flex flex-col gap-4">
-    <a-card title="Transformation" class="w-md">
+    <a-card title="Duplicate removal" class="w-md">
+      <a-switch v-model:checked="formState.duplicate"
+                :checked-children="t('common.yes')"
+                :un-checked-children="t('common.no')"
+                @change="handleConvert" />
+    </a-card>
+    <a-card title="Case modification" class="w-md">
       <nav>
         <a-radio-group v-model:value="formState.case" button-style="solid" @change="handleConvert">
           <a-radio-button type="primary" :value="Case.raw">raw</a-radio-button>
@@ -13,7 +19,7 @@
         </a-radio-group>
       </nav>
     </a-card>
-    <a-card title="Transformation" class="w-md">
+    <a-card title="Wrapper settings" class="w-md">
       <a-form ref="formRef"
               :model="formState"
               layout="vertical"
@@ -57,7 +63,7 @@
         </a-row>
       </a-form>
     </a-card>
-    <a-card title="Multiple lines" class="w-md">
+    <a-card title="Line settings" class="w-md">
       <nav>
         <a-radio-group v-model:value="formState.line" button-style="solid" @change="handleConvert">
           <a-radio-button type="primary" :value="0">one line</a-radio-button>
@@ -71,9 +77,10 @@
 import {Form} from "ant-design-vue";
 import {inject, reactive, ref, watch} from "vue";
 import {Case} from "@/views/business/admin/tools/data";
+import {useI18n} from "vue-i18n";
 
 const emit = defineEmits(['update']);
-
+const { t } = useI18n();
 const state = inject('state') as Record<string, string>;
 
 watch(() => state.input, handleConvert);
@@ -87,6 +94,7 @@ const validatorRules = ref({
 const formState = reactive<Record<string, string | boolean | number>>({
   case: 0,
   line: 0,
+  duplicate: true,
   separator: '',
   itemPrefix: '',
   itemSuffix: '',
@@ -108,9 +116,19 @@ function getInputLineMode() {
   inputLineMode.value = state.input.includes('\n') ? 1 : 0;
 }
 function handleExtractStrings(input:string): string[] {
-  if(inputLineMode.value === 0)
-    return extractStrings(input);
-  return multiLineTrim(input);
+  if(inputLineMode.value === 0) {
+    const stringList = extractStrings(input);
+    if(formState.duplicate)
+      return removeDuplicateEntries(stringList);
+    return stringList;
+  }
+  const stringList = multiLineTrim(input);
+  if(formState.duplicate)
+    return removeDuplicateEntries(stringList);
+  return stringList;
+}
+function removeDuplicateEntries(input: string[]): string[] {
+  return Array.from(new Set(input));
 }
 function extractStrings(entry: string): string[] {
   // Check if the string contains any single or double quotes.
