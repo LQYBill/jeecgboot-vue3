@@ -65,10 +65,21 @@
     </a-card>
     <a-card title="Line settings" class="w-md">
       <nav>
-        <a-radio-group v-model:value="formState.line" button-style="solid" @change="handleConvert">
-          <a-radio-button type="primary" :value="0">one line</a-radio-button>
-          <a-radio-button type="primary" :value="1">multi lines</a-radio-button>
-        </a-radio-group>
+        <ul class="flex flex-col gap-4 justify-center items-start">
+          <li>
+            <a-radio-group v-model:value="formState.line" button-style="solid" @change="handleConvert">
+              <a-radio-button type="primary" :value="0">one line</a-radio-button>
+              <a-radio-button type="primary" :value="1">multi lines</a-radio-button>
+            </a-radio-group>
+          </li>
+          <li>
+            <a-radio-group v-model:value="formState.order" button-style="solid" @change="handleConvert">
+              <a-radio-button type="primary" value="RAW">raw</a-radio-button>
+              <a-radio-button type="primary" value="ASC">A → Z</a-radio-button>
+              <a-radio-button type="primary" value="DESC">Z ← A</a-radio-button>
+            </a-radio-group>
+          </li>
+        </ul>
       </nav>
     </a-card>
   </aside>
@@ -94,6 +105,7 @@ const validatorRules = ref({
 const formState = reactive<Record<string, string | boolean | number>>({
   case: 0,
   line: 0,
+  order: 'RAW',
   duplicate: true,
   separator: '',
   itemPrefix: '',
@@ -106,7 +118,8 @@ const { validateInfos } = useForm(formState, validatorRules, { immediate: false 
 function handleConvert() {
   getInputLineMode();
   const extractedStrings = handleExtractStrings(state.input);
-  const caseChange = handleCaseChange(extractedStrings);
+  const orderChange = handleOrderChange(extractedStrings);
+  const caseChange = handleCaseChange(orderChange);
   const prefixSuffixChange = handlePrefixSuffixChange(caseChange);
   const lineChange = handleLineChange(prefixSuffixChange);
   const wrapChange = handleWrapChange(lineChange);
@@ -242,5 +255,15 @@ function handleWrapChange(input:string) {
   return formState.line === 0 ?
     formState.listPrefix + input + formState.listSuffix :
     (formState.listPrefix + '\n' + input + '\n' + formState.listSuffix).trim();
+}
+function handleOrderChange(input:string[]): string[] {
+  switch(formState.order) {
+    case 'ASC':
+      return input.sort();
+    case 'DESC':
+      return input.sort().reverse();
+    default:
+      return input;
+  }
 }
 </script>
