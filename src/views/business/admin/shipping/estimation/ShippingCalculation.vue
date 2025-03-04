@@ -229,6 +229,7 @@ const columns:BasicColumn[] = [
 const [register, { reload }] = useTable({
   title: t(''),
   dataSource: priceList,
+  ellipsis: false,
   columns,
   bordered: true,
   striped: true,

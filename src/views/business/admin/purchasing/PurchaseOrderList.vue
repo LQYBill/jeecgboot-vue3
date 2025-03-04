@@ -231,6 +231,7 @@ const createOrderDisabled = ref<boolean>(true);
 function handleAdd() {
   openModal(true, {
     isUpdate: false,
+    isOrder: false,
     showFooter: true,
   });
 }
@@ -242,6 +243,7 @@ function handleEdit(record: Recordable) {
   openModal(true, {
     record,
     isUpdate: true,
+    isOrder: false,
     showFooter: true,
   });
 }
@@ -253,6 +255,7 @@ function handleDetail(record: Recordable) {
   openModal(true, {
     record,
     isUpdate: true,
+    isOrder: false,
     showFooter: false,
   });
 }

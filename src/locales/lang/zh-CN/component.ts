@@ -48,6 +48,8 @@ export default {
     saveSuccess: '数据已保存',
     saveError: '保存失败',
     incorrectData: '请填写正确的数据',
+    required: '必填',
+    notRequired: '非必填',
   },
   icon: {
     placeholder: '点击选择图标',
