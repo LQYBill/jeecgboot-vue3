@@ -5,7 +5,7 @@ export const prefixCls = 'jeecg';
 export const darkMode = ThemeEnum.LIGHT;
 
 // app theme preset color
-export const APP_PRESET_COLOR_LIST: string[] = ['#799ee2','#0960bd', '#1890ff', '#009688', '#536dfe', '#ff5c93', '#ee4f12', '#0096c7', '#9c27b0', '#ff9800'];
+export const APP_PRESET_COLOR_LIST: string[] = ['#1e3799','#0960bd', '#1890ff', '#009688', '#536dfe', '#ff5c93', '#ee4f12', '#0096c7', '#9c27b0', '#ff9800'];
 
 // header preset color
 export const HEADER_PRESET_BG_COLOR_LIST: string[] = [
@@ -24,6 +24,7 @@ export const HEADER_PRESET_BG_COLOR_LIST: string[] = [
 
 // sider preset color
 export const SIDE_BAR_BG_COLOR_LIST: string[] = [
+  '#2e3f7c',
   '#001529',
   '#212121',
   '#273352',
@@ -37,8 +38,9 @@ export const SIDE_BAR_BG_COLOR_LIST: string[] = [
   '#383f45',
 ];
 
-// sider logo line preset color [logo½¥±äÉ«]
+// sider logo line preset color [logoï¿½ï¿½ï¿½ï¿½É«]
 export const SIDER_LOGO_BG_COLOR_LIST: string[] = [
+  '#0c2461',
   'linear-gradient(180deg, #000000, #021d37)',
   'linear-gradient(180deg, #000000, #282828)',
   'linear-gradient(180deg, #1c253e, #2b385c)',

@@ -48,6 +48,8 @@ export default {
     saveSuccess: 'Data saved successfully',
     saveError: 'An error occurred while saving data',
     incorrectData: 'Incorrect format or empty',
+    required: 'Required',
+    notRequired: 'Not required',
   },
   icon: {
     placeholder: 'Click the select icon',
