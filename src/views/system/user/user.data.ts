@@ -326,6 +326,21 @@ export const formSchema: FormSchema[] = [
       stringToNumber: true,
     },
   },
+  {
+    label: '马帮账户号',
+    field: 'mabangUsername',
+    component: 'Input',
+    required: true,
+    rules: [{ required: true, message: '请输入马帮账户号', trigger: "blur" }],
+  },
+  {
+    label: '账户代码',
+    field: 'code',
+    component: 'Input',
+    required: true,
+    helpMessage: "Code used in SKU creation (2 to 5 characters)",
+    rules: [{ pattern: /^[a-zA-Z0-9]{2,5}$/, message: 'Use initials, 2 to 5 characters', required: true, trigger: "blur" }],
+  },
 ];
 
 export const formPasswordSchema: FormSchema[] = [

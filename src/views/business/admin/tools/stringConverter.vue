@@ -26,7 +26,7 @@
             <a-col :span="24">
               <a-form-item v-bind="validateInfos.name" name="output">
                 <template #label>
-                  Result
+                  Result :&nbsp;<span class="border rounded-md py-1 px-2">{{ itemsCount }}</span>&nbsp;items
                 </template>
                 <a-textarea id="output"
                             v-model:value="formState.output"
@@ -80,10 +80,12 @@ const formState = reactive<Record<string, string>>({
 
 const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
 const lineModeRef = ref(0); // 0 : one line, 1 : multi lines
+const itemsCount = ref(0);
 
-function handleUpdate({data, lineMode}: {data: string, lineMode: number}) {
+function handleUpdate({data, lineMode, nbItems}: {data: string, lineMode: number, nbItems: number}) {
   formState.output = data;
   lineModeRef.value = lineMode;
+  itemsCount.value = nbItems;
 }
 function handleCopy(numbers:string) {
   if (!numbers) {

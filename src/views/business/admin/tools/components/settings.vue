@@ -65,10 +65,21 @@
     </a-card>
     <a-card title="Line settings" class="w-md">
       <nav>
-        <a-radio-group v-model:value="formState.line" button-style="solid" @change="handleConvert">
-          <a-radio-button type="primary" :value="0">one line</a-radio-button>
-          <a-radio-button type="primary" :value="1">multi lines</a-radio-button>
-        </a-radio-group>
+        <ul class="flex flex-col gap-4 justify-center items-start">
+          <li>
+            <a-radio-group v-model:value="formState.line" button-style="solid" @change="handleConvert">
+              <a-radio-button type="primary" :value="0">one line</a-radio-button>
+              <a-radio-button type="primary" :value="1">multi lines</a-radio-button>
+            </a-radio-group>
+          </li>
+          <li>
+            <a-radio-group v-model:value="formState.order" button-style="solid" @change="handleConvert">
+              <a-radio-button type="primary" value="RAW">raw</a-radio-button>
+              <a-radio-button type="primary" value="ASC">A → Z</a-radio-button>
+              <a-radio-button type="primary" value="DESC">Z ← A</a-radio-button>
+            </a-radio-group>
+          </li>
+        </ul>
       </nav>
     </a-card>
   </aside>
@@ -94,6 +105,7 @@ const validatorRules = ref({
 const formState = reactive<Record<string, string | boolean | number>>({
   case: 0,
   line: 0,
+  order: 'RAW',
   duplicate: true,
   separator: '',
   itemPrefix: '',
@@ -106,11 +118,12 @@ const { validateInfos } = useForm(formState, validatorRules, { immediate: false 
 function handleConvert() {
   getInputLineMode();
   const extractedStrings = handleExtractStrings(state.input);
-  const caseChange = handleCaseChange(extractedStrings);
+  const orderChange = handleOrderChange(extractedStrings);
+  const caseChange = handleCaseChange(orderChange);
   const prefixSuffixChange = handlePrefixSuffixChange(caseChange);
   const lineChange = handleLineChange(prefixSuffixChange);
   const wrapChange = handleWrapChange(lineChange);
-  emit('update', {data: wrapChange, lineMode: formState.line});
+  emit('update', {data: wrapChange, lineMode: formState.line, nbItems: extractedStrings.length});
 }
 function getInputLineMode() {
   inputLineMode.value = state.input.includes('\n') ? 1 : 0;
@@ -133,18 +146,59 @@ function removeDuplicateEntries(input: string[]): string[] {
 function extractStrings(entry: string): string[] {
   // Check if the string contains any single or double quotes.
   if (/['"]/.test(entry)) {
-    // Use a regex to capture content between matching quotes.
-    // This regex matches a quote (single or double), then lazily captures any content until the same quote is encountered.
-    const regex = /(['"])(.*?)\1/g;
-    const results: string[] = [];
-    let match: RegExpExecArray | null;
+    const quotes = entry.match(/['"]/g);
+    if (quotes && quotes.length % 2 === 0) {
+      // Even number of quotes, extract content between quotes
+      const regex = /(['"])(.*?)\1/g;
+      const results: string[] = [];
+      let match: RegExpExecArray | null;
+      let lastIndex = 0;
 
-    while ((match = regex.exec(entry)) !== null) {
-      // match[2] contains the content inside the quotes.
-      results.push(match[2].trim());
+      while ((match = regex.exec(entry)) !== null) {
+        // Add text before the quote pair
+        const textBefore = entry.slice(lastIndex, match.index).trim();
+        if (textBefore) {
+          results.push(...extractStringsWithoutQuotes(textBefore));
+        }
+        // Add content inside the quotes
+        results.push(match[2].trim());
+        lastIndex = regex.lastIndex;
+      }
+
+      // Add text after the last quote pair
+      const textAfter = entry.slice(lastIndex).trim();
+      if (textAfter) {
+        results.push(...extractStringsWithoutQuotes(textAfter));
+      }
+
+      return results;
+    } else {
+      // Odd number of quotes, ignore the last quote
+      const quoteIndices = [];
+      for (let i = 0; i < entry.length; i++) {
+        if (entry[i] === "'" || entry[i] === '"') {
+          quoteIndices.push(i);
+        }
+      }
+      // Find the index of the last even quote (second-to-last quote)
+      const lastEvenQuoteIndex = quoteIndices[quoteIndices.length - 2];
+      const textBeforeLastEvenQuote = entry.slice(0, lastEvenQuoteIndex + 1).trim();
+      const textAfterLastEvenQuote = entry.slice(lastEvenQuoteIndex + 1).trim();
+
+      // Process the text before the last even quote as if it has even quotes
+      const resultsBeforeLastQuote = extractStrings(textBeforeLastEvenQuote);
+      // Process the text after the last even quote as normal text
+      const resultsAfterLastQuote = extractStringsWithoutQuotes(textAfterLastEvenQuote);
+
+      return [...resultsBeforeLastQuote, ...resultsAfterLastQuote];
     }
-    return results;
-  } else if (/[,;]/.test(entry)) {
+  } else {
+    return extractStringsWithoutQuotes(entry);
+  }
+}
+
+function extractStringsWithoutQuotes(entry: string): string[] {
+  if (/[,;]/.test(entry)) {
     // If the string contains a comma or semicolon, split on these characters.
     // Trim each element and filter out any empty strings.
     return entry
@@ -201,5 +255,15 @@ function handleWrapChange(input:string) {
   return formState.line === 0 ?
     formState.listPrefix + input + formState.listSuffix :
     (formState.listPrefix + '\n' + input + '\n' + formState.listSuffix).trim();
+}
+function handleOrderChange(input:string[]): string[] {
+  switch(formState.order) {
+    case 'ASC':
+      return input.sort();
+    case 'DESC':
+      return input.sort().reverse();
+    default:
+      return input;
+  }
 }
 </script>
