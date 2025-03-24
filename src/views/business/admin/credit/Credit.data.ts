@@ -6,19 +6,28 @@ const {t} = useI18n();
 //列表数据
 export const columns: BasicColumn[] = [
   {
-    title: t('data.invoice.clientId'),
+    title: t('data.Client'),
     align: "center",
     dataIndex: 'clientId_dictText',
-  },
-  {
-    title: t('data.invoice.description'),
-    align: "center",
-    dataIndex: 'description',
+    width: 90,
   },
   {
     title: t('data.invoice.createDate'),
     align: "center",
     dataIndex: 'createTime',
+    slots: {customRender: 'createTime'},
+  },
+  {
+    title: t('data.invoice.invoiceNumber'),
+    align: "center",
+    dataIndex: 'invoiceNumber',
+    slots: {customRender: 'invoiceNumber'},
+    width: 180,
+  },
+  {
+    title: t('data.invoice.description'),
+    align: "center",
+    dataIndex: 'description',
   },
   {
     title: t('data.transaction.paymentProof'),
@@ -30,12 +39,20 @@ export const columns: BasicColumn[] = [
     title: t('data.transaction.amount'),
     align: "center",
     dataIndex: 'amount',
+    slots: {customRender: 'amount'},
   },
   {
     title: t('data.client.currency'),
     align: "center",
     dataIndex: 'currencyId_dictText',
+    defaultHidden: true,
   },
+  {
+    title: 'Row num',
+    align: "center",
+    dataIndex: 'rowNum',
+    defaultHidden: true,
+  }
 ];
 //表单数据
 export const formSchema: FormSchema[] = [
@@ -57,6 +74,18 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
+    label: t('data.invoice.invoiceNumber'),
+    field: 'invoiceNumber',
+    component: 'Input',
+    componentProps: {
+      placeholder: t('component.searchForm.enterInvoiceNumber')
+    },
+    dynamicDisabled: true,
+    ifShow: ({ values }) => {
+      return !!values.id;
+    }
+  },
+  {
     label: t('data.invoice.description'),
     field: 'description',
     component: 'Input',
@@ -69,13 +98,17 @@ export const formSchema: FormSchema[] = [
     field: 'amount',
     component: 'InputNumber',
     componentProps: {
+      min: 1,
+      precision: 2,
       placeholder: t('component.searchForm.amountInput')
     },
-    dynamicRules: () => {
-      return [
-        {required: true, message: t('component.searchForm.amountInput')},
-      ];
-    },
+    defaultValue: 1,
+    rules: [
+        {required: true, message: t('component.searchForm.amountInput'), trigger: "blur"}
+    ],
+    dynamicDisabled: ({ values }) => {
+      return values.rowNum != 1;
+    }
   },
   {
     label: t('data.client.currency'),
@@ -110,6 +143,13 @@ export const formSchema: FormSchema[] = [
         {required: true, message: t('component.searchForm.proofInput')},
       ];
     },
+  },
+  {
+    label: '',
+    field: 'rowNum',
+    component: 'Input',
+    dynamicDisabled: true,
+    show: false,
   },
   // TODO 主键隐藏字段，目前写死为ID
   {

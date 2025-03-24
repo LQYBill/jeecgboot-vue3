@@ -23,6 +23,7 @@ export const columns: BasicColumn[] = [
     title: t('data.invoice.invoiceNumber'),
     align: "center",
     dataIndex: 'invoiceNumber',
+    slots: {customRender: 'invoiceNumber'},
   },
   {
     title: t('data.client.currency'),
@@ -91,6 +92,11 @@ export const columns: BasicColumn[] = [
     align: "center",
     dataIndex: 'platformOrderId',
     slots: {customRender: 'platformOrderId'},
+  },
+  {
+    title: '',
+    dataIndex: 'status',
+    defaultHidden: true,
   }
 ];
 //查询数据

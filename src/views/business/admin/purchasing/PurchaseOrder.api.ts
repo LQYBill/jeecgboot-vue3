@@ -37,9 +37,9 @@ export const list = (params) =>
 /**
  * 删除单个
  */
-export const cancelInvoice = async (params: any, handleSuccess: () => void) => {
+export const cancelInvoice = async (params: any, record: Recordable, handleSuccess: (record: Recordable) => void) => {
   await defHttp.delete({url: Api.cancelInvoice, params}, {joinParamsToUrl: true});
-  handleSuccess();
+  handleSuccess(record);
 }
 /**
  * 批量删除

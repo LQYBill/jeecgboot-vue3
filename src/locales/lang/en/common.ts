@@ -98,5 +98,7 @@ export default {
     status: 'Status',
     notSpecified: 'Not Specified',
     loadingText: 'Loading...',
+    cancelled: 'Cancelled',
+    cancellation: 'Cancellation',
   }
 };
