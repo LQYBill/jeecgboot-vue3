@@ -90,10 +90,46 @@ export function useMethods() {
     };
     await defHttp.uploadFile({ url }, { file: data.file }, { success: isReturn });
   }
+  async function importLogisticXls(data, url, success) {
+    const { logisticCompany } = data;
+    console.log('logisticCompany', logisticCompany)
+    console.log('data', data)
+    const isReturn = (fileInfo) => {
+      try {
+        if (fileInfo.code === 201) {
+          let {
+            message,
+            result: { msg, fileUrl, fileName },
+          } = fileInfo;
+          let href = glob.uploadUrl + fileUrl;
+          createWarningModal({
+            title: message,
+            centered: false,
+            content: `<div>
+                                <span>${msg}</span><br/> 
+                                <span>具体详情请<a href = ${href} download = ${fileName}> 点击下载 </a> </span> 
+                              </div>`,
+          });
+          //update-begin---author:wangshuai ---date:20221121  for：[VUEN-2827]导入无权限，提示图标错误------------
+        } else if (fileInfo.code === 500 || fileInfo.code === 510) {
+          createMessage.error(fileInfo.message || `${data.file.name} 导入失败`);
+          //update-end---author:wangshuai ---date:20221121  for：[VUEN-2827]导入无权限，提示图标错误------------
+        } else {
+          createMessage.success(fileInfo.message || `${data.file.name} 文件上传成功`);
+        }
+      } catch (error) {
+        console.log('导入的数据异常', error);
+      } finally {
+        typeof success === 'function' ? success(fileInfo) : '';
+      }
+    };
+    await defHttp.uploadFile({ url }, { file: data.file, data: {logisticCompany} }, { success: isReturn });
+  }
 
   return {
     handleExportXls: (name: string, url: string, params?: object) => exportXls(name, url, params),
     handleImportXls: (data, url, success) => importXls(data, url, success),
     handleExportXlsx: (name: string, url: string, params?: object) => exportXls(name, url, params, true),
+    handleImportLogisticXls: (data: {file, logisticCompany:string}, url, success) => importLogisticXls(data, url, success),
   };
 }

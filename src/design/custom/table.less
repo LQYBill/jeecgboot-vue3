@@ -1,3 +1,6 @@
+@import '../color.less';
+
+@table-header: #2e3f7c!important;
 table .number {
   display: flex;
   position: absolute;
@@ -42,7 +45,8 @@ table .number {
 }
 
 .jeecg-basic-table .ant-table-thead > tr > th {
-  background-color: lighten(@primary-color,25%);
+  background-color: @table-header;
+  color: #fff!important;
 }
 .searchForm {
   @apply bg-white px-5 py-3 mb-0;
@@ -57,8 +61,83 @@ table .number {
   @apply mb-0;
 }
 .jeecg-basic-table-form-container form.ant-form, .searchForm {
-  @apply shadow-sm mb-8 rounded-4xl;
+  @apply shadow-sm mb-8 rounded-md;
 }
 .jeecg-page-wrapper-content .jeecg-basic-table div.ant-table-wrapper {
-  @apply py-5 px-2.5 shadow-sm rounded-3xl;
+  @apply py-5 px-2.5 shadow-sm rounded-md;
+}
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-content >table >thead>tr>th,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-header >table >thead>tr>th,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-body >table >thead>tr>th,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-summary >table >thead>tr>th,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-content >table >tbody>tr>td,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-header >table >tbody>tr>td,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-body >table >tbody>tr>td,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-summary >table >tbody>tr>td,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-content >table >tfoot>tr>th,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-header >table >tfoot>tr>th,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-body >table >tfoot>tr>th,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-summary >table >tfoot>tr>th,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-content >table >tfoot>tr>td,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-header >table >tfoot>tr>td,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-body >table >tfoot>tr>td,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-summary >table >tfoot>tr>td {
+  border-inline-end: none;
+}
+.ant-table-wrapper .ant-table .ant-table-title+.ant-table-container table,
+.ant-pagination .ant-pagination-item,
+.ant-alert{
+  @apply rounded-md;
+}
+.ant-table-wrapper .ant-table .ant-table-title+.ant-table-container table >thead>tr:first-child th:first-child {
+  @apply rounded-l-md border-l border-gray-200;
+}
+.ant-table-wrapper .ant-table .ant-table-title+.ant-table-container table >thead>tr:first-child th:last-child {
+  @apply rounded-r-md border-gray-200 border-r;
+}
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container {
+  @apply border-0;
+}
+.ant-table-wrapper .ant-table-thead >tr>th, .ant-table-wrapper .ant-table-thead >tr>td {
+  @apply border-gray-200 border-t border-b;
+}
+.ant-table-wrapper .ant-table.ant-table-bordered .ant-table-tbody >tr >td {
+  @apply border-gray-200 border-b;
+}
+.ant-table-wrapper .ant-table-filter-trigger,
+.ant-table-wrapper .ant-table-column-sorter{
+  @apply color-white;
+}
+.ant-table-wrapper .ant-table-thead th.ant-table-column-has-sorters:hover,
+.ant-table-wrapper .ant-table-thead th:hover {
+  background-color: lighten(@table-header, 15%);
+}
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-content >table >thead >tr:not(:last-child)>th,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-header >table >thead >tr:not(:last-child)>th,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-body >table >thead >tr:not(:last-child)>th,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-summary >table >thead >tr:not(:last-child)>th,
+.ant-table-wrapper .ant-table-thead > tr > th,
+.ant-table-wrapper .ant-table-thead > tr > td,
+.ant-table-wrapper .ant-table-thead >tr>th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before,
+.ant-table-wrapper .ant-table-thead >tr>td:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before
+{
+  border-color: darken(@table-header, 7%);
+}
+.ant-table-wrapper .ant-table-thead >tr>th:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before,
+.ant-table-wrapper .ant-table-thead >tr>td:not(:last-child):not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell):not([colspan])::before {
+  background-color: darken(@table-header, 7%);
+}
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-content >table >thead>tr >.ant-table-cell-fix-right-first::after,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-header >table >thead>tr >.ant-table-cell-fix-right-first::after,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-body >table >thead>tr >.ant-table-cell-fix-right-first::after,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-summary >table >thead>tr >.ant-table-cell-fix-right-first::after,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-content >table >tbody>tr >.ant-table-cell-fix-right-first::after,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-header >table >tbody>tr >.ant-table-cell-fix-right-first::after,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-body >table >tbody>tr >.ant-table-cell-fix-right-first::after,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-summary >table >tbody>tr >.ant-table-cell-fix-right-first::after,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-content >table >tfoot>tr >.ant-table-cell-fix-right-first::after,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-header >table >tfoot>tr >.ant-table-cell-fix-right-first::after,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-body >table >tfoot>tr >.ant-table-cell-fix-right-first::after,
+.ant-table-wrapper .ant-table.ant-table-bordered >.ant-table-container >.ant-table-summary >table >tfoot>tr >.ant-table-cell-fix-right-first::after {
+ @apply border-0;
 }

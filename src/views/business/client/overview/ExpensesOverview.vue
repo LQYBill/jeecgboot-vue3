@@ -834,15 +834,15 @@ export default defineComponent({
   color: @balancePositive;
   font-weight: 600;
 }
-.main-card .ant-btn-primary,.ant-pagination.mini .ant-pagination-item-active {
-  border-color: @geekBlue !important;
-  background-color: @geekBlue !important;
-  color: @geekBlueBg !important;
-  &:hover {
-    background-color: @lightGeekBlue !important;
-    border-color: @lightGeekBlue !important;
-  }
-}
+//.main-card .ant-btn-primary,.ant-pagination.mini .ant-pagination-item-active {
+//  border-color: @geekBlue !important;
+//  background-color: @geekBlue !important;
+//  color: @geekBlueBg !important;
+//  &:hover {
+//    background-color: @lightGeekBlue !important;
+//    border-color: @lightGeekBlue !important;
+//  }
+//}
 .main-card .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn ,
 .main-card .ant-tabs-tab-btn:focus, .main-card .ant-tabs-tab-remove:focus, .main-card .ant-tabs-tab-btn:active, .main-card .ant-tabs-tab-remove:active,.main-card .ant-tabs-tab:hover,
 .main-card .ant-pagination.mini .ant-pagination-prev:hover a, .main-card .ant-pagination.mini .ant-pagination-next:hover a, .main-card .ant-pagination.mini .ant-pagination-item:focus a, .main-card .ant-pagination.mini .ant-pagination-item:hover a{

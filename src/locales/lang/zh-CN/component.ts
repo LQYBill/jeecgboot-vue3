@@ -50,6 +50,8 @@ export default {
     incorrectData: '请填写正确的数据',
     minValue: '最小值为{ num }',
     maxValue: '最大值为{ num }',
+    required: '必填',
+    notRequired: '非必填',
   },
   icon: {
     placeholder: '点击选择图标',

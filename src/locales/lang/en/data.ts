@@ -66,8 +66,9 @@ export default {
     postalCode: "zip code"
   },
   logistics: {
+    company: "Logistics Company",
     registerFee: "FRET Fees",
-    invoiceNum: "Shipping Invoice Number"
+    invoiceNum: "Shipping Invoice Number",
   },
   form: {
     SignIn: "Sign In",

@@ -66,8 +66,9 @@ export default {
     postalCode: "邮编"
   },
   logistics: {
+    company: "物流公司",
     registerFee: "挂号费",
-    invoiceNum: "物流发票号"
+    invoiceNum: "物流发票号",
   },
   form: {
     SignIn: "登录",

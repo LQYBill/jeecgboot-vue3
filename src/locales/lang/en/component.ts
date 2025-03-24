@@ -50,6 +50,8 @@ export default {
     incorrectData: 'Incorrect format or empty',
     minValue: 'The minimum value is {num}',
     maxValue: 'The maximum value is {num}',
+    required: 'Required',
+    notRequired: 'Not required',
   },
   icon: {
     placeholder: 'Click the select icon',
@@ -208,7 +210,6 @@ export default {
     orderNumberSplitComma: 'Seperate order Ids with a comma, space or line break',
     orderStatus: 'This value is set automatically. Only use this if you want to override the value.',
     skuProductLatestCode: 'The latest product code is: %{var}',
-    cancelMabangOrder: 'Don\'t forget to cancel the order in Mabang',
   },
   advancedSearch: "Advanced Search",
 };
