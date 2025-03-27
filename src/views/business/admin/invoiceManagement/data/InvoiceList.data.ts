@@ -86,6 +86,12 @@ export const columns: BasicColumn[] = [
     fixed: "right",
     width: 147,
     slots: { customRender: 'action' }
+  },
+  {
+   title: '',
+    dataIndex: 'status',
+    align: "center",
+    defaultHidden: true,
   }
 ];
 export const searchFormSchema: FormSchema[] = [

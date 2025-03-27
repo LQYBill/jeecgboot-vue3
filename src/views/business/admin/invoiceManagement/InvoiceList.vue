@@ -39,12 +39,13 @@
         <TableAction
           :actions="[
             {
-              label: t('common.operation.delete'),
+              label: t('common.operation.cancel'),
               icon: 'ic:outline-delete-outline',
               popConfirm: {
-                title: t('common.operation.deleteConfirmation'),
+                title: t('common.operation.cancelConfirmation'),
                 confirm: handleDelete.bind(null, record),
               },
+              disabled: record.status !== 1,
             },
           ]"
         />
@@ -56,8 +57,9 @@
         <div v-else class="flex justify-evenly items-center text-error"> ?? </div>
       </template>
       <template #invoiceNumber="{record}">
-        <div class="flex flex-row flex-nowrap justify-between items-center">
+        <div class="flex flex-row flex-nowrap justify-evenly items-center">
           <a-button
+            v-if="record.status === 1"
             type="primary"
             preIcon="ant-design:eye-outlined"
             @click="openInvoice(record)"
@@ -65,6 +67,7 @@
           >
             {{ record.invoiceNumber }}
           </a-button>
+          <span v-else class="text-error line-through">{{ record.invoiceNumber }}</span>
           <Icon icon="ant-design:copy-outlined" @click="handleCopy(record.invoiceNumber)" class="cursor-pointer"></Icon>
         </div>
       </template>
@@ -147,12 +150,13 @@ const [registerTable, { reload, clearSelectedRowKeys, setLoading }] = useTable({
 });
 
 const checkedKeys = ref<Array<string | number>>([]);
-const selectRows = ref<Array<any>>([]);
+const selectRows = ref<Array<Recordable>>([]);
 const rowSelection = {
   type: 'checkbox',
   columnWidth: 30,
   selectedRowKeys: checkedKeys,
   onChange: onSelectChange,
+  getCheckboxProps: getCheckboxProps,
 };
 const exportParams = computed(()=>{
   let paramsForm = {};
@@ -195,7 +199,6 @@ function downloadExcelInvoice(type : string) {
         } else {
           filename = invoiceNum + "_Inventaire_SKU.xlsx";
         }
-        console.log("Filename : " + filename);
         downloadFile(Api.downloadCompleteInvoiceExcel, filename, param).then(() => {
         }).catch((err) => {
           console.error(err);
@@ -218,7 +221,7 @@ function downloadExcelInvoice(type : string) {
       })
   }
 }
-function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
+function onSelectChange(selectedRowKeys: (string | number)[], selectRow: Recordable[]) {
   checkedKeys.value = selectedRowKeys;
   selectRows.value = selectRow;
   if(checkedKeys.value.length > 0) {
@@ -234,6 +237,13 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectRow) {
     downloadDetailDisabled.value = true;
     downloadInventoryDisabled.value = true;
     deleteBatchDisabled.value = true;
+  }
+}
+function getCheckboxProps(record: Recordable) {
+  if (record.status === 1) {
+    return { disabled: false };
+  } else {
+    return { disabled: true };
   }
 }
 function handleDelete(record: Recordable) {
@@ -305,5 +315,9 @@ function hasPurchaseInvoice() {
 }
 .jeecg-basic-table-header__tableTitle > * {
   margin: 0;
+}
+.ant-checkbox-disabled .ant-checkbox-inner{
+  background-color: fade(@error-color, 10%);
+  border-color: @error-color!important;
 }
 </style>

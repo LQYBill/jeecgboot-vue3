@@ -1,5 +1,6 @@
 import {defHttp} from '/@/utils/http/axios';
 import {downloadFile} from '/@/api/common/api';
+import {InvoiceMetaData} from "@/views/business/dto/invoiceMetaData.dto";
 
 enum Api {
   createOrder='/shippingInvoice/makeManualSkuPurchaseInvoice',
@@ -83,7 +84,7 @@ export const downloadInvoiceInventory = (invoiceMetaData:any, handleSuccess:Func
     console.error(`Download inventory fail : ${e}`);
   });
 }
-export const downloadInventory = (invoiceMetaData: any, handleSuccess:Function) => {
+export const downloadInventory = (invoiceMetaData: InvoiceMetaData, handleSuccess:Function) => {
   const filename = invoiceMetaData.internalCode
     + '_(' + invoiceMetaData.invoiceEntity
     + ')_' + invoiceMetaData.invoiceCode

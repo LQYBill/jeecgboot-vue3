@@ -2,10 +2,10 @@
   <BasicModal v-bind="$attrs" @register="registerModal" destroyOnClose :title="title" :width="800"
               @ok="handleSubmit">
     <BasicForm v-if="!isOrder" @register="registerForm">
-      <template #paidAmount="{record, model, field}">
+      <template #paidAmount="{model, field}">
         <div class="flex flex-row ">
           <a-input-number v-model:value="model[field]" :placeholder="t('data.invoice.paidAmount')" :min="0" :precision="2" class="w-10/12"/>
-          <a-button  v-if="isUpdate" type="primary" @click="autofill(model)">Auto-fill</a-button>
+          <a-button  v-if="isUpdate && showFooter" type="primary" @click="autofill(model)">Auto-fill</a-button>
         </div>
       </template>
     </BasicForm>
@@ -25,15 +25,14 @@ import {BasicModal, useModalInner} from '/@/components/Modal';
 import {BasicForm, useForm} from '/@/components/Form/index';
 import {formSchema, listFormatting} from '../PurchaseOrder.data';
 import {createMabangPurchaseOrder, saveOrUpdate} from '../PurchaseOrder.api';
-import {useMessage} from "/@/hooks/web/useMessage";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {Modal} from "ant-design-vue";
 
 const {t} = useI18n();
-const {createMessage} = useMessage();
 // Emits声明
 const emit = defineEmits(['register', 'success']);
 const isUpdate = ref(true);
+const showFooter = ref(false);
 const isOrder = ref(false);
 const selectedRows = ref<any[]>([]);
 //表单配置
@@ -56,6 +55,7 @@ const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) 
     okText: computed(() => (isOrder.value ? t('data.order.createOrder') : t('common.okText'))),
   });
   isUpdate.value = !!data?.isUpdate;
+  showFooter.value = !!data?.showFooter;
   if (unref(isUpdate)) {
     //表单赋值
     await setFieldsValue({
@@ -67,7 +67,7 @@ const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) 
     selectedRows.value = data?.selectedRows;
   }
   // 隐藏底部时禁用整个表单
-  setProps({disabled: !data?.showFooter})
+  await setProps({disabled: !data?.showFooter})
 });
 //设置标题
 const title = computed(() => (unref(isOrder) ? 'Order' : !unref(isUpdate) ? t('common.operation.addNew') : t('common.operation.edit')));
@@ -75,7 +75,7 @@ const title = computed(() => (unref(isOrder) ? 'Order' : !unref(isUpdate) ? t('c
 const results = ref<Recordable>({});
 
 //表单提交事件
-async function handleSubmit(v) {
+async function handleSubmit() {
   if(unref(isOrder)) {
     Modal.confirm({
       title: t('data.order.createOrderConfirmation'),

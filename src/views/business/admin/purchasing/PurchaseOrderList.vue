@@ -16,28 +16,11 @@
         </a-button>
         <a-button type="warning" @click="handleCreateOrder" preIcon="ant-design:shopping-cart-outlined" :disabled="createOrderDisabled">
         </a-button>
-        <a-dropdown v-if="selectedRowKeys.length > 0">
-          <template #overlay>
-            <a-menu>
-              <a-menu-item key="1" @click="handleBatchCancel">
-                <Icon icon="ant-design:delete-outlined"></Icon>
-                {{ t('common.operation.delete') }}
-              </a-menu-item>
-            </a-menu>
-          </template>
-          <a-button>{{ t('common.operation.batchOperation') }}
-            <Icon icon="mdi:chevron-down"></Icon>
-          </a-button>
-        </a-dropdown>
       </template>
       <!--操作栏-->
       <template #action="{ record }">
         <TableAction :actions="getTableAction(record)"
                      :dropDownActions="getDropDownAction(record)"/>
-      </template>
-      <!--字段回显插槽-->
-      <template #htmlSlot="{text}">
-        <div v-html="text"></div>
       </template>
       <!-- documents -->
       <template #fileSlot="{text}">
@@ -52,11 +35,20 @@
         <span v-if="!text" class="text-xs italic text-gray-300">{{ t("data.upload.noDocument") }}</span>
         <TableImg v-else :size="60" :imgList="[text]" :src-prefix="imgPrefix"/>
       </template>
+      <template #invoiceNumber="{ record }">
+        <div v-if="record.status === 0">
+          <span class="uppercase text-red">{{ t('common.status.cancelled') }}</span>
+          <p class="line-through">{{ record.invoiceNumber }}</p>
+        </div>
+        <span v-else>
+          {{ record.invoiceNumber }}
+        </span>
+      </template>
       <template #finalAmount="{record}">
-        <span class="font-bold">{{record?.finalAmount}}</span>
+        <span :class="`font-bold ${record.status === 0 ? 'line-through' : ''}`">{{record?.finalAmount}}</span>
       </template>
       <template #paidAmount="{record}">
-        <span :class="record?.paidAmount <= 0 ? 'number--error' : (record?.paidAmount) < (record?.finalAmount) ? 'number--warning' : 'number--ok'" class="number">
+        <span :class="`${record?.paidAmount <= 0 ? 'number--error' : (record?.paidAmount) < (record?.finalAmount) ? 'number--warning' : 'number--ok'} ${record.status === 0 ? 'line-through' : ''}`" class="number">
           {{ record?.paidAmount }}
         </span>
       </template>
@@ -111,7 +103,7 @@
   </PageWrapper>
 </template>
 
-<script lang="ts" name="purchaseOrder" setup>
+<script lang="ts" setup>
 import {provide, ref, unref} from 'vue';
 import {BasicTable, TableAction, TableImg} from '/@/components/Table';
 import {useModal} from '/@/components/Modal';
@@ -263,7 +255,7 @@ function handleDetail(record: Recordable) {
  * 删除采购发票
  */
 async function handleCancel(record:any) {
-  await cancelInvoice({id: record.id,invoiceNumber: record.invoiceNumber, clientId:record.clientId}, handleSuccess);
+  await cancelInvoice({id: record.id,invoiceNumber: record.invoiceNumber, clientId:record.clientId}, record, handleCancelSuccess);
 }
 async function handleBatchCancel() {
   let invoices:any = [];
@@ -279,6 +271,12 @@ async function handleBatchCancel() {
 /**
  * 成功回调
  */
+function handleCancelSuccess(record: Recordable) {
+  if(record.ordered) {
+    createMessage.info(t('component.tips.cancelMabangOrder'), 10);
+  }
+  handleSuccess();
+}
 function handleSuccess() {
   (selectedRowKeys.value = []) && reload();
 }
@@ -286,11 +284,12 @@ function handleSuccess() {
 /**
  * 操作栏
  */
-function getTableAction(record) {
+function getTableAction(record: Recordable) {
   return [
     {
       icon: 'clarity:note-edit-line',
       onClick: handleEdit.bind(null, record),
+      disabled: record.status !== 1,
     }
   ]
 }
@@ -298,7 +297,7 @@ function getTableAction(record) {
 /**
  * 下拉操作栏
  */
-function getDropDownAction(record) {
+function getDropDownAction(record: Recordable) {
   return [
     {
       icon: 'clarity:info-standard-line',
@@ -313,6 +312,7 @@ function getDropDownAction(record) {
         title: t('common.operation.deleteConfirmation'),
         confirm: handleCancel.bind(null, record),
       },
+      disabled: record.status !== 1,
     },
   ]
 }

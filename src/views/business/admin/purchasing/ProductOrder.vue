@@ -158,6 +158,7 @@ import {ExceptionEnum} from "/@/enums/exceptionEnum";
 import {useGo} from "/@/hooks/web/usePage";
 import {SearchOutlined} from "@ant-design/icons-vue";
 import {filterObj} from "@/utils/common/compUtils";
+import {InvoiceMetaData} from "@/views/business/dto/invoiceMetaData.dto";
 
 const {t} = useI18n();
 const { createMessage } = useMessage();
@@ -347,7 +348,7 @@ function orderMenu() {
     selectedRows: allSelected.value ? allSkus.value : getSelectRows(),
   })
 }
-function handleModalSuccess (result:{filename: string, invoiceCode: string, invoiceEntity: string, internalCode: string, errorMsg: string}) {
+function handleModalSuccess (result:InvoiceMetaData) {
   downloadInvoice(result.filename, handleDownloadSuccess);
   downloadInventory(result, handleDownloadSuccess);
   clearSelectedRowKeys();

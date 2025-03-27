@@ -7,7 +7,7 @@
       </a-button>
 
       <!-- button to download invoice details -->
-      <a-button v-if="downloadReady && hasEmail" type='primary' shape="round" @click='sendEmail()' preIcon="ant-design:mail" size="large">
+      <a-button v-if="downloadReady && hasEmail && invoice_type !== '8'" type='primary' shape="round" @click='sendEmail()' preIcon="ant-design:mail" size="large">
         {{ t("data.invoice.receiveDetailsByEmail") }}
       </a-button>
 
@@ -34,19 +34,19 @@
             <h1 style='font-size: 2em'>{{ customer }} <span style='font-weight: 200'>({{ invoice_entity }})</span></h1>
             <a-row type="flex" justify='space-between' align-items='center'>
               <h2 >{{ t("data.invoice.invoiceNumber") }} : {{ invoice_number }}</h2>
-              <h3>{{ t("data.client.currency") }} : {{ currency }}/{{ currencySymbol }}</h3>
+              <h3>{{ t("data.client.currency") }} : {{ clientCurrency }}/{{ clientCurrencySymbol }}</h3>
             </a-row>
           </div>
         </template>
         <template #footer>
           <a-row type="flex" style="align-items: center; padding: 0em 1em;">
             <a-col :span="12"><h2>{{ t("data.invoice.total") }}</h2></a-col>
-            <a-col :span="3"><h2 class='center'>{{ t("data.invoice.quantity") }} : </h2></a-col>
-            <a-col :span="3"><div class='center' style='font-size: 1.5em;'>{{total_quantity}}</div></a-col>
-            <a-col :span="3"><h2 class='center'>{{ t("data.invoice.totalAmount") }} : </h2></a-col>
-            <a-col :span="3">
-              <div class='center'  style='font-size: 1.5em;'>€{{final_total_euro.toFixed(2)}} EUR</div>
-              <div class='center' v-if='currency !== "EUR"'>({{currencySymbol}}{{final_total_customer_curr.toFixed(2)}} {{currency}})</div>
+            <a-col :span="3" v-if="invoice_type !== '8'"><h2 class='center'>{{ t("data.invoice.quantity") }} : </h2></a-col>
+            <a-col :span="3" v-if="invoice_type !== '8'"><div class='center' style='font-size: 1.5em;'>{{total_quantity}}</div></a-col>
+            <a-col :span="invoice_type !== '8' ? 3 : 6"><h2 class='center'>{{ t("data.invoice.totalAmount") }} : </h2></a-col>
+            <a-col :span="invoice_type !== '8' ? 3 : 6">
+              <div class='center'  style='font-size: 1.5em;'>{{ invoiceCurrencySymbol }}{{main_final_total.toFixed(2)}} {{ invoiceCurrency }}</div>
+              <div class='center' v-if='targetCurrency !== invoiceCurrency'>({{targetCurrencySymbol}}{{final_total_converted.toFixed(2)}} {{targetCurrency}})</div>
             </a-col>
           </a-row>
         </template>
@@ -67,7 +67,7 @@ import { defHttp } from '/@/utils/http/axios';
 import { useMessage } from '/@/hooks/web/useMessage';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {defineComponent, onBeforeMount, onUnmounted, ref} from 'vue';
-import {BasicColumn} from "/@/components/Table";
+import {Api, columns, CurrencyEnum} from './data/Invoice.data';
 import { useRoute } from 'vue-router';
 import {Result} from "ant-design-vue";
 import {ExceptionEnum} from "/@/enums/exceptionEnum";
@@ -106,53 +106,21 @@ export default defineComponent({
     const customer = ref('');
     const email = ref('');
     const invoice_entity = ref('');
-    const currency = ref();
-    const currencySymbol = ref("$");
+    const clientCurrency = ref();
+    const clientCurrencySymbol = ref("$");
+    const invoiceCurrency = ref();
+    const invoiceCurrencySymbol = ref("$");
+    const targetCurrency = ref();
+    const targetCurrencySymbol = ref("$");
     const invoice_number = ref();
     const total_quantity = ref(0);
-    const final_total_euro = ref(0);
-    const final_total_customer_curr = ref(0);
+    const main_final_total = ref(0);
+    const final_total_converted = ref(0);
     const invoice_type = ref();
     const invoiceContentLoading = ref<boolean>(false);
     const downloadReady = ref<boolean>(false);
     const hasEmail = ref();
     const failedPdfList = ref<any[]>([]);
-
-    const Api = {
-      checkInvoiceValidity: '/shippingInvoice/checkInvoiceValidity',
-      downloadInvoice: '/shippingInvoice/download',
-      downloadCompleteInvoiceExcel: "/generated/shippingInvoice/downloadCompleteInvoiceExcel",
-      invoiceData: '/shippingInvoice/invoiceData',
-      purchaseInvoiceData: '/shippingInvoice/purchaseInvoiceData',
-      downloadCompleteInvoicePdf: "/generated/shippingInvoice/downloadPdf",
-      sendDetailsByEmail: "/generated/shippingInvoice/sendDetailsByEmail"
-    }
-    const columns: BasicColumn[] =  [
-      {
-        title: 'Reference',
-        dataIndex: 'key',
-        width: 60,
-        align: 'center',
-      },
-      {
-        title: t("data.invoice.description"),
-        align: 'left',
-        className: 'column_description',
-        dataIndex: 'description',
-      },
-      {
-        title: t("data.invoice.quantity"),
-        align: 'center',
-        dataIndex: 'quantity',
-      },
-      {
-        title: t("data.invoice.subTotal"),
-        align: 'center',
-        dataIndex: 'total_amount',
-      }
-    ];
-
-
 
     function checkInvoice() {
       invoiceContentLoading.value = true;
@@ -160,24 +128,23 @@ export default defineComponent({
       let param = {
         invoiceNumber: getInvoiceNum(),
       };
-      defHttp.get({url: Api.checkInvoiceValidity, params: param, signal:signal}).then((res)=>{
+      defHttp.get({url: Api.checkInvoiceValidity, params: param, signal:signal}).then((res: Recordable)=>{
         // createMessage.success("Permission granted.");
         invoice_number.value = res.invoiceNumber;
         customer.value = res.name;
         email.value = res.email;
         hasEmail.value = !(email.value === "" || email.value === null);
         invoice_entity.value = res.invoiceEntity;
-        if(res.currency === 'EUR' || res.currency === 'euro' || res.currency === 'eur' || res.currency === 'EURO') {
-          currency.value = 'EUR';
-          currencySymbol.value = "€"
-        }
-        if(res.currency === "USD" || res.currency === 'usd') {
-          currency.value = 'USD'
-        }
-        if(res.currency === "RMB" || res.currency === "rmb") {
-          currency.value = "RMB";
-          currencySymbol.value = "¥";
-        }
+
+        invoice_type.value = getInvoiceType();
+        const displayCurrency = invoice_type.value === '8' ? res.invoiceCurrency : 'EUR';
+        invoiceCurrency.value = displayCurrency;
+        invoiceCurrencySymbol.value = CurrencyEnum[displayCurrency];
+        clientCurrency.value = res.currency;
+        clientCurrencySymbol.value =CurrencyEnum[res.currency];
+        targetCurrency.value = displayCurrency !== 'EUR' ? 'EUR' : res.invoiceCurrency;
+        targetCurrencySymbol.value = CurrencyEnum[targetCurrency.value];
+
         loadInvoice();
 
       }).catch((e) => {
@@ -190,12 +157,11 @@ export default defineComponent({
     async function loadInvoice() {
       const param = {
         invoiceNumber: invoice_number.value,
-        originalCurrency: "EUR",
-        targetCurrency: currency.value
+        originalCurrency: invoice_type.value === '8' ? invoiceCurrency.value : 'EUR',
+        targetCurrency: targetCurrency.value
       };
       // on identifie le type de facture (1 : purchase, 2: shipping, 7: purchase + shipping
-      invoice_type.value = getInvoiceType();
-      if (invoice_type.value == null || ['1', '2', '7'].indexOf(invoice_type.value) == -1) {
+      if (invoice_type.value == null || ['1', '2', '7', '8'].indexOf(invoice_type.value) == -1) {
         createMessage.error("Error : Resource not found.");
         pageReady.value = false;
         status.value = ExceptionEnum.PAGE_NOT_FOUND;
@@ -207,6 +173,9 @@ export default defineComponent({
       }
       if (invoice_type.value === '7' || invoice_type.value === '2') {
         promiseList.push(loadInvoiceData(param));
+      }
+      if(invoice_type.value === '8') {
+        promiseList.push(loadCreditInvoiceData(invoice_number.value));
       }
       await Promise.all(promiseList).then(() => {
         invoiceContentLoading.value = false;
@@ -221,7 +190,7 @@ export default defineComponent({
               for (let i in res.feeAndQtyPerCountry) {
                 const fee: Fee = res.feeAndQtyPerCountry[i];
                 let subtotal = fee.unitPrice;
-                final_total_euro.value += subtotal;
+                main_final_total.value += subtotal;
                 total_quantity.value += Number(fee.quantity);
                 dataSource.value.push({
                   key: index.value,
@@ -239,7 +208,7 @@ export default defineComponent({
                 quantity: null,
                 total_amount: res.vat
               });
-              final_total_euro.value += res.vat;
+              main_final_total.value += res.vat;
               index.value += 1;
 
               // SERVICE FEE
@@ -249,7 +218,7 @@ export default defineComponent({
                 quantity: null,
                 total_amount: res.serviceFee
               });
-              final_total_euro.value += res.serviceFee;
+              main_final_total.value += res.serviceFee;
               index.value += 1;
 
               // PICKING FEE
@@ -259,7 +228,7 @@ export default defineComponent({
                 quantity: null,
                 total_amount: res.pickingFee
               });
-              final_total_euro.value += res.pickingFee;
+              main_final_total.value += res.pickingFee;
               index.value += 1;
 
               // PACKAGING MATERIAL FEE
@@ -269,7 +238,17 @@ export default defineComponent({
                 quantity: null,
                 total_amount: res.packagingMaterialFee
               });
-              final_total_euro.value += res.packagingMaterialFee;
+              main_final_total.value += res.packagingMaterialFee;
+              index.value += 1;
+
+              // INSURANCE FEE
+              dataSource.value.push({
+                key: index.value,
+                description: "Total product insurance fee",
+                quantity: null,
+                total_amount: res.insuranceFee
+              });
+              main_final_total.value += res.insuranceFee;
               index.value += 1;
 
               // REFUND
@@ -280,7 +259,7 @@ export default defineComponent({
                   quantity: null,
                   total_amount: res.refund
                 })
-                final_total_euro.value -= res.refund;
+                main_final_total.value -= res.refund;
                 index.value += 1;
               }
 
@@ -292,7 +271,7 @@ export default defineComponent({
                   quantity: null,
                   total_amount: res.discount
                 })
-                final_total_euro.value -= res.discount;
+                main_final_total.value -= res.discount;
                 index.value += 1;
               }
 
@@ -301,7 +280,7 @@ export default defineComponent({
                 for (let i in res.extraFees) {
                   const fee: Fee = res.extraFees[i];
                   let subtotal: number = fee.unitPrice * fee.quantity;
-                  final_total_euro.value += subtotal;
+                  main_final_total.value += subtotal;
                   total_quantity.value += fee.quantity;
                   dataSource.value.push({
                     key: index.value,
@@ -312,9 +291,9 @@ export default defineComponent({
                   index.value += 1;
                 }
               }
-              final_total_euro.value = Number(final_total_euro.value.toFixed(2));
-              if (currency.value !== "EUR") {
-                final_total_customer_curr.value = res.finalAmount;
+              main_final_total.value = Number(main_final_total.value.toFixed(2));
+              if (targetCurrency.value !== "EUR") {
+                final_total_converted.value = res.finalAmount;
               }
             } else {
               createMessage.error("No data : " + invoice_number.value);
@@ -335,7 +314,7 @@ export default defineComponent({
             for(let sku in res.feeAndQtyPerSku) {
               const fee: Fee = res.feeAndQtyPerSku[sku];
                 let subtotal = fee.unitPrice;
-                final_total_euro.value += subtotal;
+                main_final_total.value += subtotal;
                 total_quantity.value += fee.quantity;
                 dataSource.value.push({
                   key: index.value,
@@ -355,12 +334,36 @@ export default defineComponent({
           });
       });
     }
+    async function loadCreditInvoiceData(invoiceNumber: string) {
+      return new Promise<void>((resolve, reject) => {
+        defHttp.get({url: Api.creditInvoiceData, params: {invoiceNumber}, signal: signal})
+          .then((res: Recordable) => {
+
+            if(invoiceCurrency.value !== "EUR") {
+              main_final_total.value = res.finalAmount;
+            }
+            final_total_converted.value = res.finalAmountEur;
+            dataSource.value.push({
+              key: index.value,
+              description: res.description,
+              total_amount: main_final_total,
+            });
+            downloadReady.value = true;
+            resolve();
+          })
+          .catch(e => {
+            console.error(e);
+            reject();
+          });
+      });
+    }
     function downloadPdf() {
       const param = {
         invoiceNumber: invoice_number.value
       }
+      const url = invoice_type.value === '8' ? Api.downloadCreditInvoicePdf : Api.downloadCompleteInvoicePdf;
       let filename = "Invoice N°" + invoice_number.value + " (" + customer.value + ").pdf";
-      downloadFile(Api.downloadCompleteInvoicePdf, filename, param);
+      downloadFile(url, filename, param);
     } // end of DownloadPdf()
     function sendEmail(){
       const param = {
@@ -427,11 +430,15 @@ export default defineComponent({
       customer,
       invoice_number,
       invoice_entity,
-      currency,
-      currencySymbol,
+      clientCurrency,
+      clientCurrencySymbol,
+      invoiceCurrency,
+      invoiceCurrencySymbol,
+      targetCurrency,
+      targetCurrencySymbol,
       total_quantity,
-      final_total_euro,
-      final_total_customer_curr,
+      main_final_total,
+      final_total_converted,
     }
   },
 })
