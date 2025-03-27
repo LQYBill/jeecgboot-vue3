@@ -48,6 +48,8 @@ export default {
     saveSuccess: '数据已保存',
     saveError: '保存失败',
     incorrectData: '请填写正确的数据',
+    minValue: '最小值为{ num }',
+    maxValue: '最大值为{ num }',
     required: '必填',
     notRequired: '非必填',
   },
@@ -207,6 +209,7 @@ export default {
     orderNumberSplitComma: '订单号用逗号、空格分开或回车',
     orderStatus: '此值是自动设置的。只有在您想要覆盖该值时才使用。',
     skuProductLatestCode: 'SKU产品最新号码: %{var}',
+    cancelMabangOrder: '别忘记在马帮平台上取消订单',
   },
   advancedSearch: "Advanced Search",
 };

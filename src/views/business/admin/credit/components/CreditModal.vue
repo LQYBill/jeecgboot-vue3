@@ -11,45 +11,41 @@
     import {formSchema} from '../Credit.data';
     import {saveOrUpdate} from '../Credit.api';
     import {useI18n} from "/@/hooks/web/useI18n";
+    import {useMessage} from "@/hooks/web/useMessage";
+    import {InvoiceMetaData} from "@/views/business/dto/invoiceMetaData.dto";
     const { t } = useI18n();
-    // Emits声明
+    const { createMessage } = useMessage();
     const emit = defineEmits(['register','success']);
     const isUpdate = ref(true);
-    //表单配置
     const [registerForm, {setProps,resetFields, setFieldsValue, validate}] = useForm({
         //labelWidth: 150,
         schemas: formSchema,
         showActionButtonGroup: false,
         baseColProps: {span: 24}
     });
-    //表单赋值
     const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) => {
-        //重置表单
         await resetFields();
         setModalProps({confirmLoading: false,showCancelBtn:!!data?.showFooter,showOkBtn:!!data?.showFooter});
         isUpdate.value = !!data?.isUpdate;
         if (unref(isUpdate)) {
-            //表单赋值
             await setFieldsValue({
                 ...data.record,
             });
         }
-        // 隐藏底部时禁用整个表单
-       setProps({ disabled: !data?.showFooter })
+       await setProps({disabled: !data?.showFooter})
     });
-    //设置标题
     const title = computed(() => (!unref(isUpdate) ? t('common.operation.addNew') : t('common.operation.edit')));
-    //表单提交事件
-    async function handleSubmit(v) {
+    async function handleSubmit() {
         try {
             let values = await validate();
             setModalProps({confirmLoading: true});
-            //提交表单
-            await saveOrUpdate(values, isUpdate.value);
-            //关闭弹窗
-            closeModal();
-            //刷新列表
-            emit('success');
+            await saveOrUpdate(values, isUpdate.value).then((res: InvoiceMetaData) => {
+              closeModal();
+              emit('success', res);
+            }).catch(err => {
+                setModalProps({confirmLoading: false});
+                createMessage.error(err.message);
+            });
         } finally {
             setModalProps({confirmLoading: false});
         }
@@ -57,7 +53,6 @@
 </script>
 
 <style lang="less" scoped>
-	/** 时间和数字输入框样式 */
   :deep(.ant-input-number){
 		width: 100%
 	}

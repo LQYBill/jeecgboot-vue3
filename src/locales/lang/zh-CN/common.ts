@@ -98,5 +98,7 @@ export default {
     status: '状态',
     notSpecified: '未填写',
     loadingText: '加载中...',
+    cancelled: '已取消',
+    cancellation: '取消',
   }
 };
