@@ -65,7 +65,7 @@
 import {Api} from "@/views/business/admin/logisticExpenses/LogisticExpenseDetail.api";
 import {JSearchSelect} from "@/components/Form";
 import {useMethods} from "@/hooks/system/useMethods";
-import {computed, inject, Ref, ref} from "vue";
+import {computed, inject, ref} from "vue";
 import {useI18n} from "@/hooks/web/useI18n";
 import {filterObj} from "@/utils/common/compUtils";
 import {Icon} from "@/components/Icon";
@@ -75,15 +75,15 @@ const { t } = useI18n();
 
 const emit = defineEmits(['add', 'batchDelete']);
 
-const selectedRowKeys: Ref<string[]> = inject('selectedRowKeys', ref([]));
+const selectedRowKeys: string[] = inject('selectedRowKeys', []);
 
 const logisticCompany = ref<string>();
 
 const exportParams = computed(()=>{
   let paramsForm = {};
   let list:string[] = [];
-  if (selectedRowKeys.value && selectedRowKeys.value.length > 0) {
-    list = selectedRowKeys.value;
+  if (selectedRowKeys.length > 0) {
+    list = selectedRowKeys;
   }
   paramsForm['selections'] = list;
   return filterObj(paramsForm)

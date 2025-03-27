@@ -66,9 +66,24 @@ export default {
     postalCode: "邮编"
   },
   logistics: {
+    additionalFees: "附加费用",
+    chargingWeight: "计费重量",
     company: "物流公司",
-    registerFee: "挂号费",
+    compensation: "货物赔偿",
+    fuelSurcharge: "燃油附加费",
     invoiceNum: "物流发票号",
+    logisticInternalNumber: "物流商内部单号",
+    platformOrderSerialId: "平台订单序列号（客户单号）",
+    realWeight: "实际重量",
+    registerFee: "挂号费",
+    secondDeliveryFee: "重派费",
+    shippingFee: "运费金额",
+    totalFee: "总费用",
+    trackingNum: "物流单号（服务商单号）",
+    vatServiceFee: "增值税服务费",
+    virtualTrackingNumber: "虚拟单号",
+    volumetricWeight: "体积重量",
+
   },
   form: {
     SignIn: "登录",
