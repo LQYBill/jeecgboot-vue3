@@ -47,7 +47,7 @@
         <p :class="`font-semibold ${record.status === 0 ? 'line-through' : ''}`">{{ record.amount.toFixed(2) }}{{ record.currencyId_dictText === "EUR" ? '€' : '$' }}</p>
       </template>
       <!-- image -->
-      <template #img="{ text }"> <TableImg :size="60" :imgList="[text]" :src-prefix="imgPrefix" /> </template>
+      <template #img="{ text }"> <TableImg :size="60" :imgList="[text]" :src-prefix="imgPrefix" class="overflow-hidden"/> </template>
       <!-- batch action -->
       <template #action="{ record }">
         <TableAction :actions="getTableAction(record)" :dropDownActions="getDropDownAction(record)"/>

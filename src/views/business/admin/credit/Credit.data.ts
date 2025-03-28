@@ -107,7 +107,7 @@ export const formSchema: FormSchema[] = [
         {required: true, message: t('component.searchForm.amountInput'), trigger: "blur"}
     ],
     dynamicDisabled: ({ values }) => {
-      return values.rowNum != 1;
+      return !!values.rowNum ? values.rowNum === '1' ? values.status !== '1' : true : false;
     }
   },
   {
@@ -147,6 +147,13 @@ export const formSchema: FormSchema[] = [
   {
     label: '',
     field: 'rowNum',
+    component: 'Input',
+    dynamicDisabled: true,
+    show: false,
+  },
+  {
+    label: '',
+    field: 'status',
     component: 'Input',
     dynamicDisabled: true,
     show: false,
