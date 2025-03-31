@@ -10,6 +10,11 @@ export const columns: BasicColumn[] = [
     dataIndex: 'platformOrderSerialId'
   },
   {
+    title: t('data.invoice.date'),
+    align: "center",
+    dataIndex: 'date',
+  },
+  {
     title: t('data.logistics.virtualTrackingNumber'),
     align: "center",
     dataIndex: 'virtualTrackingNumber'

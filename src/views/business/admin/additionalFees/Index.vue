@@ -9,9 +9,9 @@
         <a-button type="default" preIcon="ant-design:reload-outlined" @click="loadFeeList">{{ t('common.redo') }}</a-button>
       </template>
       <template #unitPrice="{ record }">
-        <p class="font-semibold">{{ (record.unitPrice * record.quantity).toFixed(2) }}{{ getShopCurrency(record.shop) }}</p>
+        <p class="font-semibold">{{ (record.unitPrice * record.quantity).toFixed(2) }}€</p>
         <p class="text-gray-400 text-xs">
-          {{ record.unitPrice }}{{ getShopCurrency(record.shop) }} / unit
+          {{ record.unitPrice }}€ / unit
         </p>
       </template>
       <template #feeName="{ record }">
