@@ -53,6 +53,8 @@ export default {
     shippedUninvoicedOrdersVolume: "Shipped & Uninvoiced Orders Volume",
     stock: "Stock",
     unshippedOrdersVolume: "Unshipped Orders Volume",
+    updateOrderStatusResult: "Update Order Status Result",
+    updateOrderStatusError: "Update Order Status Error",
     transNum: "Transaction Number",
     transTime: "Transaction time",
     trackingNum: "Tracking Number",
