@@ -158,6 +158,7 @@ const {tableContext, onExportXls, onImportXls} = useListPage({
     },
     pagination,
     ellipsis: false,
+    showTableSetting: false,
   },
   exportConfig: {
     name: "credit",
@@ -169,7 +170,7 @@ const {tableContext, onExportXls, onImportXls} = useListPage({
   },
 })
 
-const [registerTable, {reload, clearSelectedRowKeys, setLoading, getSelectRowKeys, getSelectRows}] = tableContext
+const [registerTable, { clearSelectedRowKeys, setLoading, getSelectRowKeys, getSelectRows }] = tableContext
 
 async function listCredits(arg?:number) {
   if(arg === 1) {
@@ -249,9 +250,9 @@ async function handleCancel(record) {
   await cancelOne({id: record.id}, handleSuccess);
 }
 
-async function handleSuccess() {
+function handleSuccess() {
   clearSelectedRowKeys();
-  await reload();
+  listCredits(1);
 }
 function onSelectChange() {
   let hasInvoiceNumber = false;

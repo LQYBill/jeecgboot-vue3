@@ -31,17 +31,15 @@ import {
 import {useI18n} from "vue-i18n";
 import TableTitle from "@/views/business/admin/logisticExpenses/components/TableTitle.vue";
 
-
-
-const checkedKeys = ref<Array<string | number>>([]);
 const selectedRowKeys = ref<string[]>([]);
 
 const [registerModal, {openModal}] = useModal();
 
-const [registerTable, {reload, getSelectRowKeys, getRowSelection, getSelectRows}] = useTable({
+const [registerTable, {reload, getSelectRowKeys, getSelectRows, clearSelectedRowKeys}] = useTable({
   title: 'logistic_expense_detail',
   api: list,
   columns,
+  ellipsis: false,
   canResize: false,
   formConfig: {
     //labelWidth: 120,
@@ -96,21 +94,21 @@ function handleDetail(record: Recordable) {
     showFooter: false,
   });
 }
-async function handleDelete(record) {
+async function handleDelete(record: Recordable) {
   await deleteOne({id: record.id}, handleSuccess);
 }
-async function batchHandleDelete() {
-  await batchDelete({ids: selectedRowKeys.value}, handleSuccess);
+function batchHandleDelete() {
+  batchDelete({ids: getSelectRowKeys}, handleSuccess);
 }
 
 function handleSuccess() {
-  (selectedRowKeys.value = []) && reload();
+  (clearSelectedRowKeys) && reload();
 }
 
 /**
  * Actions
  */
-function getTableAction(record) {
+function getTableAction(record: Recordable) {
   return [
     {
       icon: 'clarity:note-edit-line',
@@ -118,7 +116,7 @@ function getTableAction(record) {
     }
   ]
 }
-function getDropDownAction(record) {
+function getDropDownAction(record: Recordable) {
   return [
     {
       icon: 'clarity:info-standard-line',

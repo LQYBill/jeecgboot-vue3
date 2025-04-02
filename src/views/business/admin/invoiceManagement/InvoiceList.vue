@@ -247,6 +247,7 @@ function getCheckboxProps(record: Recordable) {
   }
 }
 function handleDelete(record: Recordable) {
+  setLoading(true)
   defHttp.delete({ url: Api.cancelInvoice, data: { id: record.id, invoiceNumber: record.invoiceNumber, clientId: record.clientId } }, { joinParamsToUrl: true }).then(()=> {
     checkedKeys.value = [];
     selectRows.value = [];
@@ -254,6 +255,8 @@ function handleDelete(record: Recordable) {
     reload();
   }).catch(e =>{
     console.error(e);
+  }).finally(() => {
+    setLoading(false);
   });
 }
 async function handleDeleteBatch() {
