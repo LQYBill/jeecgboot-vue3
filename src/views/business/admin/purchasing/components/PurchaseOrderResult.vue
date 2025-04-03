@@ -9,6 +9,8 @@
           <div v-for="(value, index) in apiResponse">
             <h3 v-if="isInvoiceNumber(index)" class="bg-gray-200 p-4">{{ t('data.invoice.invoiceNumber')}} : <span class="border rounded-2 border-gray-500 p-2 bg-white">{{ index }}</span></h3>
             <h3 v-else-if="index == 'groupIdDelete'" class="bg-gray-200 p-4">{{ t('data.purchase.groupIdDeleteResults') }}</h3>
+            <h3 v-else-if="index == 'UpdateOrderStatus'" class="bg-gray-200 p-4">{{ t('data.order.updateOrderStatusResult') }}</h3>
+            <h3 v-else-if="index == 'UpdateOrderStatusError'" class="bg-gray-200 p-4">{{ t('data.order.updateOrderStatusError') }}</h3>
             <h3 v-else class="bg-gray-200 p-4">
               <template v-for="(v, _i) in index.split(':')">
                 <template v-if="v.trim() == 'orderUpdate'">

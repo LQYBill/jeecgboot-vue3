@@ -56,6 +56,8 @@ export default {
     transTime: "订单交易时间",
     trackingNum: "订单追踪号",
     unshippedOrdersVolume: "未发货订单量",
+    updateOrderStatusResult: "更新订单状态结果",
+    updateOrderStatusError: "更新订单状态失败",
     customData: "商品多属性"
   },
   recipient: {
