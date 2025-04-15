@@ -324,7 +324,6 @@ const {validateInfos } = useForm(formState, validatorRules, { immediate: false }
 
 const Api = {
   getClientList: "/client/client/all",
-  // getCountryList: "/country/activeList",
   getShopsByCustomerId: "/shippingInvoice/shopsByClient",
   getValidPeriod: "/shippingInvoice/period",
   getValidOrderTimePeriod: "/shippingInvoice/preShipping/orderTime",
@@ -338,7 +337,6 @@ const Api = {
   downloadInvoiceDetail: "/shippingInvoice/downloadInvoiceDetail",
   listOrders: '/shippingInvoice/orders',
   checkSkuPrices: '/shippingInvoice/checkSkuPrices',
-  // estimateShippingFees: '/shippingInvoice/estimate',
   completeFeesEstimation: '/shippingInvoice/completeFeesEstimation',
   syncOrders: '/shippingInvoice/syncByIds',
 }
@@ -505,6 +503,7 @@ const [registerTable] = useTable({
   rowSelection: rowSelection,
   dataSource: orderList,
   columns,
+  ellipsis: false,
   defSort: iSorter.value,
   bordered: true,
   striped: true,
@@ -1354,7 +1353,7 @@ function handleTableChange(pagination, filters, sorter) {
   loadOrders();
 }
 function getCheckboxProps(record: Recordable) {
-  if (!!record.logisticChannelName || !!record.invoiceLogisticChannelName) {
+  if ((!!record.logisticChannelName || !!record.invoiceLogisticChannelName) && record.canSend !== '2') {
     return { disabled: false };
   } else {
     return { disabled: true };
