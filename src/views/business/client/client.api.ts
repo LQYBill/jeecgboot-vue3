@@ -13,4 +13,5 @@ export enum Api {
   downloadInvoice = "/shippingInvoice/download",
   downloadPdf = "/generated/shippingInvoice/downloadPdf",
   downloadInvoiceDetail = "/shippingInvoice/downloadInvoiceDetail",
+  getValidOrderTimePeriod = "/shippingInvoice/preShipping/orderTime",
 }
