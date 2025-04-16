@@ -63,6 +63,7 @@ export default {
     details: "详情",
     download: "下载",
     edit: "编辑",
+    batchEdit: "批量编辑",
     export: "导出",
     filter: "高级查询",
     generate: "生成",

@@ -1,12 +1,14 @@
 import { useI18n } from '/@/hooks/web/useI18n';
 import { BasicColumn } from '/@/components/Table';
+import {defHttp} from "@/utils/http/axios";
+import {Api} from "@/views/business/client/client.api";
 
 const { t } = useI18n();
 
 export function getColumns(): BasicColumn[] {
   return [
     {
-      title: "id",
+      title: 'id',
       dataIndex: 'id',
       defaultHidden: true,
     },
@@ -41,9 +43,9 @@ export function getColumns(): BasicColumn[] {
       dataIndex: 'productAvailable',
       slots: { customRender: 'productAvailability' },
       customFilterDropdown: true,
-      onFilter(value: Array<string | number | boolean >, record) {
+      onFilter(value: Array<string | number | boolean>, record) {
         return value.includes(record.productAvailable);
-      }
+      },
     },
     {
       title: t('data.invoice.shippingInvoice'),
@@ -52,7 +54,7 @@ export function getColumns(): BasicColumn[] {
       dataIndex: 'shippingAvailable',
       slots: { customRender: 'shippingAvailability' },
       customFilterDropdown: true,
-      onFilter(value: Array<string | number | boolean >, record) {
+      onFilter(value: Array<string | number | boolean>, record) {
         return value.includes(record.shippingAvailable);
       },
       fixed: 'right',
@@ -65,21 +67,25 @@ export function getColumns(): BasicColumn[] {
       slots: { customRender: 'purchaseAvailability' },
       fixed: 'right',
       customFilterDropdown: true,
-      onFilter(value: Array<string | number | boolean >, record) {
+      onFilter(value: Array<string | number | boolean>, record) {
         return value.includes(record.purchaseAvailable);
       },
     },
   ];
 }
 export const invoiceFilter = [
-  { text: t("common.available"), value: "0" },
-  { text: t('data.invoice.invoiced'), value: "1" },
-  { text: t("data.invoice.paid"), value: '2' },
-  { text: t("common.unavailable"), value: "-1"}
+  { text: t('common.available'), value: '0' },
+  { text: t('data.invoice.invoiced'), value: '1' },
+  { text: t('data.invoice.paid'), value: '2' },
+  { text: t('common.unavailable'), value: '-1' },
 ];
 
 export const inStockFilter = [
-  { text: t("data.order.outOfStock"), value: "0" },
-  { text: t("data.order.inStock"), value: "1" },
-  { text: t('data.order.ordered'), value: "2" }
-]
+  { text: t('data.order.outOfStock'), value: '0' },
+  { text: t('data.order.inStock'), value: '1' },
+  { text: t('data.order.ordered'), value: '2' },
+];
+
+export const fetchValidPeriod = async (params: Recordable) => {
+  return await defHttp.get({ url: Api.getValidOrderTimePeriod, params });
+};

@@ -63,6 +63,7 @@ export default {
     details: "Details",
     download: "Download",
     edit: "Edit",
+    batchEdit: "Batch Edit",
     export: "Export",
     filter: "Filter",
     generate: "Generate",

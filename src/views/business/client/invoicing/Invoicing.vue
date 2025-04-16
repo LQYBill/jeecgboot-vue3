@@ -47,6 +47,26 @@
               />
             </a-form-item>
           </a-col>
+          <a-col :span="6">
+            <a-form-item
+              :labelCol="labelCol"
+              :wrapperCol="wrapperCol"
+              v-bind="validateInfos.name"
+              name="date"
+              style="margin-left: 1em;"
+            >
+              <template #label>
+                <span title="Date" >{{ t('data.invoice.orderTime') }}</span>
+              </template>
+              <JRangeDate
+                @change="handleDateChange"
+                v-model:value="formState.date"
+                :disabledDate="disabledDate"
+                allowClear
+                :disabled="dateDisabled"
+              />
+            </a-form-item>
+          </a-col>
           <a-col :span="5">
             <a-button type="primary" preIcon="ant-design:search-outlined" @click="loadOrders(1)" :disabled="searchDisabled">{{ t('common.operation.search') }}</a-button>
           </a-col>
@@ -150,11 +170,16 @@ import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
 import {SorterResult, useTable} from "/@/components/Table";
 import { PageWrapper } from '/@/components/Page';
-import {getColumns, inStockFilter, invoiceFilter} from "/@/views/business/client/invoicing/data";
+import {
+  fetchValidPeriod,
+  getColumns,
+  inStockFilter,
+  invoiceFilter
+} from "/@/views/business/client/invoicing/data";
 import {defHttp} from "/@/utils/http/axios";
 import JSelectMultiple from "/@/components/Form/src/jeecg/components/JSelectMultiple.vue";
 import {Badge, Form, Tag} from "ant-design-vue";
-import dayjs from "dayjs";
+import dayjs, {Dayjs} from "dayjs";
 import {downloadFile} from "/@/api/common/api";
 import {PopConfirmButton} from "/@/components/Button";
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
@@ -167,6 +192,7 @@ import {toUpper} from "lodash-es";
 import {filterObj} from "@/utils/common/compUtils";
 import {SearchOutlined} from "@ant-design/icons-vue";
 import {Api} from "@/views/business/client/client.api";
+import JRangeDate from "@/components/Form/src/jeecg/components/JRangeDate.vue";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -185,6 +211,7 @@ const validatorRules = ref({
 });
 const formState = reactive<Record<string, any>>({
   shop: '',
+  date: '',
   shippingAvailable: [],
   purchaseAvailable: [],
   productAvailable: [],
@@ -207,7 +234,12 @@ const client = ref();
 const orderList = ref<any[]>([]);
 const shopList = ref<any[]>([]);
 
-const selectedShopIds = ref<any[]>([]);
+const selectedStartDate = ref<string>();
+const selectedEndDate = ref<string>();
+const startDate = ref<Dayjs>(dayjs('2024-01-01').startOf("day"));
+const endDate = ref<Dayjs>(dayjs().endOf("day"));
+const selectedShopIds = ref<string[]>([]);
+const dateDisabled = ref<boolean>(true);
 
 const searchDisabled = ref<boolean>(true);
 const shopDisabled = ref<boolean>(false);
@@ -270,7 +302,7 @@ function checkUser() {
   shopDisabled.value = true;
   defHttp.get({url: Api.getClient})
     .then(res => {
-      if(res.internal) {
+      if(!!res.internal) {
         internalUse.value = true;
         customerList.value = res.internal;
         customerSelectList.value = res.internal.map(
@@ -292,6 +324,7 @@ function checkUser() {
 }
 async function handleClientChange(id: any) {
   client.value = [];
+  clearField('shop');
   if (id) {
     let index = customerList.value.map(i => i.id).indexOf(id);
     client.value = customerList.value[index];
@@ -301,9 +334,9 @@ async function handleClientChange(id: any) {
     loadShopList(id);
   }
 }
-function loadShopList(clientId) {
+function loadShopList(clientID: string) {
   clearSelectedRowKeys();
-  defHttp.get({url : Api.getShops, params: {clientID: clientId}})
+  defHttp.get({url : Api.getShops, params: {clientID}})
     .then(res => {
       shopList.value = res.map(
         shop => ({
@@ -323,6 +356,7 @@ function loadShopList(clientId) {
 }
 function handleShopChange(shops) {
   // value returned is array of shop
+  clearField("date");
   page.value = 1;
   // pageSize.value = 50;
   total.value = 0;
@@ -336,7 +370,73 @@ function handleShopChange(shops) {
   makeCompleteDisabled.value = true;
   makeCompleteLoading.value = false;
   searchDisabled.value = selectedShopIds.value.length === 0;
+  if(selectedShopIds.value.length > 0) {
+    loadAvailableDate();
+  }
 }
+
+async function loadAvailableDate() {
+  const params =  {
+    shopIds: selectedShopIds.value.toString().split(","),
+    erpStatuses:  [1],
+  }
+  await fetchValidPeriod(params)
+    .then(res => {
+      const start = new Date(res['start']);
+      const end = new Date(res['end']);
+      const startDateString = start.getFullYear() + '-' + (start.getMonth() + 1 < 10 ? '0' : '') + (start.getMonth() + 1) + '-' + (start.getDate() < 10 ? '0' : '') + start.getDate();
+      const endDateString = end.getFullYear() + '-' + (end.getMonth() + 1 < 10 ? '0' : '') + (end.getMonth() + 1) + '-' + (end.getDate() < 10 ? '0' : '') + end.getDate();
+      startDate.value = dayjs(startDateString).startOf("day");
+      endDate.value = dayjs(endDateString).add(1,'day').startOf("day");
+
+      dateDisabled.value = false;
+    }).catch(error => {
+      console.error("Error while loading available date : " + error);
+      dateDisabled.value = true;
+    });
+}
+
+function disabledDate(current: Dayjs) {
+  return current < dayjs(startDate.value) || current > dayjs(endDate.value);
+}
+
+function handleDateChange(dateRange: string) {
+  const dateString = dateRange.split(',');
+  selectedStartDate.value = dateString[0];
+  selectedEndDate.value = dayjs(dateString[1]).add(1, 'day').format('YYYY-MM-DD');
+}
+
+function clearField(field:any) {
+  let fields:any = {};
+  switch (field) {
+    case "shop":
+      fields.shop = "";
+      startDate.value = dayjs(undefined);
+      endDate.value = dayjs(undefined);
+      selectedShopIds.value = [];
+      shopList.value = [];
+      dateDisabled.value = true;
+      try{
+        let shopCheckbox = <HTMLInputElement> document.querySelectorAll("label[for='form_item_shop']")[0].parentElement?.nextElementSibling?.getElementsByClassName("ant-checkbox-input")[0];
+        if(typeof shopCheckbox !== 'undefined') {
+          shopCheckbox.checked = false;
+          shopCheckbox.parentElement?.classList.remove("ant-checkbox-checked");
+        }
+      } catch (e) {
+
+      }
+      break;
+    case "date":
+      fields.date = "";
+      selectedStartDate.value = "";
+      selectedEndDate.value = "";
+      break;
+  }
+  Object.keys(fields).map((key) => {
+    formState[key] = fields[key];
+  });
+}
+
 function getQueryParams() {
   let params = Object.assign(iSorter.value);
   params.pageNo = ipagination.value.current;
@@ -347,7 +447,8 @@ function getQueryParams() {
   params.shippingAvailable = formState.shippingAvailable.length === 0 ? null : formState.shippingAvailable;
   params.purchaseAvailable = formState.purchaseAvailable.length === 0 ? null : formState.purchaseAvailable;
   params.productAvailable = formState.productAvailable.length === 0 ? null : formState.productAvailable;
-
+  params.startDate = selectedStartDate.value;
+  params.endDate = selectedEndDate.value;
   return filterObj(params);
 }
 // function handleTableChange(pagination, sorter) {
