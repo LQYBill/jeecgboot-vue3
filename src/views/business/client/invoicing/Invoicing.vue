@@ -78,6 +78,7 @@
       <BasicTable @register="registerTable" id="orders-list-table" ref="tableRef">
         <template #tableTitle>
           <PopConfirmButton
+            v-if="!excludedClients.includes(client?.internalCode)"
             type="primary"
             title="Confirm making shipping invoice ?"
             preIcon="ant-design:rocket-outlined"
@@ -89,6 +90,7 @@
             {{ t("data.invoice.generateShippingInvoice") }}
           </PopConfirmButton>
           <PopConfirmButton
+            v-if="!excludedClients.includes(client?.internalCode)"
             type="success"
             title="Confirm making purchase invoice ?"
             preIcon="ant-design:shopping-outlined"
@@ -228,6 +230,7 @@ const internalUse = ref<boolean>(false);
 const customerList = ref<any[]>([]);
 const customerSelectList = ref<any[]>([]);
 const customerListDisabled = ref<boolean>(false);
+const excludedClients = ['RB', 'JBL2', 'JBL'];
 
 const client = ref();
 
