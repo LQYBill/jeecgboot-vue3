@@ -341,6 +341,8 @@ export default defineComponent({
 
             if(invoiceCurrency.value !== "EUR") {
               main_final_total.value = res.finalAmount;
+            } else {
+              main_final_total.value = res.finalAmountEur;
             }
             final_total_converted.value = res.finalAmountEur;
             dataSource.value.push({
@@ -473,5 +475,11 @@ h2.center, div.center {
     background-color: @lightGeekBlue !important;
     border-color: @lightGeekBlue !important;
   }
+}
+
+</style>
+<style>
+.ant-table-wrapper .ant-table-thead th.ant-table-cell:hover {
+  background: #eee!important;
 }
 </style>
