@@ -78,6 +78,7 @@
       <BasicTable @register="registerTable" id="orders-list-table" ref="tableRef">
         <template #tableTitle>
           <PopConfirmButton
+            v-if="!excludedClients.includes(client?.internalCode)"
             type="primary"
             title="Confirm making shipping invoice ?"
             preIcon="ant-design:rocket-outlined"
@@ -89,6 +90,7 @@
             {{ t("data.invoice.generateShippingInvoice") }}
           </PopConfirmButton>
           <PopConfirmButton
+            v-if="!excludedClients.includes(client?.internalCode)"
             type="success"
             title="Confirm making purchase invoice ?"
             preIcon="ant-design:shopping-outlined"
@@ -178,7 +180,7 @@ import {
 } from "/@/views/business/client/invoicing/data";
 import {defHttp} from "/@/utils/http/axios";
 import JSelectMultiple from "/@/components/Form/src/jeecg/components/JSelectMultiple.vue";
-import {Badge, Form, Tag} from "ant-design-vue";
+import {Badge, Divider, Form, Tag} from "ant-design-vue";
 import dayjs, {Dayjs} from "dayjs";
 import {downloadFile} from "/@/api/common/api";
 import {PopConfirmButton} from "/@/components/Button";
@@ -200,6 +202,7 @@ const { createMessage } = useMessage();
 onBeforeMount(() => {
   checkUser();
 });
+
 
 const tableRef = ref();
 const useForm = Form.useForm;
@@ -228,6 +231,7 @@ const internalUse = ref<boolean>(false);
 const customerList = ref<any[]>([]);
 const customerSelectList = ref<any[]>([]);
 const customerListDisabled = ref<boolean>(false);
+const excludedClients = ['RB', 'JBL2', 'JBL'];
 
 const client = ref();
 
