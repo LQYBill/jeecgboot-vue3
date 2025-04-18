@@ -180,7 +180,7 @@ import {
 } from "/@/views/business/client/invoicing/data";
 import {defHttp} from "/@/utils/http/axios";
 import JSelectMultiple from "/@/components/Form/src/jeecg/components/JSelectMultiple.vue";
-import {Badge, Divider, Form, Tag} from "ant-design-vue";
+import {Badge, Form, Tag} from "ant-design-vue";
 import dayjs, {Dayjs} from "dayjs";
 import {downloadFile} from "/@/api/common/api";
 import {PopConfirmButton} from "/@/components/Button";
@@ -202,7 +202,6 @@ const { createMessage } = useMessage();
 onBeforeMount(() => {
   checkUser();
 });
-
 
 const tableRef = ref();
 const useForm = Form.useForm;
