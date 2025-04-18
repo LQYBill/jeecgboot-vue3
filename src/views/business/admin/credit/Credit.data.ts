@@ -145,6 +145,19 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
+    label: t('data.transaction.showBalance'),
+    field: 'showBalance',
+    component: 'Switch',
+    required: true,
+    defaultValue: '0',
+    componentProps: {
+      checkedValue: '1',
+      checkedChildren: t('common.yes'),
+      unCheckedValue: '0',
+      unCheckedChildren: t('common.no'),
+    },
+  },
+  {
     label: '',
     field: 'rowNum',
     component: 'Input',
