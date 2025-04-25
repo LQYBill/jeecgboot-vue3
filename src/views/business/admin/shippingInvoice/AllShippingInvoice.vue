@@ -450,9 +450,7 @@ function handleClientChange(id: string) {
       erpStatuses: erpStatus.value!.split(","),
     };
     compareSku(params).then(() => {
-      setTimeout(() => {
-        isSkuCompareReady.value = true;
-      }, 10000);
+      isSkuCompareReady.value = true;
     });
   }
   else {
