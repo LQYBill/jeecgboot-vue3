@@ -12,7 +12,7 @@ export default {
     step2_1: "Please select an order time period and least 1 warehouse location.",
 
     step3: "Please choose how you want to select orders.",
-    tip3: "\"Manual selection\" : you can view and pick each order you want to invoice <br>" +
+    tip3: "\"Manual selection\" : you can view and pick each order you want to invoice -" +
   "\"Select All\" : to invoice all available orders",
 
     step4: "Click on the search button to load available orders",
@@ -24,14 +24,15 @@ export default {
     type6: "error",
 
     step7: "Finally, select the type of invoice to generate.",
-    tip7: "\"Shipping Invoice\" : to generate 2xxx type invoice<br/>" +
+    tip7: "\"Shipping Invoice\" : to generate 2xxx type invoice-" +
   "\"Complete Invoice\" : to generate 7xxx type invoice.",
   },
   purchaseInvoice: {
     line1 :"All the purchase orders are listed here.",
     line2: "You can create an entry for manually created purchase orders, using the following button : ",
     line3: "You can also create an order on Mabang if the selected orders have already been paid with proofs deposited with the following button : ",
-  }
+  },
+  verifyingSkus: "Verifying SKUs consistency"
 }
 
 

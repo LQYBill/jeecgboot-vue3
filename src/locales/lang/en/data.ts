@@ -26,6 +26,13 @@ export default {
     accountBalance: "Account Balance",
     estimatedBalance: "Estimated Balance",
   },
+  erpStatus: {
+    completed: "Completed",
+    pending: "Pending",
+    preparing: "Preparing",
+    shipped: "Shipped",
+    cancelled: "Cancelled",
+  },
   fee: {
     type: 'Fee type',
     deleteErrorInvoiced: 'The fee cannot be deleted because it has already been invoiced, in order to delete it, you must cancel the invoice first.',
@@ -38,6 +45,7 @@ export default {
     createSkuOrderConfirmationContent1: "You are about to order",
     createSkuOrderConfirmationContent2: ", for a total of",
     deliveryTime: "Delivery Time",
+    hasDesyncedSku: "Has Desynced SKU",
     items: "items",
     inStock: "In Stock",
     normalOrder: "Normal",
@@ -45,11 +53,8 @@ export default {
     orders: "orders",
     ordered: "Ordered",
     outOfStock: "Out of Stock",
-    pending: "Pending",
     placeOrder: "Place Order",
-    preparing: "Preparing",
     reason: "Reason",
-    shipped: "Shipped",
     shippedUninvoicedOrdersAmountToBill: "Shipped & Uninvoiced Orders Amount to Bill",
     shippedUninvoicedOrdersVolume: "Shipped & Uninvoiced Orders Volume",
     stock: "Stock",
@@ -235,6 +240,7 @@ export default {
     id: 'ID',
     imageSource: 'Image Source',
     isGift: 'Is Gift',
+    isSynced: 'Is Synced',
     labelData: 'Label Data',
     missingPrice: 'Missing Price',
     purchasingAmount: 'Purchasing Amount',
@@ -280,9 +286,9 @@ export default {
     xlsCsvPdfOnly: "Only Excel sheets, CSV files and PDF files are accepted."
   },
   tips : {
-    invoiceModeTip: "Shipping: shipped orders<br/>"+
-                    "Pre-Shipping: pending orders and orders in preparation<br/>"+
-                    "All Shipping Invoice: shipped, pending and in preparation orders",
+    shippingInvoiceModeTip: "Shipping: shipped orders",
+    preShippingInvoiceModeTip: "Pre-Shipping: pending orders and orders in preparation",
+    allShippingInvoiceModeTip: "All Shipping Invoice: shipped, pending and in preparation orders",
     orderSelectModeTip: "You can manually select orders to invoice, or automatically select all available orders",
   },
   pageTitle: {
