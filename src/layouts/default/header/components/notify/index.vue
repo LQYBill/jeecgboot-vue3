@@ -23,7 +23,7 @@
   import { useDesign } from '/@/hooks/web/useDesign';
   import { useGlobSetting } from '/@/hooks/setting';
   import { useUserStore } from '/@/store/modules/user';
-  import { connectWebSocket, onWebSocket } from '/@/hooks/web/useWebSocket';
+  import { connectWebSocket,connectWebSocket2, onWebSocket } from '/@/hooks/web/useWebSocket';
   import { readAllMsg } from '/@/views/monitor/mynews/mynews.api';
   import { getToken } from '/@/utils/auth';
   import md5 from 'crypto-js/md5';
@@ -126,7 +126,8 @@
         let userId = unref(userStore.getUserInfo).id + "_" + wsClientId;
         // WebSocket与普通的请求所用协议有所不同，ws等同于http，wss等同于https
         let url = glob.domainUrl?.replace('https://', 'wss://').replace('http://', 'ws://') + '/websocket/' + userId;
-        connectWebSocket(url);
+        // connectWebSocket(url);
+        connectWebSocket2(url);
         onWebSocket(onWebSocketMessage);
       }
 
