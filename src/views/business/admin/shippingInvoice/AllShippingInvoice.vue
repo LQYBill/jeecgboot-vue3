@@ -1,30 +1,6 @@
 <template>
   <PageWrapper :title="t('data.pageTitle.invoicingPage')">
-    <div style="display:flex;justify-content: space-between;align-items: center">
-      <div style="display:flex; justify-content: flex-start; align-items: flex-start;">
-        <div style="border-radius: 100%;overflow: hidden;width: 80px;height: 80px;">
-          <img src="/src/assets/images/logo.png" alt="instructor">
-        </div>
-        <div class="instructionMessageBubble">
-          <div class="instructionMainText">
-            <Icon v-if="instructionMessageList[step].type ==='error'" icon="ant-design:warning-twotone"></Icon>
-            <p v-html="instructionMessageList[step].text" :class="[instructionMessageList[step].type ==='error' ? 'instructionErrorText' : '']"></p>
-          </div>
-          <p class="instructionOptionalText" v-if="typeof instructionMessageList[step].option !== 'undefined'" v-html="instructionMessageList[step].option"></p>
-
-          <div class="instructionTipText" v-if="typeof instructionMessageList[step].tip !== 'undefined'">
-            <Icon icon="ant-design:bulb-twotone"></Icon>
-            <p v-html="instructionMessageList[step].tip" preIcon="ant-design:bulb-outlined"></p>
-          </div>
-        </div>
-      </div>
-
-      <a-col :span="2">
-        <a-button class="mr-2" type="warning" preIcon="ant-design:clear-outlined" @click="clearField('all')">
-          <a-tooltip title="reset all fields">{{ t("common.operation.clear") }}</a-tooltip>
-        </a-button>
-      </a-col>
-    </div>
+    <Helper @clearField="clearField" />
     <a-card>
       <a-form ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
         <a-row :class="[step == 0 ? 'focus' : '']">
@@ -41,7 +17,9 @@
                 <BasicHelp text="erp status : shipping = 3, pre-shipping = 1, 2, all = 1, 2, 3"/>
               </template>
               <template #extra>
-                <span v-html="t('data.tips.invoiceModeTip')"></span>
+                {{ t('data.tips.shippingInvoiceModeTip') }}<br/>
+                {{ t('data.tips.preShippingInvoiceModeTip') }}<br/>
+                {{ t('data.tips.allShippingInvoiceModeTip') }}
               </template>
               <a-radio-group
                 v-model:value="formState.invoiceMode"
@@ -100,26 +78,6 @@
               />
             </a-form-item>
           </a-col>
-<!--          <a-col :span="5">-->
-<!--            <a-form-item-->
-<!--              :labelCol="labelCol"-->
-<!--              :wrapperCol="wrapperCol"-->
-<!--              v-bind="validateInfos.name"-->
-<!--              name="country"-->
-<!--            >-->
-<!--              <template #label>-->
-<!--                <span title="Country">{{ t('data.invoice.country') }}</span>-->
-<!--              </template>-->
-<!--              <JSelectMultiple-->
-<!--                :placeholder="t('component.searchForm.countryInputSearch')"-->
-<!--                @change="handleCountryChange"-->
-<!--                v-model:value="formState.country"-->
-<!--                :options="countryList"-->
-<!--                allowClear-->
-<!--                :disabled="countryDisabled"-->
-<!--              />-->
-<!--            </a-form-item>-->
-<!--          </a-col>-->
           <a-col :span="5">
             <a-form-item
               :labelCol="{span: 8}"
@@ -161,53 +119,55 @@
         </a-row>
         <Divider v-if="step >= 3 && formState.date !== ''" orientation="left"></Divider>
         <a-row v-if="step >= 3 && formState.date !== ''" style="width: 100%" :class="[step == 3 ? 'focus' : '']">
-          <a-form-item
-            :labelCol="{span: 4}"
-            :wrapperCol="{span: 18}"
-            v-bind="validateInfos.name"
-            name="orderSelectMode"
-            style="margin-bottom: 0; width: 100%"
-            class="orderSelectFormItem"
-          >
-            <template #label>
-              <span title="orderSelectMode">{{t('data.form.orderSelectMode')}}</span>
-              <BasicHelp :text="t('data.tips.orderSelectModeTip')"/>
-            </template>
-            <a-radio-group
-              v-model:value="formState.orderSelectMode"
-              @change="handleOrderSelectMode"
-              buttonStyle="solid"
-              class="invoice-type-radio-group"
-              :disabled="orderSelectModeDisabled"
+          <a-spin :spinning="!isSkuCompareReady" :tip="t('guide.verifyingSkus')">
+            <a-form-item
+              :labelCol="{span: 4}"
+              :wrapperCol="{span: 18}"
+              v-bind="validateInfos.name"
+              name="orderSelectMode"
+              style="margin-bottom: 0; width: 100%"
+              class="orderSelectFormItem"
             >
-              <a-radio-button value="0" >{{ t('data.form.manualSelect') }}</a-radio-button>
-              <a-radio-button value="1" >{{ t('component.table.selectAll') }}</a-radio-button>
-            </a-radio-group>
-          </a-form-item>
+              <template #label>
+                <span title="orderSelectMode">{{t('data.form.orderSelectMode')}}</span>
+                <BasicHelp :text="t('data.tips.orderSelectModeTip')"/>
+              </template>
+              <a-radio-group
+                v-model:value="formState.orderSelectMode"
+                @change="handleOrderSelectMode"
+                buttonStyle="solid"
+                class="invoice-type-radio-group"
+                :disabled="orderSelectModeDisabled || !isSkuCompareReady"
+              >
+                <a-radio-button value="0" >{{ t('data.form.manualSelect') }}</a-radio-button>
+                <a-radio-button value="1" >{{ t('component.table.selectAll') }}</a-radio-button>
+              </a-radio-group>
+            </a-form-item>
+          </a-spin>
         </a-row>
         <Divider v-if="step >= 4" orientation="left"></Divider>
         <a-row v-if="orderSelectMode == 0 && step >= 4" :class="[(step == 4 || step == 7) && orderSelectMode == 0 ? 'focus' : '']">
-          <a-spin :spinning="makeManualInvoiceSpinning">
+          <a-spin :spinning="makeManualInvoiceSpinning || !isSkuCompareReady">
             <a-button class="ml-2 mr-2" type="primary" preIcon="ant-design:search-outlined" @click="loadOrders" :loading="findOrdersLoading" :disabled="searchDisabled">
               {{ t("common.operation.search") }}
             </a-button>
             <a-button class="mr-2" type="success" preIcon="ant-design:sync-outlined" @click="syncOrders" :disabled="syncDisabled">
               {{ t("common.operation.syncPageOrders") }}
             </a-button>
-            <a-button class="mr-2" type="primary" preIcon="ant-design:download-outlined" @click="makeManualInvoice" :loading="makeManualInvoiceLoading" :disabled="makeManualInvoiceDisabled">
+            <a-button class="mr-2" type="primary" preIcon="ant-design:download-outlined" @click="makeManualInvoice" :loading="makeManualInvoiceLoading" :disabled="makeManualInvoiceDisabled || !isSkuCompareReady">
               {{ t("data.invoice.generateShippingInvoice") }}
             </a-button>
-            <a-button class="mr-2" type="error" color="error" preIcon="ant-design:download-outlined" @click="makeManualCompleteInvoice" :loading="manualCompleteInvoiceLoading" :disabled="manualCompleteInvoiceDisabled">
+            <a-button class="mr-2" type="error" color="error" preIcon="ant-design:download-outlined" @click="makeManualCompleteInvoice" :loading="manualCompleteInvoiceLoading" :disabled="manualCompleteInvoiceDisabled || !isSkuCompareReady">
               {{ t("data.invoice.generateCompleteInvoice") }}
             </a-button>
           </a-spin>
         </a-row>
         <a-row v-if="orderSelectMode == 1 && step == 7" :class="[step == 7 && orderSelectMode == 1 ? 'focus' : '']">
-          <a-spin :spinning="makeInvoiceSpinning">
-            <a-button class="ml-1 mr-2" type="primary" preIcon="ant-design:download-outlined" @click="makeInvoice" :loading="makeInvoiceLoading" :disabled="makeInvoiceDisabled">
+          <a-spin :spinning="makeInvoiceSpinning || !isSkuCompareReady">
+            <a-button class="ml-1 mr-2" type="primary" preIcon="ant-design:download-outlined" @click="makeInvoice" :loading="makeInvoiceLoading && !isSkuCompareReady" :disabled="makeInvoiceDisabled || !isSkuCompareReady">
               {{ t("data.invoice.generateShippingInvoice") }}
             </a-button>
-            <a-button class="mr-2" type="error" color="error" preIcon="ant-design:download-outlined" @click="makeCompleteInvoice" :loading="completeInvoiceLoading" :disabled="completeInvoiceDisabled">
+            <a-button class="mr-2" type="error" color="error" preIcon="ant-design:download-outlined" @click="makeCompleteInvoice" :loading="completeInvoiceLoading && !isSkuCompareReady" :disabled="completeInvoiceDisabled || !isSkuCompareReady">
               {{ t("data.invoice.generateCompleteInvoice") }}
             </a-button>
           </a-spin>
@@ -240,26 +200,26 @@
             <template v-else>{{record?.logisticChannelName}}</template>
           </template>
           <template #erpStatus="{record}">
-            <Tag
-              :color="record?.erpStatus === '1' ? 'volcano' : 'green'"
-            >
-              {{ record?.erpStatus === '1' ? t("data.order.pending") : t("data.order.preparing") }}
+            <Tag :color="record?.erpStatus === '1' ? 'volcano' : 'green'">
+              {{ record?.erpStatus === '1' ? t("data.erpStatus.pending") : t("data.erpStatus.preparing") }}
             </Tag>
           </template>
 
           <template #productAvailability="{record}">
-            <Tag
-              :color="record?.productAvailable === '1' ? 'green' : 'volcano'"
-            >
+            <Tag :color="record?.productAvailable === '1' ? 'green' : 'volcano'">
               {{ record?.productAvailable=== '1' ? t("data.order.inStock") : t("data.order.outOfStock") }}
             </Tag>
           </template>
 
           <template #toReview="{record}">
-            <Tag
-              :color="record?.canSend === '2' ? 'volcano' : 'green'"
-            >
+            <Tag :color="record?.canSend === '2' ? 'volcano' : 'green'">
               {{ record?.canSend === '2' ? t("data.order.abnormalOrder") : t("data.order.normalOrder")}}
+            </Tag>
+          </template>
+
+          <template #hasDesyncedSku="{text}">
+            <Tag :color="text === 0 ? 'green' : 'volcano'">
+              {{ text === 0 ? t("common.no") : t("common.yes") }}
             </Tag>
           </template>
         </BasicTable>
@@ -269,31 +229,49 @@
 </template>
 <script setup lang="ts">
 import {PageWrapper} from "/@/components/Page";
-import {onMounted, onUnmounted, reactive, ref} from "vue";
-import {defHttp} from "/@/utils/http/axios";
+import {onMounted, onUnmounted, provide, reactive, ref} from "vue";
 import {useMessage} from "/@/hooks/web/useMessage";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {downloadFile} from "/@/api/common/api";
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
 import JSelectMultiple from "/@/components/Form/src/jeecg/components/JSelectMultiple.vue";
-import {Tag, Form, Divider} from "ant-design-vue";
+import {Divider, Form, Tag} from "ant-design-vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
-import {BasicColumn, useTable} from "/@/components/Table";
+import {useTable} from "/@/components/Table";
 import dayjs, {Dayjs} from "dayjs";
 import PlatformOrderContentSubTable
   from "/@/views/business/admin/platformOrder/subTables/PlatformOrderContentSubTable.vue";
 import JRangeDate from "/@/components/Form/src/jeecg/components/JRangeDate.vue";
 import BasicHelp from "/@/components/Basic/src/BasicHelp.vue";
-import Icon from "/@/components/Icon/src/Icon.vue";
 import {shippingInvoiceParam} from "@/views/business/dto/shippingInvoiceParam.dto";
-import  {estimation as estimationDTO} from "@/views/business/dto/estimation.dto";
+import {estimation as estimationDTO} from "@/views/business/dto/estimation.dto";
 import EstimationByShopCard from "@/views/business/components/EstimationByShopCard.vue";
+import Helper from "@/views/business/admin/shippingInvoice/modules/Helper.vue";
+import {
+  Api,
+  checkOrdersBetweenDate,
+  checkSkuPrices,
+  compareSku,
+  fetchClientList,
+  fetchCompleteFeesEstimation,
+  fetchOrders,
+  fetchShopsByCustomerId,
+  fetchValidOrderTimePeriod,
+  fetchValidPeriod,
+  makeCompleteInvoiceRequest,
+  makeManualCompleteInvoiceRequest,
+  makeManualInvoiceRequest,
+  makeShippingInvoiceRequest,
+  syncOrdersRequest
+} from "./api";
+import {columns} from "./data";
+import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
+
 const { t } = useI18n();
 const { createMessage } = useMessage();
 
-onMounted (()=> {
-  loadCustomerList();
-  // loadCountryList();
+onMounted (async ()=> {
+  await loadCustomerList();
   step.value = 0;
 });
 onUnmounted(() => {
@@ -315,31 +293,11 @@ const formState = reactive<Record<string, any>>({
   customer: '',
   shop: '',
   date: '',
-  // country: '',
   invoiceMode: '',
   orderSelectMode: '',
   warehouse: '',
 });
 const {validateInfos } = useForm(formState, validatorRules, { immediate: false });
-
-const Api = {
-  getClientList: "/client/client/all",
-  getShopsByCustomerId: "/shippingInvoice/shopsByClient",
-  getValidPeriod: "/shippingInvoice/period",
-  getValidOrderTimePeriod: "/shippingInvoice/preShipping/orderTime",
-  checkOrdersBetweenDate: '/shippingInvoice/postShipping/ordersBetweenDates',
-  checkOrdersBetweenOrderDate: "/shippingInvoice/preShipping/ordersBetweenOrderDates",
-  makeShippingInvoice: "/shippingInvoice/make",
-  makeCompleteInvoice: '/shippingInvoice/makeComplete',
-  makeManualInvoice: "/shippingInvoice/makeManualInvoice",
-  makeManualCompleteInvoice: '/shippingInvoice/makeManualComplete',
-  downloadInvoice: "/shippingInvoice/download",
-  downloadInvoiceDetail: "/shippingInvoice/downloadInvoiceDetail",
-  listOrders: '/shippingInvoice/orders',
-  checkSkuPrices: '/shippingInvoice/checkSkuPrices',
-  completeFeesEstimation: '/shippingInvoice/completeFeesEstimation',
-  syncOrders: '/shippingInvoice/syncByIds',
-}
 
 const erpStatus = ref<string>();
 const invoiceModeDisabled = ref<boolean>(false);
@@ -351,7 +309,7 @@ const customerList = ref<any[]>([]);
 const customerDisabled = ref<boolean>(true);
 
 const shopList = ref<any[]>([]);
-const shopIDs = ref<any[]>([]);
+const shopIDs = ref<string>();
 const shopDisabled = ref(true);
 
 const startDate = ref<Dayjs>(dayjs('2023-01-01').startOf("day"));
@@ -366,14 +324,13 @@ const warehouseOptions =  ref([
   { label: t('data.invoice.warehouseAbroad'), value: 0 },
   { label: t('data.invoice.warehouseInChina'), value: 1 }
 ]);
-// const countryList = ref<any[]>([]);
-// const countryDisabled = ref<boolean>(true);
-// const selectedCountries = ref<any[]>([]);
 
 const orderSelectMode = ref<number>();
 const orderSelectModeDisabled = ref<boolean>(true);
 
 const purchasePricesAvailable = ref<boolean>(false);
+
+const isSkuCompareReady = ref<boolean>(false);
 
 const syncDisabled = ref<boolean>(true);
 const searchDisabled = ref<boolean>(true);
@@ -424,78 +381,6 @@ const iSorter = ref({
 });
 const iFilters = ref<any>({});
 
-const columns: BasicColumn[] = [
-  {
-    title: t("data.invoice.shopID"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'shopId_dictText',
-  },
-  {
-    title: t("data.invoice.logisticChannel"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'logisticChannelName_dictText',
-    slots: {customRender: 'logisticChannelName'}
-  },
-  {
-    title: t("data.invoice.platformOrderID"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'platformOrderId'
-  },
-  {
-    title: t("data.invoice.platformOrderNumber"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'platformOrderNumber'
-  },
-  {
-    title: t("data.invoice.trackingNumber"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'trackingNumber'
-  },
-  {
-    title: t("data.invoice.orderTime"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'orderTime'
-  },
-  {
-    title: t("data.invoice.recipient"),
-    align: "center",
-    sorter: true,
-    dataIndex: 'recipient'
-  },
-  {
-    title: t("data.invoice.country"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'country'
-  },
-  {
-    title: t("data.invoice.erpStatus"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'erpStatus',
-    slots: {customRender: 'erpStatus'},
-  },
-  {
-    title: t("data.order.inStock"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'productAvailable',
-    slots: {customRender: 'productAvailability'},
-  },
-  {
-    title: t("data.invoice.toReview"),
-    align:"center",
-    sorter: true,
-    dataIndex: 'canSend',
-    slots: {customRender: 'toReview'},
-  },
-];
 const [registerTable] = useTable({
   title: t('data.invoice.orderList'),
   isTreeTable: true,
@@ -520,61 +405,16 @@ const [registerTable] = useTable({
   rowKey: 'id',
 });
 const step = ref<number>(0);
-const instructionMessageList = [
-  {
-    text: t('guide.invoice.step0'),
-    step: 0,
-  },
-  {
-    text: t('guide.invoice.step1'),
-    step: 1,
-  },
-  {
-    option: t('guide.invoice.option2'),
-    text: t('guide.invoice.step2'),
-    step: 2,
-  },
-  {
-    text: t('guide.invoice.step3'),
-    tip: t('guide.invoice.tip3'),
-    step: 3,
-
-  },
-  {
-    text: t('guide.invoice.step4'),
-    step: 4,
-  },
-  {
-    option: t('guide.invoice.option5'),
-    text: t('guide.invoice.step5'),
-    step: 5,
-  },
-  {
-    text: t('guide.invoice.step6'),
-    type: "error",
-    step: 6,
-  },
-  {
-    text: t('guide.invoice.step7'),
-    tip: t('guide.invoice.tip7'),
-    step: 7,
-  },
-  {
-    option: t('guide.invoice.option2_1'),
-    text: t('guide.invoice.step2_1'),
-    step: 8,
-  },
-];
-function loadCustomerList() {
-  defHttp.get({url: Api.getClientList}).then(res => {
+async function loadCustomerList() {
+  await fetchClientList().then(res => {
     customerSelectList.value = res.map(
-      customer => ({
+      (customer: Recordable) => ({
         text: `${customer.firstName} ${customer.surname} (${customer.internalCode})`,
         value: customer.id,
       })
     );
     customerList.value = res.map(
-      customer => {
+      (customer: Recordable) => {
         let list = {};
         list["id"] = `${customer.id}`;
         list["firstname"] = `${customer.firstName}`;
@@ -588,28 +428,15 @@ function loadCustomerList() {
     console.error(error);
   })
 }
-// function loadCountryList() {
-//   defHttp.get({url: Api.getCountryList}).then(
-//     res => {
-//       countryList.value = res.map(
-//         country => ({
-//           text: `(${country.code}) ${country.nameEn} : ${country.nameZh}`,
-//           value: country.nameEn
-//         })
-//       );
-//     }
-//   ).catch(e => {
-//     console.error(e);
-//   });
-// }
-function handleInvoiceModeChange(e) {
-  erpStatus.value = e.target.value;
+function handleInvoiceModeChange(e: Event) {
+  erpStatus.value = (e.target as HTMLInputElement).value;
   customerDisabled.value = false;
   clearField('client');
   step.value = 1;
 }
-function handleClientChange(id) {
-  let index = customerList.value.map(i => i.id).indexOf(id);
+function handleClientChange(id: string) {
+  const index = customerList.value.map(i => i.id).indexOf(id);
+  isSkuCompareReady.value = false;
   customerId.value = id;
   customerInfo.value = customerList.value[index];
   //clear selected shops
@@ -618,14 +445,20 @@ function handleClientChange(id) {
   clearField("shop");
   if(id !== undefined) {
     loadShopList(customerId.value);
+    const params = {
+      clientId: customerId.value,
+      erpStatuses: erpStatus.value!.split(","),
+    };
+    compareSku(params).then(() => {
+      isSkuCompareReady.value = true;
+    });
   }
   else {
     step.value = 1;
   }
 }
-function loadShopList (clientID) {
-  const param = { clientID: clientID };
-  return defHttp.get({url: Api.getShopsByCustomerId, params: param})
+async function loadShopList (clientID: string) {
+ await fetchShopsByCustomerId( { clientID })
     .then(res => {
       if (res.length === 0) {
         createMessage.warning(t("data.invoice.error.noShopFoundForClient"));
@@ -639,13 +472,12 @@ function loadShopList (clientID) {
         );
         step.value = erpStatus.value === "3" ? 2 : 8;
         shopDisabled.value = false;
-        // countryDisabled.value = false;
         dateDisabled.value = false;
         shopIDs.value = shopList.value.map(
           shop => {
             return shop.value;
           }
-        );
+        ).toString();
         loadAvailableDate();
       }
 
@@ -654,11 +486,10 @@ function loadShopList (clientID) {
       createMessage.error("Error occured while loading shop list : " + error);
     });
 }
-function loadAvailableDate() {
+async function loadAvailableDate() {
   if(erpStatus.value === "3") {
-    let param:any = [];
-    param = shopIDs.value.toString().split(",");
-    return defHttp.post({url: Api.getValidPeriod, params: param})
+    const params = shopIDs.value!.split(",");
+    await fetchValidPeriod(params)
       .then(res => {
         let start = new Date(res['start']);
         let end = new Date(res['end']);
@@ -674,11 +505,11 @@ function loadAvailableDate() {
       });
   }
   else { // (1,2) & (1,2,3)
-    let param = {
-      shopIds: shopIDs.value.toString().split(","),
+    const params = {
+      shopIds: shopIDs.value!.split(","),
       erpStatuses: erpStatus.value!.toString().split(","),
     };
-    return defHttp.get({url: Api.getValidOrderTimePeriod, params: param})
+    await fetchValidOrderTimePeriod(params)
       .then(
         res => {
           let start = new Date(res['start']);
@@ -696,7 +527,7 @@ function loadAvailableDate() {
       })
   }
 }
-function handleShopChange(shops) {
+function handleShopChange(shops: string) {
   // value returned is array of shop
   clearField("date");
   shopIDs.value = shops;
@@ -752,10 +583,6 @@ function onWarehouseChange(checkedValues) {
 function disabledDate(current: Dayjs) {
   return current < dayjs(startDate.value) || current > dayjs(endDate.value);
 }
-// function handleCountryChange(countries) {
-//   selectedCountries.value = countries;
-//   loadAvailableDate();
-// }
 function handleOrderSelectMode(e) {
   if(e.target.value === "0") {
     orderSelectMode.value = 0;
@@ -772,7 +599,7 @@ function handleOrderSelectMode(e) {
     checkSkuBetweenDate();
   }
 }
-function loadOrders() {
+async function loadOrders() {
   if(searchDisabled.value === true) {
     return;
   }
@@ -790,10 +617,10 @@ function loadOrders() {
     createMessage.warning(t('component.searchForm.warehouseSelect'));
     return;
   }
-  const type = erpStatus.value === "3" ? "shipping" : erpStatus.value === "1,2" ? "pre-shipping" : "all";
-  let requestParam = {
+  const type = erpStatus.value === "3" ? InvoicingMethod.POSTSHIPPING : erpStatus.value === "1,2" ? InvoicingMethod.PRESHIPPING : InvoicingMethod.ALL;
+  let params = {
     clientId: customerId.value,
-    shopIds: shopIDs.value.toString().split(','),
+    shopIds: shopIDs.value!.split(','),
     start: selectedStartDate.value.toString(),
     end: dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString(),
     pageNo: ipagination.value.current,
@@ -805,13 +632,13 @@ function loadOrders() {
   };
 
   if (Object.keys(iSorter.value).length > 0) {
-    requestParam.order = iSorter.value.order;
-    requestParam.column = iSorter.value.column;
+    params.order = iSorter.value.order;
+    params.column = iSorter.value.column;
   }
   findOrdersLoading.value = true;
   orderListLoading.value = true;
 
-  defHttp.get({url: Api.listOrders, params: requestParam})
+  await fetchOrders(params)
     .then(res => {
       orderList.value = res.records;
       if (res.total) {
@@ -833,17 +660,17 @@ function loadOrders() {
       orderListLoading.value = false;
     });
 } // end of loadOrders
-function syncOrders() {
+async function syncOrders() {
   let platformOrderIds:any[] = [];
   orderList.value.map(order =>{
     platformOrderIds.push(order.platformOrderId)
   });
-  defHttp.get({url: Api.syncOrders, params: {orderIds: platformOrderIds}})
-    .then(() => {
+  const params = {orderIds: platformOrderIds}
+  await syncOrdersRequest(params).then(() => {
       syncDisabled.value = true;
     });
 }
-function checkSkuBetweenDate() {
+async function checkSkuBetweenDate() {
   if(!customerId.value) {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     clearField("shop");
@@ -858,15 +685,15 @@ function checkSkuBetweenDate() {
     createMessage.warning(t('component.searchForm.warehouseSelect'))
     return;
   }
-  let param: shippingInvoiceParam = {
+  let params: shippingInvoiceParam = {
     clientID: customerId.value.toString(),
-    shopIDs: shopIDs.value.toString().split(','),
+    shopIDs: shopIDs.value!.split(','),
     start: selectedStartDate.value.toString(),
     end: dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString(),
     warehouses: warehouseInChina.value.toString().split(','),
   };
   if(erpStatus.value === '3') {
-    defHttp.post({url: Api.checkOrdersBetweenDate, params: param})
+    await checkOrdersBetweenDate(params)
       .then(() => {
         purchasePricesAvailable.value = true;
         // if user changes select mode too fast, before the check is finished, the buttons will enable themselves
@@ -886,8 +713,8 @@ function checkSkuBetweenDate() {
   }
   else {
     // check sku but not it's order time between and erp_status IN (???)
-    param.erpStatuses = erpStatus.value?.toString().split(',');
-    defHttp.post({url: Api.checkOrdersBetweenOrderDate, params: param})
+    params.erpStatuses = erpStatus.value?.toString().split(',');
+    await checkOrdersBetweenDate(params)
       .then(() => {
         purchasePricesAvailable.value = true;
         completeInvoiceDisabled.value = orderSelectMode.value !== 1;
@@ -904,7 +731,7 @@ function checkSkuBetweenDate() {
       });
   }
 } // end of checkSkuBetweenDate
-function makeManualInvoice() {
+async function makeManualInvoice() {
   if (!customerId.value) {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     return;
@@ -918,9 +745,9 @@ function makeManualInvoice() {
     return;
   }
   const period = selectedStartDate.value.toString()+ "," + dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString();
-  const type = erpStatus.value === "3" ? "shipping" : erpStatus.value === "1,2" ? "pre-shipping" : "all";
+  const type = erpStatus.value === "3" ? InvoicingMethod.POSTSHIPPING : erpStatus.value === "1,2" ? InvoicingMethod.PRESHIPPING : InvoicingMethod.ALL;
 
-  const param = {
+  const params = {
     clientID: customerId.value,
     orderIds: checkedKeys.value,
     type: type,
@@ -931,7 +758,6 @@ function makeManualInvoice() {
   customerDisabled.value = true;
   dateDisabled.value = true;
   warehouseDisabled.value = true;
-  // countryDisabled.value = true;
   orderSelectModeDisabled.value = true;
   searchDisabled.value = true;
   syncDisabled.value = true;
@@ -939,8 +765,7 @@ function makeManualInvoice() {
   makeManualInvoiceLoading.value = true;
   makeManualInvoiceDisabled.value = true;
   manualCompleteInvoiceDisabled.value = true;
-  defHttp.post({url: Api.makeManualInvoice, params: param})
-    .then(
+  await makeManualInvoiceRequest(params).then(
       res => {
         checkedKeys.value = [];
         let filename = res.filename;
@@ -956,7 +781,6 @@ function makeManualInvoice() {
         customerDisabled.value = false;
         dateDisabled.value = false;
         warehouseDisabled.value = false;
-        // countryDisabled.value = false;
         orderSelectModeDisabled.value = false;
         findOrdersLoading.value = false;
         orderListLoading.value = false;
@@ -965,9 +789,9 @@ function makeManualInvoice() {
       }
     ).catch(e => {
       console.error(`make invoice error : ${e}`);
-    });
+  });
 } // end of makeManualInvoice
-function makeManualCompleteInvoice() {
+async function makeManualCompleteInvoice() {
   if (!customerId.value) {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     return;
@@ -984,10 +808,10 @@ function makeManualCompleteInvoice() {
     createMessage.warning(t('component.searchForm.warehouseSelect'))
     return;
   }
-  const type = erpStatus.value === "3" ? "shipping" : erpStatus.value === "1,2" ? "pre-shipping" : "all";
+  const type = erpStatus.value === "3" ? InvoicingMethod.POSTSHIPPING : erpStatus.value === "1,2" ? InvoicingMethod.PRESHIPPING : InvoicingMethod.ALL;
   const period = selectedStartDate.value.toString()+ "," + dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString();
 
-  let param = {
+  let params = {
     clientID: customerId.value,
     orderIds: checkedKeys.value,
     type: type,
@@ -998,7 +822,6 @@ function makeManualCompleteInvoice() {
   customerDisabled.value = true;
   dateDisabled.value = true;
   warehouseDisabled.value = true;
-  // countryDisabled.value = true;
   orderSelectModeDisabled.value = true;
   searchDisabled.value = true;
   syncDisabled.value = true;
@@ -1006,7 +829,7 @@ function makeManualCompleteInvoice() {
   makeManualInvoiceDisabled.value = true;
   manualCompleteInvoiceDisabled.value = true;
   manualCompleteInvoiceLoading.value = true;
-  defHttp.post({url: Api.makeManualCompleteInvoice, params: param})
+  await makeManualCompleteInvoiceRequest(params)
     .then(
       res => {
         checkedKeys.value = [];
@@ -1026,7 +849,6 @@ function makeManualCompleteInvoice() {
       customerDisabled.value = false;
       dateDisabled.value = false;
       warehouseDisabled.value = true;
-      // countryDisabled.value = false;
       orderSelectModeDisabled.value = false;
       searchDisabled.value = false;
       findOrdersLoading.value = false;
@@ -1036,7 +858,7 @@ function makeManualCompleteInvoice() {
       loadOrders();
     });
 }// end of makeManualCompleteInvoice
-function makeInvoice() {
+async function makeInvoice() {
   if (!customerId.value) {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     return;
@@ -1058,24 +880,23 @@ function makeInvoice() {
   customerDisabled.value = true;
   dateDisabled.value = true;
   warehouseDisabled.value = true;
-  // countryDisabled.value = true;
   orderSelectModeDisabled.value = true;
   makeInvoiceLoading.value = true;
   makeInvoiceDisabled.value = true;
   completeInvoiceDisabled.value = true;
   const param = {
     clientID: customerId.value,
-    shopIDs: shopIDs.value.toString().split(','),
+    shopIDs: shopIDs.value!.split(','),
     start: selectedStartDate.value.toString(),
     end: dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString(),
     erpStatuses: erpStatus.value.toString().split(","),
     warehouses: warehouseInChina.value.toString().split(','),
   }
-  defHttp.post({url: Api.makeShippingInvoice, params: param})
+  await makeShippingInvoiceRequest(param)
     .then(
       res => {
-        let invoiceFilename = res.filename;
-        let invoiceNumber = res.invoiceCode;
+        const invoiceFilename = res.filename;
+        const invoiceNumber = res.invoiceCode;
         downloadInvoice(invoiceFilename);
         downloadDetailFile(invoiceNumber);
         step.value = erpStatus.value === "3" ? 2 : 8;
@@ -1094,7 +915,7 @@ function makeInvoice() {
     });
   makeInvoiceLoading.value = false;
 }//end of makeInvoice
-function makeCompleteInvoice() {
+async function makeCompleteInvoice() {
   if (!customerId.value) {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     return;
@@ -1111,9 +932,9 @@ function makeCompleteInvoice() {
     createMessage.warning(t('component.searchForm.warehouseSelect'));
     return;
   }
-  let param = {
+  const param = {
     clientID: customerId.value.toString(),
-    shopIDs: shopIDs.value.toString().split(','),
+    shopIDs: shopIDs.value!.split(','),
     start: selectedStartDate.value,
     end: dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString(),
     erpStatuses: erpStatus.value.toString().split(","),
@@ -1124,12 +945,11 @@ function makeCompleteInvoice() {
   customerDisabled.value = true;
   dateDisabled.value = true;
   warehouseDisabled.value = true;
-  // countryDisabled.value = true;
   orderSelectModeDisabled.value = true;
   makeInvoiceDisabled.value = true;
   completeInvoiceDisabled.value = true;
   completeInvoiceLoading.value = true;
-  defHttp.post({url: Api.makeCompleteInvoice, params: param})
+  await makeCompleteInvoiceRequest(param)
     .then(
       res => {
         let filename = res.filename;
@@ -1195,15 +1015,6 @@ function downloadDetailFile(invoiceNumber) {
 function clearField(field:any) {
   let fields:any = {};
   switch (field) {
-    // case "country":
-    //   selectedCountries.value = [];
-    //   fields.country = "";
-    //   let countryCheckbox = document.querySelectorAll("label[for='form_item_country']")[0].parentElement?.nextElementSibling?.getElementsByClassName("ant-checkbox-input")[0];
-    //   if(typeof countryCheckbox !== 'undefined') {
-    //     countryCheckbox.checked = false;
-    //     countryCheckbox.parentElement?.classList.remove("ant-checkbox-checked");
-    //   }
-    //   break;
     case "manualSelection":
       ipagination.value.current = 1;
       ipagination.value.total = 1;
@@ -1242,13 +1053,12 @@ function clearField(field:any) {
       customerId.value = undefined;
       shopDisabled.value = true;
       warehouseDisabled.value = false;
-      // countryDisabled.value = true;
+      isSkuCompareReady.value = false;
     case "shop" :
-      // clearField("country");
       fields.shop = "";
       startDate.value = dayjs(undefined);
       endDate.value = dayjs(undefined);
-      shopIDs.value = [];
+      shopIDs.value = "";
       shopList.value = [];
       dateDisabled.value = true;
       try{
@@ -1287,7 +1097,6 @@ async function onSelectChange(selectedRowKeys: (string | number)[], selectionRow
     let uncheckableRowKeys: any[] = [];
     for (let row of selectionRows) {
       if (!(!!row.logisticChannelName || !!row.invoiceLogisticChannelName)) {
-        // console.log(row.id);
         uncheckableRowKeys.push(row.id);
       }
     }
@@ -1298,20 +1107,20 @@ async function onSelectChange(selectedRowKeys: (string | number)[], selectionRow
 
     checkedKeys.value = selectedRowKeys;
     step.value = 7;
-    let param = {
+    const params = {
       clientID: customerId.value,
       orderIds: checkedKeys.value,
-      type: erpStatus.value === "3" ? "shipping" : erpStatus.value === "1,2" ? "preshipping" : "all",
+      type: erpStatus.value === "3" ? InvoicingMethod.POSTSHIPPING : erpStatus.value === "1,2" ? InvoicingMethod.POSTSHIPPING : InvoicingMethod.ALL,
     };
     controller = new AbortController();
     const {signal} = controller;
-    await defHttp.post({url: Api.completeFeesEstimation, params: param, signal})
+    await fetchCompleteFeesEstimation(params, signal)
       .then(
         res => {
           estimation.value = [];
           for (let shop in res) {
             // let shopName = getShopName(shop);
-            let shopEstimation = res[shop];
+            const shopEstimation = res[shop];
             // shopEstimation.shop = shopName;
             estimation.value.push(shopEstimation);
           }
@@ -1320,7 +1129,7 @@ async function onSelectChange(selectedRowKeys: (string | number)[], selectionRow
       ).catch(e => {
         console.error(e);
       });
-    await defHttp.post({url: Api.checkSkuPrices, params: param})
+    await checkSkuPrices(params)
       .then(
         () => {
           purchasePricesAvailable.value = true;
@@ -1353,7 +1162,7 @@ function handleTableChange(pagination, filters, sorter) {
   loadOrders();
 }
 function getCheckboxProps(record: Recordable) {
-  if ((!!record.logisticChannelName || !!record.invoiceLogisticChannelName) && record.canSend !== '2') {
+  if ((!!record.logisticChannelName || !!record.invoiceLogisticChannelName) && record.canSend !== '2' && record.hasDesyncedSku !== 1) {
     return { disabled: false };
   } else {
     return { disabled: true };
@@ -1365,6 +1174,8 @@ function handleExpand(expanded, record) {
     expandedRowKeys.value.push(record.id);
   }
 }
+
+provide('step', step);
 </script>
 <style lang="less">
 .invoice-type-radio-group {

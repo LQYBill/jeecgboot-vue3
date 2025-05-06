@@ -26,6 +26,13 @@ export default {
     accountBalance: "账户余额",
     estimatedBalance: "预计账户余额",
   },
+  erpStatus: {
+    pending: "待处理",
+    preparing: "配货中",
+    shipped: "已发货",
+    completed: "已完成",
+    cancelled: "已取消",
+  },
   fee: {
     type: '费用类型',
     deleteErrorInvoiced: '费用已纳入发票，无法删除，请先取消发票。',
@@ -38,6 +45,7 @@ export default {
     createSkuOrderConfirmationContent1: "订购",
     createSkuOrderConfirmationContent2: "， 总计",
     deliveryTime: "交易时间",
+    hasDesyncedSku: "是否有不一致的商品",
     items: "项",
     inStock: "有货",
     normalOrder: "正常订单",
@@ -45,11 +53,8 @@ export default {
     orders: "订单",
     ordered: "采购中",
     outOfStock: "缺货",
-    pending: "待处理",
     placeOrder: "提交订单",
-    preparing: "配货中",
     reason: "原因",
-    shipped: "已发货",
     shippedUninvoicedOrdersAmountToBill: "已发货未开票应收款",
     shippedUninvoicedOrdersVolume: "已发货未开票订单量",
     stock: "货存",
@@ -236,6 +241,7 @@ export default {
     id: 'ID',
     imageSource: '图片链接',
     isGift: '是否赠品',
+    isSynced: '是否已一致',
     labelData: '自定义分类',
     missingPrice: '缺价格',
     purchasingAmount: '在途数量',
@@ -281,9 +287,9 @@ export default {
     xlsCsvPdfOnly: "只接受 Excel, CSV 和 PDF 文件."
   },
   tips : {
-    invoiceModeTip: "物流发票: 已发货订单<br/>"+
-                    "预收物流发票: 待处理和配货中的订单<br/>"+
-                    "按店铺开发票: 待处理，配货中和已发货的订单",
+    shippingInvoiceModeTip: "物流发票: 已发货订单",
+    preShippingInvoiceModeTip: "预收物流发票: 待处理和配货中的订单",
+    allShippingInvoiceModeTip: "按店铺开发票: 待处理，配货中和已发货的订单",
     orderSelectModeTip: "从列表中勾选订单或自动选所有符合条件的订单",
   },
   pageTitle: {

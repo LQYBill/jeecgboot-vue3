@@ -103,7 +103,7 @@
             <Tag
               :color="record.record.erpStatus === '1' ? 'volcano' : 'green'"
             >
-              {{ record.record.erpStatus === '1' ? t("data.order.pending") : t("data.order.preparing") }}
+              {{ record.record.erpStatus === '1' ? t("data.erpStatus.pending") : t("data.erpStatus.preparing") }}
             </Tag>
           </template>
 
