@@ -80,7 +80,7 @@ export default defineComponent({
 
     const progress = ref(0);
     const msg = ref('');
-    const showProgress = ref(true);
+    const showProgress = ref(false);
     const progressColor = computed(() => {
       if (progress.value < 50) return '#1890ff';
       if (progress.value < 90) return '#faad14';
