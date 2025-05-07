@@ -83,7 +83,11 @@ import {SearchOutlined} from "@ant-design/icons-vue";
 import ProductListResults from "@/views/business/admin/product/modules/ProductListResults.vue";
 import {useMethods} from "@/hooks/system/useMethods";
 import { Api } from "./data";
+import { useMessage } from '/@/hooks/web/useMessage';
+import {onWebSocket,offWebSocket} from '/@/hooks/web/useWebSocket';
+import { useRoute } from 'vue-router';
 
+const route = useRoute();
 const { t } = useI18n();
 const { handleImportXls, handleExportXls } = useMethods();
 
@@ -97,6 +101,8 @@ const skuList = ref([]);
 const productListZh = ref<string[]>();
 const productListEn = ref<string[]>();
 const erpCodes = ref<string[]>();
+
+const { createMessage, createConfirm } = useMessage();
 
 const results = ref<Recordable>({});
 
@@ -148,6 +154,8 @@ const iPagination = ref({
 
 onMounted(async () => {
   await loadSkuList(1);
+  offWebSocket(handleWsMessage);
+  onWebSocket(handleWsMessage);
 });
 
 const loadSkuList = async (arg?:number) => {
@@ -160,6 +168,55 @@ const loadSkuList = async (arg?:number) => {
   setLoading(true);
   await listSkus(params, handleBuildSkuList);
 }
+
+function handleWsMessage(data: any) {
+  console.log('%c[WebSocket] handleWsMessage-Received raw message:', 'color: #0af;', data);
+  try {
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+    // Check if on the product-list page
+    const isCurrentPage = route.name === 'product-list';
+    if (parsed?.cmd === 'user' && parsed?.msgTxt?.includes('全部完成')) {
+      const { total, success, failure } = parsed.data || {};
+      const hasStats = parsed.data && total !== undefined;
+
+      const content = hasStats
+        ? `
+          ${parsed.msgTxt}<br/>
+          共处理：<b>${total}</b> 条<br/>
+          成功：<b style="color:green;">${success}</b> 条<br/>
+          失败：<b style="color:red;">${failure}</b> 条
+        `
+        : parsed.msgTxt;
+
+      createConfirm({
+        title: '批量操作完成提示',
+        content,
+        iconType: 'info',
+        okText: '我知道了',
+        onOk: async () => {
+          console.log('[WebSocket] User confirmed');
+          if (isCurrentPage) {
+            console.log('[WebSocket] Refreshing SKU list...');
+            if (!tableRef.value) {
+              console.warn('[WebSocket] tableRef is not initialized, skipping refresh');
+              return;
+            }
+            await loadSkuList(1);
+          } else {
+            console.log('[WebSocket] Not on the target page, no refresh');
+          }
+        },
+      });
+    } else {
+      // Normal push message
+      createMessage.info(parsed?.msgTxt || '收到一条消息');
+    }
+  } catch (e) {
+    console.error('%c[WebSocket] Failed to parse message:', 'color: red;', e);
+    console.warn('Original data:', data);
+  }
+}
+
 const handleBuildSkuList = (data) => {
   skuList.value = data.records;
   total.value = data.total;
