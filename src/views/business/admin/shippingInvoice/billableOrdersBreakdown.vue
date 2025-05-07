@@ -1,5 +1,15 @@
 <template>
   <PageWrapper title='Billable Orders Breakdown'>
+    <div v-if="showProgress" style="margin-bottom: 16px">
+      <a-progress
+        :percent="progress"
+        :steps="5"
+        :stroke-width="16"
+        :stroke-color="progressColor"
+        status="active"
+      />
+      <div style="margin-top: 8px">{{ msg }}</div>
+    </div>
     <BasicTable
       @register="registerTable"
     >
@@ -52,7 +62,7 @@
 </template>
 <script lang="ts">
 import {BasicColumn, useTable} from "/@/components/Table";
-import {defineComponent, onMounted, onUnmounted, reactive, ref} from "vue";
+import {defineComponent, onMounted, onUnmounted, reactive, computed, ref} from "vue";
 import {defHttp} from "/@/utils/http/axios";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {useI18n} from "/@/hooks/web/useI18n";
@@ -63,18 +73,30 @@ import { PageWrapper } from '/@/components/Page';
 import {PopConfirmButton} from "/@/components/Button";
 import {Tag} from "ant-design-vue";
 import {useUserStore} from "/@/store/modules/user";
+import {offWebSocket, onWebSocket} from "@/hooks/web/useWebSocket";
 export default defineComponent({
   components: {Tag, PageWrapper, BasicTable, BillableOrdersSubTable, PopConfirmButton},
   setup() {
 
+    const progress = ref(0);
+    const msg = ref('');
+    const showProgress = ref(true);
+    const progressColor = computed(() => {
+      if (progress.value < 50) return '#1890ff';
+      if (progress.value < 90) return '#faad14';
+      return '#52c41a';
+    });
+
     const { t } = useI18n();
-    const { createMessage } = useMessage();
+    const { createMessage, createConfirm, createErrorModal } = useMessage();
     const userStore = useUserStore();
     const username = ref<string>();
     const abortController = new AbortController();
     const {signal} = abortController;
 
     onMounted(()=> {
+      offWebSocket(handleWsMsg);
+      onWebSocket(handleWsMsg);
       loadList();
       username.value = userStore.getUserInfo.username;
     });
@@ -263,8 +285,14 @@ export default defineComponent({
       createMessage.info("Invoicing task started ...");
       defHttp.get({
         url: Api.makeInvoice,
-        params: { shipping: clientsToInvoice.value[0], complete: clientsToInvoice.value[1] }
-      });
+        params: { shipping: clientsToInvoice.value[0], complete: clientsToInvoice.value[1] },
+      })
+        .catch((error) => {
+          createErrorModal({
+            title: 'Invoice Generation Failed',
+            content: `Error: ${error.message || 'Please contact the administrator for support.'}`,
+          });
+        });
       clearSelectedRowKeys();
 
     }
@@ -280,6 +308,42 @@ export default defineComponent({
         resolve();
       });
     }
+
+    function handleWsMsg(data: any) {
+      try {
+        const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+        if (parsed?.cmd !== 'user') return;
+        const { msgTxt, data: msgData } = parsed;
+        const isFinal = msgTxt?.includes('全部完成');
+        if (isFinal && msgData) {
+          const { total} = msgData;
+          const content = `
+        ${msgTxt}<br/>
+        共处理：<b>${total}</b> 条<br/>
+      `;
+          createConfirm({
+            title: '任务完成通知',
+            content,
+            iconType: 'info',
+            okText: '我知道了',
+            onOk: async () => {
+              loadList();
+            },
+          });
+          return;
+        }
+        showProgress.value = true;
+        msg.value = msgTxt;
+        const match = msgTxt.match(/(\d+)%/);
+        if (match) {
+          progress.value = Number(match[1]);
+        }
+      } catch (e) {
+        console.error('[WebSocket] 消息解析失败：', e);
+      }
+    }
+
+
     function resetTask() {
       defHttp.get({ url: Api.resetTask, params: {task : 'SI_G'} })
         .then(res => {
@@ -309,6 +373,10 @@ export default defineComponent({
       listByShop,
       checkedKeys,
       resetLoading,
+      progress,
+      msg,
+      showProgress,
+      progressColor,
     }
   }
 });
