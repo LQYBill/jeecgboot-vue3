@@ -85,6 +85,7 @@ export default {
     sync: 'Synchronize',
     syncPageOrders: "Sync current page's orders",
     syncAllOrders: "Sync all orders",
+    syncSkus: "Sync SKUs",
   },
   period: {
     daily: 'daily',

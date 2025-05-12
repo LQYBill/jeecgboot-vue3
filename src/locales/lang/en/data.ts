@@ -39,7 +39,7 @@ export default {
   },
   order: {
     abnormalOrder: "Abnormal",
-    Content: "Order Content",
+    content: "Order Content",
     createOrder: "Create Order",
     createOrderConfirmation: "Confirm Creating Order ?",
     createSkuOrderConfirmationContent1: "You are about to order",

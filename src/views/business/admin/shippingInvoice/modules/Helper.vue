@@ -1,7 +1,7 @@
 <template>
-  <div style="display:flex;justify-content: space-between;align-items: center">
-    <div style="display:flex; justify-content: flex-start; align-items: flex-start;">
-      <div style="border-radius: 100%;overflow: hidden;width: 80px;height: 80px;">
+  <div  class="flex justify-between items-center mb-2">
+    <div class="flex justify-start items-start">
+      <div class="rounded-full overflow-hidden w-18 h-18">
         <img src="/src/assets/images/logo.png" alt="instructor">
       </div>
       <div class="instructionMessageBubble">

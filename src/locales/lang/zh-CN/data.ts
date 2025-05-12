@@ -39,7 +39,7 @@ export default {
   },
   order: {
     abnormalOrder: "异常订单",
-    Content: "订单内容",
+    content: "订单内容",
     createOrder: "创建采购单",
     createOrderConfirmation: "确定创建采购单？",
     createSkuOrderConfirmationContent1: "订购",

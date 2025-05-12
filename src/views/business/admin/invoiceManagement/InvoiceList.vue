@@ -252,10 +252,10 @@ function handleDelete(record: Recordable) {
     checkedKeys.value = [];
     selectRows.value = [];
     clearSelectedRowKeys();
-    reload();
   }).catch(e =>{
     console.error(e);
   }).finally(() => {
+    reload();
     setLoading(false);
   });
 }
