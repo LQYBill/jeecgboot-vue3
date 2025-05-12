@@ -23,6 +23,8 @@ export function getColumns(): BasicColumn[] {
       align: 'center',
       sorter: (a, b) => a['platformOrderNumber'].localeCompare(b['platformOrderNumber']),
       dataIndex: 'platformOrderNumber',
+      slots: { customRender: 'platformOrderNumber' },
+      width: 200,
     },
     {
       title: t('data.invoice.orderTime'),
@@ -71,8 +73,37 @@ export function getColumns(): BasicColumn[] {
         return value.includes(record.purchaseAvailable);
       },
     },
+    {
+      title: t("data.order.hasDesyncedSku"),
+      align:"center",
+      dataIndex: 'hasDesyncedSku',
+      slots: {customRender: 'hasDesyncedSku'},
+    }
   ];
 }
+export const pocColumns: BasicColumn[] = [
+  {
+    title: 'id',
+    dataIndex: 'id',
+    defaultHidden: true,
+  },
+  {
+    title: 'SKU ID',
+    align: 'center',
+    dataIndex: 'skuId_dictText'
+  },
+  {
+    title: t("data.invoice.skuQty"),
+    align: 'center',
+    dataIndex: 'quantity',
+  },
+  {
+    title: t('data.sku.isSynced'),
+    align: 'center',
+    dataIndex: 'isSynced',
+    slots: { customRender: 'isSynced' },
+  }
+]
 export const invoiceFilter = [
   { text: t('common.available'), value: '0' },
   { text: t('data.invoice.invoiced'), value: '1' },

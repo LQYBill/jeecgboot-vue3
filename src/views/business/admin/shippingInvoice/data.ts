@@ -117,7 +117,6 @@ export const columns: BasicColumn[] = [
   {
     title: t("data.order.hasDesyncedSku"),
     align:"center",
-    sorter: true,
     dataIndex: 'hasDesyncedSku',
     slots: {customRender: 'hasDesyncedSku'},
   }

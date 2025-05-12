@@ -85,6 +85,7 @@ export default {
     sync: '同步',
     syncPageOrders: "同步当前页面的订单",
     syncAllOrders: "同步所有订单",
+    syncSkus: "同步SKU",
   },
   period: {
     daily: '日',

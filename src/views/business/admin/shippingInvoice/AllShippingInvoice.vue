@@ -118,32 +118,34 @@
           </a-col>
         </a-row>
         <Divider v-if="step >= 3 && formState.date !== ''" orientation="left"></Divider>
-        <a-row v-if="step >= 3 && formState.date !== ''" style="width: 100%" :class="[step == 3 ? 'focus' : '']">
-          <a-spin :spinning="!isSkuCompareReady" :tip="t('guide.verifyingSkus')">
-            <a-form-item
-              :labelCol="{span: 4}"
-              :wrapperCol="{span: 18}"
-              v-bind="validateInfos.name"
-              name="orderSelectMode"
-              style="margin-bottom: 0; width: 100%"
-              class="orderSelectFormItem"
-            >
-              <template #label>
-                <span title="orderSelectMode">{{t('data.form.orderSelectMode')}}</span>
-                <BasicHelp :text="t('data.tips.orderSelectModeTip')"/>
-              </template>
-              <a-radio-group
-                v-model:value="formState.orderSelectMode"
-                @change="handleOrderSelectMode"
-                buttonStyle="solid"
-                class="invoice-type-radio-group"
-                :disabled="orderSelectModeDisabled || !isSkuCompareReady"
+        <a-row v-if="step >= 3 && formState.date !== ''" :class="[step == 3 ? 'focus' : '']">
+          <a-col :span="24">
+            <a-spin :spinning="!isSkuCompareReady" :tip="t('guide.verifyingSkus')">
+              <a-form-item
+                :labelCol="{span: 12}"
+                :wrapperCol="{span: 12}"
+                v-bind="validateInfos.name"
+                name="orderSelectMode"
+                style="margin-bottom: 0; width: 100%"
+                class="orderSelectFormItem"
               >
-                <a-radio-button value="0" >{{ t('data.form.manualSelect') }}</a-radio-button>
-                <a-radio-button value="1" >{{ t('component.table.selectAll') }}</a-radio-button>
-              </a-radio-group>
-            </a-form-item>
-          </a-spin>
+                <template #label>
+                  <span title="orderSelectMode">{{t('data.form.orderSelectMode')}}</span>
+                  <BasicHelp :text="t('data.tips.orderSelectModeTip')"/>
+                </template>
+                <a-radio-group
+                  v-model:value="formState.orderSelectMode"
+                  @change="handleOrderSelectMode"
+                  buttonStyle="solid"
+                  class="invoice-type-radio-group"
+                  :disabled="orderSelectModeDisabled || !isSkuCompareReady"
+                >
+                  <a-radio-button value="0" >{{ t('data.form.manualSelect') }}</a-radio-button>
+                  <a-radio-button value="1" >{{ t('component.table.selectAll') }}</a-radio-button>
+                </a-radio-group>
+              </a-form-item>
+            </a-spin>
+          </a-col>
         </a-row>
         <Divider v-if="step >= 4" orientation="left"></Divider>
         <a-row v-if="orderSelectMode == 0 && step >= 4" :class="[(step == 4 || step == 7) && orderSelectMode == 0 ? 'focus' : '']">
@@ -153,6 +155,9 @@
             </a-button>
             <a-button class="mr-2" type="success" preIcon="ant-design:sync-outlined" @click="syncOrders" :disabled="syncDisabled">
               {{ t("common.operation.syncPageOrders") }}
+            </a-button>
+            <a-button class="mr-2" type="default" preIcon="ant-design:sync-outlined" @click="syncSkus">
+              {{ t("common.operation.syncSkus") }}
             </a-button>
             <a-button class="mr-2" type="primary" preIcon="ant-design:download-outlined" @click="makeManualInvoice" :loading="makeManualInvoiceLoading" :disabled="makeManualInvoiceDisabled || !isSkuCompareReady">
               {{ t("data.invoice.generateShippingInvoice") }}
@@ -435,8 +440,8 @@ function handleInvoiceModeChange(e: Event) {
   step.value = 1;
 }
 function handleClientChange(id: string) {
-  const index = customerList.value.map(i => i.id).indexOf(id);
   isSkuCompareReady.value = false;
+  const index = customerList.value.map(i => i.id).indexOf(id);
   customerId.value = id;
   customerInfo.value = customerList.value[index];
   //clear selected shops
@@ -445,13 +450,7 @@ function handleClientChange(id: string) {
   clearField("shop");
   if(id !== undefined) {
     loadShopList(customerId.value);
-    const params = {
-      clientId: customerId.value,
-      erpStatuses: erpStatus.value!.split(","),
-    };
-    compareSku(params).then(() => {
-      isSkuCompareReady.value = true;
-    });
+    syncSkus();
   }
   else {
     step.value = 1;
@@ -670,6 +669,16 @@ async function syncOrders() {
       syncDisabled.value = true;
     });
 }
+async function syncSkus() {
+  isSkuCompareReady.value = false;
+  const params = {
+    clientId: customerId.value!,
+    erpStatuses: erpStatus.value!.split(","),
+  };
+  await compareSku(params).then(() => {
+    isSkuCompareReady.value = true;
+  });
+}
 async function checkSkuBetweenDate() {
   if(!customerId.value) {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
@@ -833,8 +842,8 @@ async function makeManualCompleteInvoice() {
     .then(
       res => {
         checkedKeys.value = [];
-        let filename = res.filename;
-        let code = res.invoiceCode;
+        const filename = res.metaData.filename;
+        const code = res.metaData.invoiceCode;
         downloadInvoice(filename);
         downloadDetailFile(code);
       }
@@ -952,11 +961,14 @@ async function makeCompleteInvoice() {
   await makeCompleteInvoiceRequest(param)
     .then(
       res => {
-        let filename = res.filename;
-        let code = res.invoiceCode;
+        const filename = res.metaData.filename;
+        const code = res.metaData.invoiceCode;
         downloadInvoice(filename);
         downloadDetailFile(code);
         step.value = erpStatus.value === "3" ? 2 : 8;
+        if(Object.keys(res.mabangResponses.failures).length > 0) {
+          createMessage.error(`Error while writing invoice number in orders on Mabang: ${res.mabangResponses.failures}`);
+        }
       }
     ).catch(e => {
       console.error(e);
@@ -1162,7 +1174,7 @@ function handleTableChange(pagination, filters, sorter) {
   loadOrders();
 }
 function getCheckboxProps(record: Recordable) {
-  if ((!!record.logisticChannelName || !!record.invoiceLogisticChannelName) && record.canSend !== '2' && record.hasDesyncedSku !== 1) {
+  if ((!!record.logisticChannelName || !!record.invoiceLogisticChannelName) && record.canSend !== '2') {
     return { disabled: false };
   } else {
     return { disabled: true };
@@ -1242,7 +1254,6 @@ provide('step', step);
 .instructionMessageBubble {
   background-color: fade(@primary-color, 10%);
   position: relative;
-  border: 2px solid @primary-color;
   border-radius: 5px;
   padding: 1em;
   margin-left: 10px;
@@ -1258,7 +1269,7 @@ provide('step', step);
     border-top: 10px solid transparent;
     border-bottom: 10px solid transparent;
     border-left: 10px solid transparent;
-    border-right: 10px solid @primary-color;
+    border-right: 10px solid fade(@primary-color,10%);
   }
   p {
     margin: 0;

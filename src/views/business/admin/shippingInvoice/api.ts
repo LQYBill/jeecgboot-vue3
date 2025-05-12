@@ -59,6 +59,6 @@ export const fetchCompleteFeesEstimation = async (params, signal: AbortSignal) =
 export const checkSkuPrices = async (params: Recordable) => {
   return await defHttp.post({url: Api.checkSkuPrices, params})
 }
-export const compareSku = (params: Record<string, string | string[]>) => {
+export const compareSku = async (params: Record<string, string | string[]>) => {
   return defHttp.get({url: Api.compareClientSku, params});
 }

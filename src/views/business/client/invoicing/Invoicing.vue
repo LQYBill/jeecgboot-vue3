@@ -47,7 +47,7 @@
               />
             </a-form-item>
           </a-col>
-          <a-col :span="6">
+          <a-col :span="8">
             <a-form-item
               :labelCol="labelCol"
               :wrapperCol="wrapperCol"
@@ -68,7 +68,7 @@
             </a-form-item>
           </a-col>
           <a-col :span="5">
-            <a-button type="primary" preIcon="ant-design:search-outlined" @click="loadOrders(1)" :disabled="searchDisabled">{{ t('common.operation.search') }}</a-button>
+            <a-button type="primary" preIcon="ant-design:search-outlined" @click="loadOrders(1)" :disabled="searchDisabled || !isSkuCompareReady" :loading="!isSkuCompareReady">{{ t('common.operation.search') }}</a-button>
           </a-col>
         </a-row>
         <a-row>
@@ -112,7 +112,17 @@
           >
             {{ t("data.invoice.generateInvoice7pre") }}
           </PopConfirmButton>
+          <a-button class="mr-2" type="primary" preIcon="ant-design:sync-outlined" @click="handleSyncSkus" :disabled="Object.keys(client).length === 0 || !isSkuCompareReady" :loading="!isSkuCompareReady">
+            {{ t("common.operation.syncSkus") }}
+          </a-button>
           <a-button @click="openHelpModal" type="warning">Help</a-button>
+        </template>
+        <template #platformOrderNumber="{record}">
+          <a-button type="link"
+                    postIcon="ant-design:search-outlined"
+                    @click="openContentModal(true, {orderId: record?.id, orderNumber: record?.platformOrderNumber})">
+            {{ record?.platformOrderNumber }}
+          </a-button>
         </template>
         <template #productAvailability="{record}">
           <Badge
@@ -132,6 +142,11 @@
             :color="record?.purchaseAvailable === '0' ? 'green' : record?.purchaseAvailable === '1' ? 'yellow' : record?.purchaseAvailable === '2' ? 'blue' : 'volcano'"
           >
             {{ record?.purchaseAvailable === '0' ? t("common.available") : record?.purchaseAvailable === '1' ? t('data.invoice.invoiced') : record?.purchaseAvailable === '2' ? t("data.invoice.paid") : t("common.unavailable") }}
+          </Tag>
+        </template>
+        <template #hasDesyncedSku="{text}">
+          <Tag :color="text === 0 ? 'green' : 'volcano'">
+            {{ text === 0 ? t("common.no") : t("common.yes") }}
           </Tag>
         </template>
         <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
@@ -162,11 +177,12 @@
       </BasicTable>
     </a-card>
     <InvoicingHelpModal @register="registerModal" @success="" @guide="startGuide"/>
+    <InvoicingOrderContentModal @register="registerContentModal"/>
   </PageWrapper>
 </template>
 <script lang="ts" setup>
 
-import {onBeforeMount, reactive, ref} from "vue";
+import {onBeforeMount, reactive, ref,  Ref} from "vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
@@ -195,6 +211,10 @@ import {filterObj} from "@/utils/common/compUtils";
 import {SearchOutlined} from "@ant-design/icons-vue";
 import {Api} from "@/views/business/client/client.api";
 import JRangeDate from "@/components/Form/src/jeecg/components/JRangeDate.vue";
+import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
+import {compareSku} from "@/views/business/admin/shippingInvoice/api";
+import InvoicingOrderContentModal
+  from "@/views/business/client/_components/InvoicingOrderContentModal.vue";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -232,7 +252,7 @@ const customerSelectList = ref<any[]>([]);
 const customerListDisabled = ref<boolean>(false);
 const excludedClients = ['RB', 'JBL2', 'JBL'];
 
-const client = ref();
+const client: Ref<Record<string, string>> = ref({});
 
 const orderList = ref<any[]>([]);
 const shopList = ref<any[]>([]);
@@ -246,6 +266,9 @@ const dateDisabled = ref<boolean>(true);
 
 const searchDisabled = ref<boolean>(true);
 const shopDisabled = ref<boolean>(false);
+
+const isSkuCompareReady = ref<boolean>(false);
+
 const makeShippingDisabled = ref<boolean>(true);
 const makeShippingLoading = ref<boolean>(false);
 const makePurchaseDisabled = ref<boolean>(true);
@@ -276,6 +299,7 @@ let ipagination = ref({
   onShowSizeChange: handleShowSizeChange,
 });
 const [registerModal, {openModal}] = useModal();
+const [registerContentModal, {openModal: openContentModal}] = useModal();
 const [registerTable, { clearSelectedRowKeys, getSelectRows, getSelectRowKeys, setLoading }] = useTable({
   columns: getColumns(),
   dataSource: orderList,
@@ -309,7 +333,7 @@ function checkUser() {
         internalUse.value = true;
         customerList.value = res.internal;
         customerSelectList.value = res.internal.map(
-          client => ({
+          (client: Record<string, string>) => ({
             text: `${client.firstName} ${client.surname} (${client.internalCode})`,
             value: client.id,
           })
@@ -318,6 +342,7 @@ function checkUser() {
       else {
         client.value = res.client;
         loadShopList(client.value.id);
+        syncSkus();
       }
       shopDisabled.value = false;
     })
@@ -326,7 +351,8 @@ function checkUser() {
     });
 }
 async function handleClientChange(id: any) {
-  client.value = [];
+  client.value = {};
+  isSkuCompareReady.value = false;
   clearField('shop');
   if (id) {
     let index = customerList.value.map(i => i.id).indexOf(id);
@@ -335,6 +361,7 @@ async function handleClientChange(id: any) {
       setTimeout(resolve, 100)
     });
     loadShopList(id);
+    await syncSkus();
   }
 }
 function loadShopList(clientID: string) {
@@ -418,7 +445,9 @@ function clearField(field:any) {
       endDate.value = dayjs(undefined);
       selectedShopIds.value = [];
       shopList.value = [];
+      orderList.value = [];
       dateDisabled.value = true;
+      searchDisabled.value = true;
       try{
         let shopCheckbox = <HTMLInputElement> document.querySelectorAll("label[for='form_item_shop']")[0].parentElement?.nextElementSibling?.getElementsByClassName("ant-checkbox-input")[0];
         if(typeof shopCheckbox !== 'undefined') {
@@ -483,6 +512,24 @@ function handleShowSizeChange(current:number, size:number) {
   page.value = current;
   pageSize.value = size;
   loadOrders(1);
+}
+async function handleSyncSkus() {
+  await syncSkus().then(() => {
+    loadOrders();
+  });
+}
+
+async function syncSkus() {
+  isSkuCompareReady.value = false;
+  const params = {
+    clientId: client.value.id,
+    erpStatuses: ['1'],
+  }
+  await compareSku(params).then(() => {
+    isSkuCompareReady.value = true;
+  }).catch(e => {
+    console.error(e);
+  });
 }
 function loadOrders(arg?:number) {
   if(arg === 1) {
@@ -588,7 +635,7 @@ function getShopName(shopId: string) {
 }
 function getCheckboxProps(record: Recordable) {
   // -1 : unavailable, 0 : available, 1 : invoiced, 2 : paid
-  if (['-1','1','2'].indexOf(record.shippingAvailable) > -1 && ['-1', '1', '2'].indexOf(record.purchaseAvailable) > -1) {
+  if ((['-1','1','2'].indexOf(record.shippingAvailable) > -1 && ['-1', '1', '2'].indexOf(record.purchaseAvailable) > -1) || record.hasDesyncedSku === 1) {
     return { disabled: true };
   } else {
     return { disabled: false };
@@ -616,11 +663,11 @@ function getPeriod() {
   }
 }
 function makeManualShippingInvoice() {
-  let period = getPeriod();
+  const period = getPeriod();
   const params = {
     clientID: client.value.id,
     orderIds: getSelectRowKeys(),
-    type: "pre-shipping",
+    type: InvoicingMethod.PRESHIPPING,
     start: period.start,
     end: period.end,
   };
@@ -635,8 +682,8 @@ function makeManualShippingInvoice() {
     .then(res => {
       createMessage.success(t('sys.invoice.success'));
 
-      let filename = res.filename;
-      let code = res.invoiceCode;
+      const filename = res.filename;
+      const code = res.invoiceCode;
       downloadInvoice(code, filename);
       downloadDetailFile(code);
     })
@@ -652,11 +699,11 @@ function makeManualShippingInvoice() {
     });
 }
 function makeManualPurchaseInvoice() {
-  let period = getPeriod();
+  const period = getPeriod();
   const params = {
     clientID: client.value.id,
     orderIds: getSelectRowKeys(),
-    type: "pre-shipping",
+    type: InvoicingMethod.PRESHIPPING,
     start: period.start,
     end: period.end,
   };
@@ -671,8 +718,8 @@ function makeManualPurchaseInvoice() {
     .then(res => {
       createMessage.success("Orders have been invoiced successfully");
 
-      let filename = res.filename;
-      let code = res.invoiceCode;
+      const filename = res.metaData.filename;
+      const code = res.metaData.invoiceCode;
       downloadInvoice(code, filename);
     })
     .catch(e => {
@@ -687,11 +734,11 @@ function makeManualPurchaseInvoice() {
     });
 }
 function makeCompleteManualInvoice() {
-  let period = getPeriod();
+  const period = getPeriod();
   const params = {
     clientID: client.value.id,
     orderIds: getSelectRowKeys(),
-    type: "pre-shipping",
+    type: InvoicingMethod.PRESHIPPING,
     start: period.start,
     end: period.end,
   };
@@ -706,8 +753,8 @@ function makeCompleteManualInvoice() {
     .then(res => {
       createMessage.success("Orders have been invoiced successfully");
 
-      let filename = res.filename;
-      let code = res.invoiceCode;
+      const filename = res.metaData.filename;
+      const code = res.metaData.invoiceCode;
       downloadInvoice(code, filename);
       downloadDetailFile(code);
     })
