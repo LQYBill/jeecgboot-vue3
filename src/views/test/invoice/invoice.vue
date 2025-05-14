@@ -7,11 +7,11 @@
 >
   <a-row>
     <a-col :span="24">
-      <a-form-item v-bind="validateInfos.name" name="input">
+      <a-form-item v-bind="validateInfos.name" name="lines">
         <template #label>
           Number of lines in the invoice
         </template>
-        <a-input-number v-model:value="formState.input"
+        <a-input-number v-model:value="formState.lines"
                         placeholder="Number of lines"
                         allowClear
                         :min="5"
@@ -28,6 +28,23 @@
       </a-button-group>
     </a-col>
   </a-row>
+  <a-row>
+    <a-col :span="24">
+      <a-form-item v-bind="validateInfos.name" name="orderId">
+        <template #label>
+          Number of lines in the invoice
+        </template>
+        <a-input v-model:value="formState.orderId" placeholder="Order ID" allowClear/>
+      </a-form-item>
+    </a-col>
+  </a-row>
+  <a-row>
+    <a-col>
+      <a-button-group>
+        <a-button type="primary" @click="handleEditOrder">Edit order</a-button>
+      </a-button-group>
+    </a-col>
+  </a-row>
 </a-form>
 </PageWrapper>
 </template>
@@ -35,37 +52,42 @@
 import {PageWrapper} from "/@/components/Page"
 import { ref, reactive } from "vue";
 import {Form} from "ant-design-vue";
-import {makePurchaseTest, makeShippingTest, makeCompleteTest} from "./data";
+import {makePurchaseTest, makeShippingTest, makeCompleteTest, editOrderTest} from "./data";
 
 const formRef = ref();
 const useForm = Form.useForm;
 const validatorRules = ref({
-  input: [{ required: true, message: 'Enter a number of lines', trigger: 'blur' }],
+  lines: [{ required: true, message: 'Enter a number of lines', trigger: 'blur' }],
+  orderId: [{ required: true, message: 'Enter an order id', trigger: 'blur' }],
 });
 const formState = reactive<Record<string, string>>({
-  input: '5',
+  lines: '5',
+  orderId: '',
 });
 const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
 async function handleGenerateShipping() {
-  await makeShippingTest((+ formState.input)).then(res => {
+  await makeShippingTest((+ formState.lines)).then(res => {
     console.log("res", res);
   }).catch(e => {
     console.error(e);
   });
 }
 async function handleGeneratePurchase() {
-  await makePurchaseTest((+ formState.input)).then(res => {
+  await makePurchaseTest((+ formState.lines)).then(res => {
     console.log("res", res);
   }).catch(e => {
     console.error(e);
   });
 }
 async function handleGenerateComplete() {
-  await makeCompleteTest((+ formState.input)).then(res => {
+  await makeCompleteTest((+ formState.lines)).then(res => {
     console.log("res", res);
   }).catch(e => {
     console.error(e);
   });
+}
+async function handleEditOrder() {
+  await editOrderTest(formState.orderId);
 }
 </script>
