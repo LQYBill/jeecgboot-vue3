@@ -252,6 +252,7 @@ export default {
     salesLastWeek: 'Sales Last Week',
     salesFourWeeks: 'Sales Four Weeks',
     salesSixWeeks: 'Sales Six Weeks',
+    saleUrl: 'Sale URL',
     sensitiveAttribute: 'Sensitive Attribute',
     serviceFee: 'Service Fee',
     shippingDiscount: 'Shipping Discount',

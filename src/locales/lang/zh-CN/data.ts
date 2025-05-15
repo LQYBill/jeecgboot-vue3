@@ -254,6 +254,7 @@ export default {
     salesLastWeek: '过去7天销量',
     salesFourWeeks: '过去28天销量',
     salesSixWeeks: '过去42天销量',
+    saleUrl: '商品链接',
     sensitiveAttribute: '敏感属性',
     serviceFee: '服务费',
     skuPrice: 'SKU价格',

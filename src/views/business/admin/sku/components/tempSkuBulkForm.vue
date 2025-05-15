@@ -10,7 +10,10 @@
   >
     <a-row v-for="(row, index) in source" :key="index" class="bg-white p-4 rounded-2 shadow mb-4">
       <a-col :span="24">
-        <h2>{{ row.id }}</h2>
+        <div class="flex justify-between items-center mb-4">
+          <p class="text-xl mb-0"><span class="font-semibold">{{ row.id }}</span><span v-if="!!row.specifics" class="text-gray-500"> - {{ row.specifics }}</span></p>
+          <a v-if="!!row.saleUrl" :href="row.saleUrl" target="_blank">{{ t('data.sku.saleUrl') }} <Icon icon="ic:baseline-link"/></a>
+        </div>
         <ImagePreview :imageList="[{src:row.imageSource}]" :size="30"/>
       </a-col>
       <template v-for="(value, fieldName) in row">
@@ -83,6 +86,7 @@ import {JSearchSelect, JSelectMultiple} from "@/components/Form";
 import {ImagePreview} from "@/components/Preview";
 import {numberColumns} from "@/views/business/admin/sku/data";
 import TempSkuCommonForm from "@/views/business/admin/sku/components/tempSkuCommonForm.vue";
+import {Icon} from "@/components/Icon";
 
 const { t } = useI18n();
 
@@ -112,9 +116,7 @@ function initializeForm() {
   source.value = unpairedSkuList.value;
   formState.value = [];
   for(let i = 0; i < source.value.length; i++) {
-    console.log('creating form state for', i);
     for(const key in source.value[i]) {
-      console.log('key', key);
       if (!formState.value[i]) {
         formState.value[i] = {} as Sku;
       }
@@ -147,11 +149,6 @@ async function handleSubmit() {
       if(fieldName === 'id' || fieldName === 'status' || fieldName === 'imageSource' || fieldName === 'supplierLink') {
         continue;
       }
-      console.group('maybe error ?');
-      console.log('field : ' + fieldName + '_' + index);
-      console.log('validatorRules', validatorRules.value[fieldName + '_' + index]);
-      console.log('fieldValue', fieldValue);
-      console.groupEnd();
       if(fieldValue !== null && fieldValue !== '') {
         if (validatorRules.value[fieldName + '_' + index][0].type !== 'number')
           continue;
