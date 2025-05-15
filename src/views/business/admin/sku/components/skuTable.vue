@@ -31,8 +31,10 @@ import {ref, inject, watch, Ref} from "vue";
 import {filterObj} from "@/utils/common/compUtils";
 import SearchForm from "@/views/business/admin/sku/components/searchForm.vue";
 import {getStatusNameByCode, Sku, SkuStatus} from "../../../dto/sku.dto";
+import { useMessage } from "@/hooks/web/useMessage";
 
 const emit = defineEmits(['generate']);
+const { createMessage } = useMessage();
 
 const userCode = inject('userCode', ref('')) as Ref<string>;
 const isAddMore = inject('isAddMore', ref(false)) as Ref<boolean>;
@@ -40,43 +42,21 @@ watch(isAddMore, (_val) => {
    handleAddMore();
 });
 
-const unpairedSkus = ref([]);
+const unpairedSkus = ref<Recordable[]>([]);
 
 const client = ref<string>();
 const shopCode = ref<string>();
+const skuList = ref([]);
 const skuCounter = ref(1);
 
 // table settings
 const tableRef = ref();
-const total = ref(0);
-const currentPage = ref(1);
-const pageSize = ref(50);
-const iSorter = ref({
-  column: 'erpCode',
-  order: 'ASC'
-});
 const checkedKeys = ref<Array<string | number>>([]);
 const selectRows = ref<Array<any>>([]);
-const iPagination = ref({
-  current: currentPage,
-  defaultPageSize: 50,
-  pageSize,
-  pageSizeOptions: ['50', '100', '200', '500'],
-  showTotal: (total:number, range:[number, number]) => {
-    return range[0] + '-' + range[1] + ' / ' + total
-  },
-  showQuickJumper: true,
-  showSizeChanger: true,
-  total,
-  onChange: handlePaginationChange,
-  onShowSizeChange: handleShowSizeChange,
-});
 
 const [registerTable, { getSelectRows, getSelectRowKeys, clearSelectedRowKeys, setLoading}] = useTable({
   title: 'Sku List',
   columns: SkuColumns,
-  defSort: iSorter,
-  pagination: iPagination,
   showTableSetting: true,
   bordered: false,
   striped: true,
@@ -101,59 +81,42 @@ function onSelectChange() {
   checkedKeys.value = getSelectRowKeys();
   selectRows.value = getSelectRows();
 }
-function handlePaginationChange(p:number, pz:number) {
-  currentPage.value = p;
-  pageSize.value = pz;
-  loadSkuList();
-}
-function handleShowSizeChange(current:number, size:number) {
-  currentPage.value = current;
-  pageSize.value = size;
-  loadSkuList(1);
-}
 
 function getQueryParams() {
-  let params = Object.assign(iSorter.value);
-  params.pageNo = currentPage.value;
-  params.pageSize = pageSize.value;
-  params.order = iSorter.value.order;
-  params.column = iSorter.value.column;
-  params.shop = shopCode.value;
+  let params = {
+    skus: skuList.value,
+    shop: shopCode.value,
+  }
   return filterObj(params);
 }
 async function loadSkuList(arg?: number) {
   if(arg === 1) {
-    currentPage.value = 1;
     clearSelectedRowKeys();
   }
   unpairedSkus.value = [];
   const params = getQueryParams();
   setLoading(true);
-  await listUnpairedSkus(params, handleBuildSkuList);
+  await listUnpairedSkus(params, handleBuildSkuList).catch(() => {
+    setLoading(false);
+  });
 }
 
-function handleBuildSkuList(res: Recordable) {
-  unpairedSkus.value = res.records;
-  if(res.records.length === 0)
+function handleBuildSkuList(res: Recordable[]) {
+  unpairedSkus.value = res;
+  if(res.length === 0) {
+    setLoading(false);
+    createMessage.warn('无未配对的SKU, 是否已同步客户订单？');
     return;
-  total.value = res.total;
-  currentPage.value = res.current;
-  pageSize.value = res.size;
-  tableRef.value.setPagination({
-    current: currentPage.value,
-    pageSize: pageSize.value,
-    total: total.value,
-  });
+  }
   setLoading(false);
 }
 
 function handleSearch(data: Recordable) {
   shopCode.value = data.shop;
   client.value = data.client;
+  skuList.value = data.skuNames.split(/\r?\n/).map((item: string) => item.trim()).filter((item: string) => item !== '');
   if(data.shop === undefined) {
     unpairedSkus.value = [];
-    currentPage.value = 1;
-    total.value = 0;
     emit('generate', []);
     return;
   }
@@ -202,6 +165,8 @@ async function generateSkus() {
       supplierLink: row.supplierLink,
       imageSource: row.imageSource,
       labelData: row.labelData,
+      saleUrl: row.saleUrl,
+      specifics: row.specifics,
     } as Sku
   }));
   emit('generate', selectedRows );

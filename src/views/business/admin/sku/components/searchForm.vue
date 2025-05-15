@@ -3,9 +3,8 @@
     <h2>1. Sku search by shop</h2>
     <a-form ref="formRef"
             :model="searchState"
-            :label-col="labelCol"
-            :wrapper-col="wrapperCol"
             :rules="validatorRules"
+            layout="vertical"
     >
       <a-row :gutter=8>
         <a-col :span="10">
@@ -25,6 +24,38 @@
               v-model:value="searchState.shop"
               allowClear
             />
+          </a-form-item>
+        </a-col>
+      </a-row>
+      <a-row :gutter=8>
+        <a-col :span="22">
+          <a-form-item
+            :labelCol="labelCol"
+            :wrapperCol="wrapperCol"
+            v-bind="validateInfos.name"
+            name="skuNames"
+          >
+            <template #label>
+              Sku {{ t('data.sku.enName') }}
+            </template>
+            <a-textarea id="output"
+                        v-model:value="searchState.skuNames"
+                        placeholder="Sku english names"
+                        allowClear
+                        :rows="10"
+            ></a-textarea>
+          </a-form-item>
+        </a-col>
+        <a-col :span="2">
+          <a-form-item>
+
+            <template #label>
+            </template>
+            <a-button preIcon="ic:outline-search"
+                      type="primary"
+                      @click="handleSearch"
+                      :disabled="!searchState.shop"
+            ></a-button>
           </a-form-item>
         </a-col>
       </a-row>
@@ -51,13 +82,15 @@ onMounted(() => {
 
 const useForm = Form.useForm;
 const formRef = ref();
-const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 4 } });
-const wrapperCol = ref<any>({ xs: { span: 24 }, sm: { span: 20 } });
+const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 24 } });
+const wrapperCol = ref<any>({ xs: { span: 24 }, sm: { span: 24 } });
 const validatorRules = ref({
   shop: [{ required: true, message: 'Please select a shop', trigger: 'blur' }],
+  skuNames: [{ required: false }]
 });
 const searchState = reactive<Record<string, string>>({
   shop: '',
+  skuNames: '',
 });
 const { validateInfos } = useForm(searchState, validatorRules, { immediate: false });
 
@@ -96,9 +129,12 @@ function createShopOptions() {
 /** search */
 function handleShopChange(value: string) {
   searchState.shop = value;
+}
+function handleSearch() {
   emit('search', {
     shop: searchState.shop,
-    client: Object.keys(shopMappedByClient.value).find(clientCode => shopMappedByClient.value[clientCode].shops.includes(value)),
+    client: Object.keys(shopMappedByClient.value).find(clientCode => shopMappedByClient.value[clientCode].shops.includes(searchState.shop)),
+    skuNames: searchState.skuNames,
   });
 }
 </script>

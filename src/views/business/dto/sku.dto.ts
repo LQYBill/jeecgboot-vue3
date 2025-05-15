@@ -34,6 +34,8 @@ export interface Sku {
 
   supplier?:string,
   supplierLink?:string,
+  saleUrl?: string,
+  specifics?: string,
   warehouse?: string,
   labelData?: string,
 }

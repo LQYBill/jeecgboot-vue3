@@ -3,7 +3,7 @@
   <div class="flex flex-row flex-nowrap gap-5 sku-builder-div">
   </div>
   <div class="mt-4" ref="tempSkuBulkForm">
-    <tempSkuBulkForm @submit="handleBulkEdit" @error="handleError" @addMore="handleAddMore"/>
+    <TempSkuBulkForm @submit="handleBulkEdit" @error="handleError" @addMore="handleAddMore"/>
   </div>
 </template>
 <script setup lang="ts">
