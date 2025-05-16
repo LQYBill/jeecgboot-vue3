@@ -129,4 +129,40 @@ export default {
     confirmNewPassword: 'Confirm new password',
     pleaseEnterNewPassword: 'Please enter new password',
   },
+  menu: {
+    invoicing :{
+      invoicing: 'Invoicing',
+      invoicingPage: 'Invoicing',
+      skuPurchase: 'Sku Purchase',
+      purchaseOrderManagement: 'Purchase Order Management',
+      invoiceList: 'Invoice List',
+      invoicePreview: 'Invoice Preview',
+      detailsExport: 'Details Export',
+      additionalFee: 'Additional Fee',
+      billableOrdersBreakdown: 'Billable Orders Breakdown',
+    },
+    client: {
+      client: 'Client',
+      expensesOverview: 'Expenses Overview',
+      invoicing: 'Invoicing',
+      ordersManagement: 'Orders Management',
+    },
+    credit: 'Credit',
+    generated: {
+      skuWeight: 'Sku Weight',
+      skuPrice: 'Sku Price',
+      skuDeclaredValue: 'Sku Declared Value',
+    },
+    systemMonitoring: {
+      systemMonitoring: 'System Monitoring',
+      cronJobs: 'Cron Jobs',
+    },
+    systemSettings: {
+      systemSettings: 'System Settings',
+      routes: 'Routes',
+      users: 'Users ',
+      roles: 'Roles',
+      departments: 'Departments',
+    },
+  }
 };

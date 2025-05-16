@@ -49,7 +49,7 @@
         const { tabItem: { meta, fullPath } = {} } = props;
         let title = localeStore.getPathTitle(fullPath);
         if (title) {
-          return title;
+          return t(title);
         }
         return meta && t(meta.title as string);
       });

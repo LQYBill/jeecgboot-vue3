@@ -130,4 +130,40 @@ export default {
     confirmNewPassword: '确认新密码',
     pleaseEnterNewPassword: '请输入新密码',
   },
+  menu: {
+    invoicing :{
+      invoicing: '发票管理',
+      invoicingPage: '开票页面',
+      skuPurchase: 'SKU采购',
+      purchaseOrderManagement: '采购订单管理',
+      invoiceList: '发票下载',
+      invoicePreview: '发票预览',
+      detailsExport: '导出发票明细',
+      additionalFee: '开票附加费用',
+      billableOrdersBreakdown: '未开票订单数据',
+    },
+    client: {
+      client: '客户页面',
+      expensesOverview: '费用概览',
+      invoicing: '开票页面',
+      ordersManagement: '订单管理',
+    },
+    credit: '账户余额',
+    generated: {
+      skuWeight: '批量修改SKU重量',
+      skuPrice: 'SKU售价',
+      skuDeclaredValue: 'SKU申报价格',
+    },
+    systemMonitoring: {
+      systemMonitoring: '系统监控',
+      cronJobs: '定时任务',
+    },
+    systemSettings: {
+      systemSettings: '系统管理',
+      routes: '菜单管理',
+      users: '用户管理 ',
+      roles: '角色管理',
+      departments: '部门管理',
+    },
+  }
 };
