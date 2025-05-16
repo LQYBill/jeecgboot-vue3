@@ -17,7 +17,7 @@
         <ImagePreview :imageList="[{src:row.imageSource}]" :size="30"/>
       </a-col>
       <template v-for="(value, fieldName) in row">
-        <a-col :span="8" class="pr-4" v-if="fieldName !== 'id' && fieldName !== 'status'">
+        <a-col :span="8" class="pr-4" v-if="fieldName !== 'id' && fieldName !== 'status' && fieldName !== 'specifics'">
           <a-form-item
             :labelCol="labelCol"
             :wrapperCol="wrapperCol"
@@ -128,7 +128,7 @@ function initializeForm() {
       else
         formState.value[i][key] = source.value[i][key];
 
-      if(key === 'id' || key === 'status' || key === 'imageSource' || key === 'supplierLink') {
+      if(key === 'id' || key === 'status' || key === 'imageSource' || key === 'supplierLink' || key === 'specifics') {
         validatorRules.value[key + '_' + i] = [{ type: 'string', required: false, trigger: 'blur'}];
         continue;
       }
