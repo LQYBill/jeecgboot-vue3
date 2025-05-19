@@ -146,7 +146,7 @@ async function handleSubmit() {
   for(let index in formState.value) {
     for(let fieldName of fieldNames) {
       const fieldValue = formState.value[index][fieldName];
-      if(fieldName === 'id' || fieldName === 'status' || fieldName === 'imageSource' || fieldName === 'supplierLink') {
+      if(fieldName === 'id' || fieldName === 'status' || fieldName === 'imageSource' || fieldName === 'supplierLink' || fieldName === 'specifics') {
         continue;
       }
       if(fieldValue !== null && fieldValue !== '') {
