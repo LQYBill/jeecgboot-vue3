@@ -29,7 +29,7 @@
         <h1>{{ fullName }} <span style="font-weight: 200">( {{ invoiceEntity }} )</span></h1>
         <p>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ currencySymbol }}</p>
       </a-card>
-      <a-tabs defaultActiveKey="1" style="margin: 10px" v-if="client">
+      <a-tabs defaultActiveKey="1" v-model:activeKey="activeTab" style="margin: 10px" v-if="client">
         <a-tab-pane tab="EUR" key="1">
           <BasicTable @register="registerTable">
             <template #tableTitle>
@@ -108,19 +108,48 @@
               <span v-if="record.type == 'Credit'" class="positive-balance">
                 +{{ record.amount }}
               </span>
-              <span v-else>
-                - {{ record.amount }}
-              </span>
+              <template v-else>
+                <span v-if="record.createTime == 'Estimation' && estimationLoading">
+                  <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
+                </span>
+                  <span v-else>
+                  - {{ record.amount }}
+                </span>
+              </template>
             </template>
             <template #shippingFee="{ record }">
-              <span v-if="!!record.shippingFee">
+              <template v-if="record.createTime == 'Estimation' && estimationLoading">
+                <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
+              </template>
+              <template v-else-if="!!record.shippingFee">
                 - {{ record.shippingFee }}
-              </span>
+              </template>
             </template>
             <template #purchaseFee="{ record }">
-              <span v-if="!!record.purchaseFee">
+              <template v-if="record.createTime == 'Estimation' && estimationLoading">
+                <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
+              </template>
+              <template v-else-if="!!record.purchaseFee">
                 - {{ record.purchaseFee }}
-              </span>
+              </template>
+            </template>
+            <template #action="{ record }">
+              <!-- TODO maybe disable if invoice not created by user -->
+              <template v-if="record.createTime !== 'Estimation' && record.type !== 'Credit'">
+                <TableAction
+                  :actions="[
+                    {
+                      label: t('common.operation.cancel'),
+                      icon: 'ic:outline-delete-outline',
+                      popConfirm: {
+                        title: t('common.operation.cancelConfirmation'),
+                        confirm: handleDelete.bind(null, record),
+                      },
+                      disabled: false,
+                    },
+                  ]"
+                />
+              </template>
             </template>
           </BasicTable>
         </a-tab-pane>
@@ -202,19 +231,30 @@
               <span v-if="record.type == 'Credit'" class="positive-balance">
                 +{{ record.amount }}
               </span>
-              <span v-else>
-          -{{ record.amount }}
-        </span>
+              <template v-else>
+                <span v-if="record.createTime == 'Estimation' && estimationLoading">
+                  <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
+                </span>
+                <span v-else>
+                  - {{ record.amount }}
+                </span>
+              </template>
             </template>
             <template #shippingFee="{ record }">
-        <span v-if="!!record.shippingFee">
-          -{{ record.shippingFee }}
-        </span>
+              <template v-if="record.createTime == 'Estimation' && estimationLoading">
+                <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
+              </template>
+              <template v-else-if="!!record.shippingFee">
+                - {{ record.shippingFee }}
+              </template>
             </template>
             <template #purchaseFee="{ record }">
-        <span v-if="!!record.purchaseFee">
-          -{{ record.purchaseFee }}
-        </span>
+              <template v-if="record.createTime == 'Estimation' && estimationLoading">
+                <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
+              </template>
+              <template v-else-if="!!record.purchaseFee">
+                - {{ record.purchaseFee }}
+              </template>
             </template>
             <template #imgs="{ text }">
               <TableImg
@@ -229,12 +269,12 @@
     </a-card>
   </PageWrapper>
 </template>
-<script lang="ts">
+<script lang="ts" setup>
 
-import {defineComponent, onBeforeMount, onUnmounted, reactive, ref} from "vue";
+import {onBeforeMount, onUnmounted, reactive, ref} from "vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
-import {TableImg, useTable} from "/@/components/Table";
-import { PageWrapper } from '/@/components/Page';
+import {TableAction, TableImg, useTable} from "/@/components/Table";
+import {PageWrapper} from '/@/components/Page';
 import {PopConfirmButton} from "/@/components/Button";
 import {Form, Tag} from "ant-design-vue";
 import {getColumns} from "/@/views/business/client/overview/data";
@@ -248,476 +288,467 @@ import dayjs from "dayjs";
 import {downloadFile} from "/@/api/common/api";
 import {useGlobSetting} from "/@/hooks/setting";
 import {useRouter} from 'vue-router';
+import {Currency} from "@/views/business/dto/currency.dto";
+import {Loading} from "@/components/Loading";
+import {SizeEnum} from "@/enums/sizeEnum";
 
-export default defineComponent({
-  methods: {dayjs},
-  components: {
-    JSearchSelect,
-    TableImg, Tag, PopConfirmButton, PageWrapper, BasicTable
+import { Api } from "../client.api";
+
+const { t } = useI18n();
+const { createMessage } = useMessage();
+const globSetting = useGlobSetting();
+const baseUploadUrl = globSetting.uploadUrl;
+const uploadUrl = `${baseUploadUrl}/sys/common/static/`;
+const {resolve}=useRouter();
+const ac = new AbortController();
+const {signal} = ac;
+
+const internalUse = ref<boolean>(false);
+
+const debitColor = "#EAE5FF";
+const creditColor = "#E6F6EF";
+const estimationColor = "#F0F5FF";
+
+onBeforeMount(()=> {
+  checkUser();
+});
+onUnmounted(() => {
+  ac.abort(t('sys.api.abortController.onUnmount'));
+})
+// Form config
+const useForm = Form.useForm;
+const formRef = ref();
+const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 2 } });
+const wrapperCol = ref<any>({ xs: { span: 24 }, sm: { span: 12 } });
+const validatorRules = ref({
+  customer: [{ required: true, message: t('component.searchForm.clientInputSearch'), trigger: 'blur' }],
+});
+const formState = reactive<Record<string, any>>({
+  customer: '',
+});
+const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
+
+const customerList = ref<Record<string, string | number>[]>([]);
+const customerSelectList = ref<any[]>([]);
+const customerListDisabled = ref<boolean>(false);
+
+const client = ref<Record<string, string | number>>();
+const currency = ref<string>();
+const fullName = ref<string>();
+const invoiceEntity = ref<string>();
+const currencySymbol = ref<string>();
+const balanceEur = ref(0);
+const balanceUsd = ref(0);
+const estimatedBalanceEur = ref(0);
+const estimatedBalanceUsd = ref(0);
+
+const invoiceDisabled = ref<boolean>(true);
+const invoiceLoading = ref<boolean>(false);
+const completeInvoiceDisabled = ref<boolean>(true);
+const completeInvoiceLoading = ref<boolean>(false);
+
+const activeTab = ref('1');
+const eurTableLoading = ref<boolean>(true);
+const usdTableLoading = ref<boolean>(true);
+const estimationLoading = ref<boolean>(true);
+
+const transactionsEur = ref<any[]>([]);
+const transactionsUsd = ref<any[]>([]);
+const debit = ref();
+const shopIds = ref<any[]>([]);
+const startDate = ref();
+const endDate = ref();
+
+const ipagination = reactive({
+  current: 1,
+  pageSize: 100,
+  pageSizeOptions: ['50', '100'],
+  showQuickJumper: true,
+  showSizeChanger: true,
+  total: 0,
+  showTotal: (total:number, range: number[]) => {
+    return range[0] + '-' + range[1] + ' of ' + total + ' items';
   },
-  setup() {
-    const { t } = useI18n();
-    const { createMessage } = useMessage();
-    const globSetting = useGlobSetting();
-    const baseUploadUrl = globSetting.uploadUrl;
-    const uploadUrl = `${baseUploadUrl}/sys/common/static/`;
-    const {resolve}=useRouter();
-    const ac = new AbortController();
-    const {signal} = ac;
-
-    const internalUse = ref<boolean>(false);
-
-    const debitColor = "#EAE5FF";
-    const creditColor = "#E6F6EF";
-    const estimationColor = "#F0F5FF";
-
-    onBeforeMount(()=> {
-      checkUser();
-    });
-    onUnmounted(() => {
-      ac.abort(t('sys.api.abortController.onUnmount'));
-    })
-    // Form config
-    const useForm = Form.useForm;
-    const formRef = ref();
-    const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 2 } });
-    const wrapperCol = ref<any>({ xs: { span: 24 }, sm: { span: 12 } });
-    const validatorRules = ref({
-      customer: [{ required: true, message: t('component.searchForm.clientInputSearch'), trigger: 'blur' }],
-    });
-    const formState = reactive<Record<string, any>>({
-      customer: '',
-    });
-    const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
-
-    const Api = {
-      getClient: '/userClient/getClient',
-      getBalance: '/balance/getBalanceByClientIdAndCurrency',
-      list: '/transaction/listByClientAndCurrency',
-      debit: '/transaction/debit',
-      purchase: '/transaction/purchase',
-      makeShippingInvoice: '/shippingInvoice/make',
-      makeCompleteShippingInvoice: '/shippingInvoice/makeComplete',
-      downloadInvoice: '/shippingInvoice/download',
-      downloadInvoiceDetail: '/shippingInvoice/downloadInvoiceDetail',
-    };
-    const customerList = ref<any[]>([]);
-    const customerSelectList = ref<any[]>([]);
-    const customerListDisabled = ref<boolean>(false);
-
-    const imgHost = "http://localhost:8080";
-    const imgPath = "/jeecg-boot/sys/common/static/";
-    const client = ref();
-    const currency = ref();
-    const fullName = ref();
-    const invoiceEntity = ref();
-    const currencySymbol = ref();
-    const balanceEur = ref(0);
-    const balanceUsd = ref(0);
-    const estimatedBalanceEur = ref(0);
-    const estimatedBalanceUsd = ref(0);
-
-    const invoiceDisabled = ref<boolean>(true);
-    const invoiceLoading = ref<boolean>(false);
-    const completeInvoiceDisabled = ref<boolean>(true);
-    const completeInvoiceLoading = ref<boolean>(false);
-
-    const eurTableLoading = ref<boolean>(true);
-    const usdTableLoading = ref<boolean>(true);
-
-    const transactionsEur = ref<any[]>([]);
-    const transactionsUsd = ref<any[]>([]);
-    const debit = ref();
-    const shopIds = ref<any[]>([]);
-    const startDate = ref();
-    const endDate = ref();
-
-    const ipagination = reactive({
-      current: 1,
-      pageSize: 100,
-      pageSizeOptions: ['50', '100'],
-      showQuickJumper: true,
-      showSizeChanger: true,
-      total: 0,
-      showTotal: (total, range) => {
-        return range[0] + '-' + range[1] + ' of ' + total + ' items';
-      },
-    });
-    const usdIpagination = reactive({
-      current: 1,
-      pageSize: 100,
-      pageSizeOptions: ['50', '100'],
-      showQuickJumper: true,
-      showSizeChanger: true,
-      total: 0,
-      showTotal: (total, range) => {
-        return range[0] + '-' + range[1] + ' of ' + total + ' items';
-      },
-    });
-    const [registerTable] = useTable({
-      dataSource: transactionsEur,
-      columns: getColumns(),
-      pagination: ipagination,
-      bordered: false,
-      striped: true,
-      showIndexColumn: false,
-      indexColumnProps: {
-        width: 60,
-        title: "#"
-      },
-      rowKey: 'id',
-      loading: eurTableLoading,
-      scroll: {y: false},
-    });
-    const [registerUSDTable] = useTable({
-      dataSource: transactionsUsd,
-      columns: getColumns(),
-      pagination: usdIpagination,
-      bordered: false,
-      striped: true,
-      showIndexColumn: false,
-      indexColumnProps: {
-        width: 60,
-        title: "#"
-      },
-      rowKey: 'id',
-      loading: usdTableLoading,
-      scroll: {y: false},
-    });
-    async function checkUser() {
-      defHttp.get({url: Api.getClient})
-        .then(res => {
-          if(res.internal) {
-            customerList.value = res.internal;
-            customerSelectList.value = res.internal.map(
-              client => ({
-                text: `${client.firstName} ${client.surname} (${client.internalCode})`,
-                value: client.id,
-              })
-            );
-            internalUse.value = true;
-          }
-          else {
-            loadClient(res.client);
-          }
-        })
-        .catch(e => {
-          console.error(e);
-        })
-    }
-    function handleClientChange(id: any) {
-      if(!!client.value && client.value.length > 0) {
-        ac.abort(t('sys.api.abortController.userCancel'));
+});
+const usdIpagination = reactive({
+  current: 1,
+  pageSize: 100,
+  pageSizeOptions: ['50', '100'],
+  showQuickJumper: true,
+  showSizeChanger: true,
+  total: 0,
+  showTotal: (total: number, range: number[]) => {
+    return range[0] + '-' + range[1] + ' of ' + total + ' items';
+  },
+});
+const [registerTable, { reload: reloadEurTable}] = useTable({
+  dataSource: transactionsEur,
+  columns: getColumns(),
+  pagination: ipagination,
+  bordered: false,
+  striped: true,
+  showIndexColumn: false,
+  indexColumnProps: {
+    width: 60,
+    title: "#"
+  },
+  rowKey: 'id',
+  loading: eurTableLoading,
+  scroll: {y: false},
+});
+const [registerUSDTable, {reload: reloadUsdTable}] = useTable({
+  dataSource: transactionsUsd,
+  columns: getColumns(),
+  pagination: usdIpagination,
+  bordered: false,
+  striped: true,
+  showIndexColumn: false,
+  indexColumnProps: {
+    width: 60,
+    title: "#"
+  },
+  rowKey: 'id',
+  loading: usdTableLoading,
+  scroll: {y: false},
+});
+async function checkUser() {
+  defHttp.get({url: Api.getClient})
+    .then(res => {
+      if(res.internal) {
+        customerList.value = res.internal;
+        customerSelectList.value = res.internal.map(
+          (client: Recordable) => ({
+            text: `${client.firstName} ${client.surname} (${client.internalCode})`,
+            value: client.id,
+          })
+        );
+        internalUse.value = true;
       }
-      client.value = [];
+      else {
+        loadClient(res.client);
+      }
+    })
+    .catch(e => {
+      console.error(e);
+    })
+}
+function handleClientChange(id: any) {
+  if(!!client.value && client.value.length > 0) {
+    ac.abort(t('sys.api.abortController.userCancel'));
+  }
+  client.value = {};
+  shopIds.value = [];
+  startDate.value = '';
+  endDate.value = '';
+  currency.value = '';
+  currencySymbol.value = '';
+  fullName.value = '';
+  balanceEur.value = 0;
+  balanceUsd.value = 0;
+  estimatedBalanceEur.value = 0;
+  estimatedBalanceUsd.value = 0;
+  invoiceEntity.value = '';
+  transactionsEur.value = [];
+  transactionsUsd.value = [];
+  debit.value = [];
+  eurTableLoading.value = true;
+  usdTableLoading.value = true;
+  invoiceDisabled.value = true;
+  invoiceLoading.value = false;
+  completeInvoiceDisabled.value = true;
+  completeInvoiceLoading.value = false;
+  if(id) {
+    let index = customerList.value.map(i => i.id).indexOf(id);
+    loadClient(customerList.value[index]);
+  }
+}
+function loadClient(clientParam: Record<string, string | number>) {
+  client.value = clientParam;
+  client.value["category"] = client.value.clientCategoryId;
+  delete client.value['clientCategoryId'];
+  currency.value = client.value.currency as string;
+  fullName.value = `${client.value.firstName} ${client.value.surname}`
+  invoiceEntity.value = client.value.invoiceEntity as string;
+  if(currency.value === 'EUR') {
+    currencySymbol.value = "€";
+  }
+  if(currency.value === 'USD') {
+    currencySymbol.value = "$";
+  }
+  if(currency.value === 'RMB') {
+    currencySymbol.value = "¥";
+  }
+  if(client.value.category != 'self-service')
+    loadBalance();
+  loadTransactions("EUR");
+}
+function loadBalance() {
+  defHttp.get({url: Api.getBalance, params: {clientId: client.value?.id, currency: "EUR"}, signal: signal})
+    .then(res => {
+      balanceEur.value = res;
+    })
+    .catch(e => {
+      if(signal.aborted) {
+        const {reason} = signal;
+        console.warn(`Http request aborted : ${reason}`);
+        createMessage.warn(reason);
+      }
+      else {
+        console.error(e);
+      }
+    })
+  defHttp.get({url: Api.getBalance, params: {clientId: client.value?.id, currency: "USD"}, signal: signal})
+    .then(res => {
+      balanceUsd.value = res;
+    })
+    .catch(e => {
+      if(signal.aborted) {
+        const {reason} = signal;
+        console.warn(`Http request aborted : ${reason}`);
+        createMessage.warn(reason);
+      }
+      else {
+        console.error(e);
+      }
+    })
+}
+function loadTransactions(currency: Currency) {
+  const params = {
+    clientId: client.value?.id,
+    currency: currency
+  }
+  defHttp.get({ url: Api.listTransactions, params, signal: signal })
+    .then(res => {
+      //TODO : add condition client type 1,2,3
+      if(currency === "EUR") {
+        transactionsEur.value = res;
+        loadTransactions("USD");
+      }
+      else {
+        transactionsUsd.value = res;
+        if(client.value?.category != 'self-service')
+          loadDebit(client.value?.currency as Currency);
+        else {
+          colorizeRows();
+        }
+      }
+    })
+    .catch(e => {
+      if(signal.aborted) {
+        const {reason} = signal;
+        console.warn(`Http request aborted : ${reason}`);
+        createMessage.warn(reason);
+      }
+      else {
+        console.error(e);
+      }
+    });
+}
+function loadDebit(currency: Currency) {
+  estimationLoading.value = true;
+  debit.value = {
+    id: '0',
+    createTime: 'Estimation',
+    type: 'Debit',
+    clientId: `${client.value?.id}`,
+    paymentProofString: '',
+    invoiceNumber: '',
+    shippingFee: 0,
+    purchaseFee: 0,
+    amount: 0,
+    currency: currency
+  }
+  if(currency === "EUR") {
+    transactionsEur.value.unshift(debit.value);
+  } else {
+    transactionsUsd.value.unshift(debit.value);
+  }
+  colorizeRows();
+  defHttp.get({url: Api.debit, params: { clientId: client.value?.id, currency: currency }, signal: signal})
+    .then(res => {
+      debit.value = {
+        id: '0',
+        createTime: 'Estimation',
+        type: 'Debit',
+        clientId: `${client.value?.id}`,
+        paymentProofString: '',
+        invoiceNumber: '',
+        shippingFee: res.shippingFeesEstimation,
+        purchaseFee: res.purchaseEstimation,
+        amount: res.totalEstimation,
+        currency: currency
+      };
+      // ajout de la ligne de début au début du tableau
+      if(currency === "EUR") {
+        transactionsEur.value[0] = debit.value;
+        estimatedBalanceEur.value = balanceEur.value - debit.value.amount;
+        estimatedBalanceUsd.value = balanceUsd.value;
+      }
+      else {
+        transactionsUsd.value[0] = debit.value;
+        estimatedBalanceUsd.value = balanceUsd.value - debit.value.amount;
+        estimatedBalanceEur.value = balanceUsd.value;
+      }
+      estimatedBalanceEur.value = Number(estimatedBalanceEur.value.toFixed(2));
+      estimatedBalanceUsd.value = Number(estimatedBalanceUsd.value.toFixed(2));
+
+      shopIds.value = res.shopIds;
+      startDate.value = res.startDate;
+      endDate.value = res.endDate;
+      invoiceDisabled.value = false;
+      completeInvoiceDisabled.value = !res.isCompleteInvoiceReady;
+    })
+    .catch(e=> {
+      if(signal.aborted) {
+        const {reason} = signal;
+        console.warn(`Http request aborted : ${reason}`);
+        createMessage.warn(reason);
+      }
+      else {
+        console.error(e);
+      }
+    })
+    .finally(() => {
+      estimationLoading.value = false;
+      colorizeRows();
+    });
+}
+function makeInvoice() {
+  invoiceDisabled.value = true;
+  invoiceLoading.value = true;
+  let start = startDate.value.slice(0, -9);
+  let end = endDate.value.slice(0, -9);
+  end = dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
+  let params = {
+    clientID: client.value?.id,
+    shopIDs: shopIds.value,
+    type: "pre-shipping",
+    start: start,
+    end : end,
+    erpStatuses : ['1', '2'],
+    warehouses: ['0', '1']
+  }
+  defHttp.post({url: Api.makeShippingInvoice, params })
+    .then(res => {
+      let invoiceFilename = res.filename;
+      let invoiceNumber = res.invoiceCode;
+      downloadInvoice(invoiceFilename);
+      downloadDetailFile(invoiceNumber);
+      invoiceLoading.value = false;
       shopIds.value = [];
       startDate.value = '';
       endDate.value = '';
-      currency.value = '';
-      currencySymbol.value = '';
-      fullName.value = '';
-      balanceEur.value = 0;
-      balanceUsd.value = 0;
-      estimatedBalanceEur.value = 0;
-      estimatedBalanceUsd.value = 0;
-      invoiceEntity.value = '';
-      transactionsEur.value = [];
-      transactionsUsd.value = [];
-      debit.value = [];
-      eurTableLoading.value = true;
-      usdTableLoading.value = true;
-      invoiceDisabled.value = true;
-      invoiceLoading.value = false;
-      completeInvoiceDisabled.value = true;
-      completeInvoiceLoading.value = false;
-      if(id) {
-        let index = customerList.value.map(i => i.id).indexOf(id);
-        loadClient(customerList.value[index]);
-      }
-    }
-    function loadClient(clientParam: any) {
-      client.value = clientParam;
-      client.value["category"] = client.value.clientCategoryId;
-      delete client.value['clientCategoryId'];
-      currency.value = client.value.currency;
-      fullName.value = `${client.value.firstName} ${client.value.surname}`
-      invoiceEntity.value = client.value.invoiceEntity;
-      if(currency.value === 'EUR') {
-        currencySymbol.value = "€";
-      }
-      if(currency.value === 'USD') {
-        currencySymbol.value = "$";
-      }
-      if(currency.value === 'RMB') {
-        currencySymbol.value = "¥";
-      }
-      if(client.value.category != 'self-service')
-        loadBalance();
       loadTransactions("EUR");
-    }
-    function loadBalance() {
-      defHttp.get({url: Api.getBalance, params: {clientId: client.value.id, currency: "EUR"}, signal: signal})
-        .then(res => {
-          balanceEur.value = res;
-        })
-        .catch(e => {
-          if(signal.aborted) {
-            const {reason} = signal;
-            console.warn(`Http request aborted : ${reason}`);
-            createMessage.warn(reason);
-          }
-          else {
-            console.error(e);
-          }
-        })
-      defHttp.get({url: Api.getBalance, params: {clientId: client.value.id, currency: "USD"}, signal: signal})
-        .then(res => {
-          balanceUsd.value = res;
-        })
-        .catch(e => {
-          if(signal.aborted) {
-            const {reason} = signal;
-            console.warn(`Http request aborted : ${reason}`);
-            createMessage.warn(reason);
-          }
-          else {
-            console.error(e);
-          }
-        })
-    }
-    // TODO : implémenter l'affichage des factures d'achat manuels
-    function loadTransactions(currency) {
-      const params = {
-        clientId: client.value.id,
-        currency: currency
-      }
-      defHttp.get({ url: Api.list, params, signal: signal })
-        .then(res => {
-          //TODO : add condition client type 1,2,3
-          if(currency === "EUR") {
-            transactionsEur.value = res;
-            loadTransactions("USD");
-          }
-          else {
-            transactionsUsd.value = res;
-            if(client.value.category != 'self-service')
-              loadDebit(client.value.currency);
-            else {
-              colorizeRows();
-            }
-          }
-        })
-        .catch(e => {
-          if(signal.aborted) {
-            const {reason} = signal;
-            console.warn(`Http request aborted : ${reason}`);
-            createMessage.warn(reason);
-          }
-          else {
-            console.error(e);
-          }
-        });
-    }
-    function loadDebit(currency) {
-      defHttp.get({url: Api.debit, params: { clientId: client.value.id, currency: currency }, signal: signal})
-        .then(res => {
-          debit.value = {
-            id: '0',
-            createTime: 'Estimation',
-            type: 'Debit',
-            clientId: `${client.value.id}`,
-            paymentProofString: '',
-            invoiceNumber: '',
-            shippingFee: res.shippingFeesEstimation,
-            purchaseFee: res.purchaseEstimation,
-            amount: res.totalEstimation,
-            currency: currency
-          };
-          // ajout de la ligne de début au début du tableau
-          if(currency === "EUR") {
-            transactionsEur.value.unshift(debit.value);
-            estimatedBalanceEur.value = balanceEur.value - debit.value.amount;
-            estimatedBalanceUsd.value = balanceUsd.value;
-          }
-          else {
-            transactionsUsd.value.unshift(debit.value);
-            estimatedBalanceUsd.value = balanceUsd.value - debit.value.amount;
-            estimatedBalanceEur.value = balanceUsd.value;
-          }
-          estimatedBalanceEur.value = Number(estimatedBalanceEur.value.toFixed(2));
-          estimatedBalanceUsd.value = Number(estimatedBalanceUsd.value.toFixed(2));
+    })
+    .catch(e => {
+      console.error(e);
+    });
+}
+function makeCompleteInvoice() {let start = startDate.value.slice(0, -9);
+  completeInvoiceLoading.value = true;
+  completeInvoiceDisabled.value = true;
 
-          shopIds.value = res.shopIds;
-          startDate.value = res.startDate;
-          endDate.value = res.endDate;
-          invoiceDisabled.value = false;
-          completeInvoiceDisabled.value = !res.isCompleteInvoiceReady;
-        })
-        .catch(e=> {
-          if(signal.aborted) {
-            const {reason} = signal;
-            console.warn(`Http request aborted : ${reason}`);
-            createMessage.warn(reason);
-          }
-          else {
-            console.error(e);
-          }
-        })
-        .finally(() => {
-          colorizeRows();
-        });
+  let end = endDate.value.slice(0, -9);
+  end = dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
+  let params = {
+    clientID: client.value?.id,
+    shopIDs: shopIds.value,
+    type: "pre-shipping",
+    start: start,
+    end : end,
+    erpStatuses : ['1', '2'],
+    warehouses: ['0', '1']
+  }
+  defHttp.post({url: Api.makeCompleteShippingInvoice, params})
+    .then(res => {
+      let invoiceFilename = res.filename;
+      let invoiceNumber = res.invoiceCode;
+      downloadInvoice(invoiceFilename);
+      downloadDetailFile(invoiceNumber);
+      completeInvoiceLoading.value = false;
+      shopIds.value = [];
+      startDate.value = '';
+      endDate.value = '';
+      loadTransactions("EUR");
+    })
+    .catch(e => {
+      console.error(e);
+    })
+}
+function downloadInvoice(invoiceFilename) {
+  const param = {filename: invoiceFilename};
+  downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
+    createMessage.info("Download successful.")
+  }).catch(e => {
+    console.error(`Download invoice fail : ${e}`);
+  });
+}
+function downloadDetailFile(invoiceNumber) {
+  const param =
+    {
+      invoiceNumber: invoiceNumber,
+      invoiceEntity: client.value?.invoiceEntity,
+      internalCode: client.value?.internalCode
     }
-    function makeInvoice() {
-      invoiceDisabled.value = true;
-      invoiceLoading.value = true;
-      let start = startDate.value.slice(0, -9);
-      let end = endDate.value.slice(0, -9);
-      end = dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
-      let params = {
-        clientID: client.value.id,
-        shopIDs: shopIds.value,
-        type: "pre-shipping",
-        start: start,
-        end : end,
-        erpStatuses : ['1', '2'],
-        warehouses: ['0', '1']
-      }
-      defHttp.post({url: Api.makeShippingInvoice, params })
-        .then(res => {
-          let invoiceFilename = res.filename;
-          let invoiceNumber = res.invoiceCode;
-          downloadInvoice(invoiceFilename);
-          downloadDetailFile(invoiceNumber);
-          invoiceLoading.value = false;
-          shopIds.value = [];
-          startDate.value = '';
-          endDate.value = '';
-          loadTransactions("EUR");
-        })
-        .catch(e => {
-          console.error(e);
-        });
-    }
-    function makeCompleteInvoice() {let start = startDate.value.slice(0, -9);
-      completeInvoiceLoading.value = true;
-      completeInvoiceDisabled.value = true;
+  let now = dayjs().format("YYYYMMDD");
+  let detailFilename = client.value?.internalCode + "_(" + client.value?.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
+  downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {
+    createMessage.info("Download successful.")
+  }).catch(e => {
+    console.error(`Download invoice detail fail : ${e}`);
+  });
+}
+function openInvoice(record) {
+  const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
+  window.open(invoicePreviewRoute.href, '_blank');
+}
 
-      let end = endDate.value.slice(0, -9);
-      end = dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
-      let params = {
-        clientID: client.value.id,
-        shopIDs: shopIds.value,
-        type: "pre-shipping",
-        start: start,
-        end : end,
-        erpStatuses : ['1', '2'],
-        warehouses: ['0', '1']
+/**
+ * colorize debit and credit rows for better visibility
+ */
+function colorizeRows() {
+  let rows = Array.from(document.getElementsByClassName('ant-table-row-level-0') as HTMLCollectionOf<HTMLElement>);
+  [].forEach.call(rows, function(row: HTMLElement) {
+    let children = Array.from(row.children as HTMLCollectionOf<HTMLElement>);
+    if(children[0].textContent == 'Estimation') {
+      for(let cell of children) {
+        cell.style.backgroundColor = estimationColor;
       }
-      defHttp.post({url: Api.makeCompleteShippingInvoice, params})
-        .then(res => {
-          let invoiceFilename = res.filename;
-          let invoiceNumber = res.invoiceCode;
-          downloadInvoice(invoiceFilename);
-          downloadDetailFile(invoiceNumber);
-          completeInvoiceLoading.value = false;
-          shopIds.value = [];
-          startDate.value = '';
-          endDate.value = '';
-          loadTransactions("EUR");
-        })
-        .catch(e => {
-          console.error(e);
-        })
     }
-    function downloadInvoice(invoiceFilename) {
-      const param = {filename: invoiceFilename};
-      downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
-        createMessage.info("Download successful.")
-      }).catch(e => {
-        console.error(`Download invoice fail : ${e}`);
-      });
+    if(children[1].textContent == 'Debit') {
+      children[0].style.borderLeftStyle = "solid";
+      children[0].style.borderLeftColor = debitColor;
+      children[0].style.borderLeftWidth = "5px";
     }
-    function downloadDetailFile(invoiceNumber) {
-      const param =
-        {
-          invoiceNumber: invoiceNumber,
-          invoiceEntity: client.value.invoiceEntity,
-          internalCode: client.value.internalCode
-        }
-      let now = dayjs().format("YYYYMMDD");
-      let detailFilename = client.value.internalCode + "_(" + client.value.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
-      downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {
-        createMessage.info("Download successful.")
-      }).catch(e => {
-        console.error(`Download invoice detail fail : ${e}`);
-      });
+    if(children[1].textContent == 'Credit') {
+      children[0].style.borderLeftStyle = "solid";
+      children[0].style.borderLeftColor = creditColor;
+      children[0].style.borderLeftWidth = "5px";
     }
-    function openInvoice(record) {
-      const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
-      window.open(invoicePreviewRoute.href, '_blank');
-    }
+  });
+  eurTableLoading.value = false;
+  usdTableLoading.value = false;
+}
+function handleDelete(record: Recordable) {
+  if(activeTab.value === '1')
+    eurTableLoading.value = true;
+  else
+    usdTableLoading.value = true;
+  defHttp.delete({ url: Api.cancelInvoice, data: { id: record.id, invoiceNumber: record.invoiceNumber, clientId: record.clientId } }, { joinParamsToUrl: true }).then(()=> {
 
-    /**
-     * colorize debit and credit rows for better visibility
-     */
-    function colorizeRows() {
-      let rows = Array.from(document.getElementsByClassName('ant-table-row-level-0') as HTMLCollectionOf<HTMLElement>);
-      [].forEach.call(rows, function(row: HTMLElement) {
-        let children = Array.from(row.children as HTMLCollectionOf<HTMLElement>);
-        if(children[0].textContent == 'Estimation') {
-          for(let cell of children) {
-            cell.style.backgroundColor = estimationColor;
-          }
-        }
-        if(children[1].textContent == 'Debit') {
-          children[0].style.borderLeftStyle = "solid";
-          children[0].style.borderLeftColor = debitColor;
-          children[0].style.borderLeftWidth = "5px";
-        }
-        if(children[1].textContent == 'Credit') {
-          children[0].style.borderLeftStyle = "solid";
-          children[0].style.borderLeftColor = creditColor;
-          children[0].style.borderLeftWidth = "5px";
-        }
-      });
+  }).catch(e =>{
+    console.error(e);
+  }).finally(() => {
+    if(activeTab.value === '1') {
+      reloadEurTable();
       eurTableLoading.value = false;
+    }
+    else {
+      reloadUsdTable();
       usdTableLoading.value = false;
     }
-    return {
-      handleClientChange,
-      registerTable,
-      registerUSDTable,
-      makeInvoice,
-      makeCompleteInvoice,
-      openInvoice,
-      t,
-      createMessage,
-      internalUse,
-      formRef,
-      labelCol,
-      wrapperCol,
-      validatorRules,
-      formState,
-      validateInfos,
-      invoiceDisabled,
-      invoiceLoading,
-      completeInvoiceDisabled,
-      completeInvoiceLoading,
-      customerSelectList,
-      customerListDisabled,
-      uploadUrl,
-      client,
-      fullName,
-      invoiceEntity,
-      currency,
-      currencySymbol,
-      balanceEur,
-      balanceUsd,
-      estimatedBalanceEur,
-      estimatedBalanceUsd,
-    }
-  }
-})
+  });
+}
 </script>
 
 <style lang="less">

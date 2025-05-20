@@ -1,5 +1,6 @@
 export enum Api {
   getClient = '/userClient/getClient',
+  getBalance= '/balance/getBalanceByClientIdAndCurrency',
   getShops = '/shippingInvoice/shopsByClient',
   getOrdersByShop = '/business/platformOrder/ordersByShop',
   postOrders = '/business/platformOrder/orderManagement',
@@ -10,9 +11,15 @@ export enum Api {
   makeManualShippingInvoice = "/shippingInvoice/makeManualInvoice",
   makeManualPurchaseInvoice = "/shippingInvoice/makeManualPurchaseInvoice",
   makeCompleteManualInvoice = "/shippingInvoice/makeManualComplete",
+  makeShippingInvoice= '/shippingInvoice/make',
+  makeCompleteShippingInvoice= '/shippingInvoice/makeComplete',
   downloadInvoice = "/shippingInvoice/download",
   downloadPdf = "/generated/shippingInvoice/downloadPdf",
   downloadInvoiceDetail = "/shippingInvoice/downloadInvoiceDetail",
   getValidOrderTimePeriod = "/shippingInvoice/preShipping/orderTime",
   getOrderContent = "/business/platformOrder/queryPlatformOrderContentByMainId",
+  listTransactions= '/transaction/listByClientAndCurrency',
+  debit= '/transaction/debit',
+  purchase= '/transaction/purchase',
+  cancelInvoice = '/invoice/cancelInvoice',
 }

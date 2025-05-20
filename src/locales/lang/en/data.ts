@@ -291,6 +291,7 @@ export default {
     preShippingInvoiceModeTip: "Pre-Shipping: pending orders and orders in preparation",
     allShippingInvoiceModeTip: "All Shipping Invoice: shipped, pending and in preparation orders",
     orderSelectModeTip: "You can manually select orders to invoice, or automatically select all available orders",
+    compareSkus: "First make sure you've updated the skus, then you can task the app to recheck the skus for discrepancies.",
   },
   pageTitle: {
     invoicingPage: "Invoicing page",

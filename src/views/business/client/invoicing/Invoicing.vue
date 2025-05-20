@@ -113,7 +113,8 @@
             {{ t("data.invoice.generateInvoice7pre") }}
           </PopConfirmButton>
           <a-button class="mr-2" type="primary" preIcon="ant-design:sync-outlined" @click="handleSyncSkus" :disabled="Object.keys(client).length === 0 || !isSkuCompareReady" :loading="!isSkuCompareReady">
-            {{ t("common.operation.syncSkus") }}
+            {{ t("common.operation.compareSkus") }}
+            <BasicHelp :text="t('data.tips.compareSkus')"/>
           </a-button>
           <a-button @click="openHelpModal" type="warning">Help</a-button>
         </template>
@@ -215,6 +216,7 @@ import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
 import {compareSku} from "@/views/business/admin/shippingInvoice/api";
 import InvoicingOrderContentModal
   from "@/views/business/client/_components/InvoicingOrderContentModal.vue";
+import BasicHelp from "@/components/Basic/src/BasicHelp.vue";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();

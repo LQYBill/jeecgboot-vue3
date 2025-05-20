@@ -157,7 +157,8 @@
               {{ t("common.operation.syncPageOrders") }}
             </a-button>
             <a-button class="mr-2" type="default" preIcon="ant-design:sync-outlined" @click="syncSkus">
-              {{ t("common.operation.syncSkus") }}
+              {{ t("common.operation.compareSkus") }}
+              <BasicHelp :text="t('data.tips.compareSkus')"/>
             </a-button>
             <a-button class="mr-2" type="primary" preIcon="ant-design:download-outlined" @click="makeManualInvoice" :loading="makeManualInvoiceLoading" :disabled="makeManualInvoiceDisabled || !isSkuCompareReady">
               {{ t("data.invoice.generateShippingInvoice") }}
