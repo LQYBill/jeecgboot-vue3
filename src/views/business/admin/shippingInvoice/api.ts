@@ -18,6 +18,7 @@ export const Api = {
   completeFeesEstimation: '/shippingInvoice/completeFeesEstimation',
   syncOrders: '/shippingInvoice/syncByIds',
   compareClientSku: '/sku/compare',
+  editOrdersRemark: '/business/platformOrder/editOrdersRemark'
 }
 
 export const fetchClientList = async () => {
@@ -61,4 +62,7 @@ export const checkSkuPrices = async (params: Recordable) => {
 }
 export const compareSku = async (params: Record<string, string | string[]>) => {
   return defHttp.get({url: Api.compareClientSku, params});
+}
+export const editOrdersRemark = async (params) => {
+  return defHttp.post({url: Api.editOrdersRemark, params});
 }

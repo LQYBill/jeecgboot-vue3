@@ -234,7 +234,7 @@
 import {defineComponent, onBeforeMount, onUnmounted, reactive, ref} from "vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {TableImg, useTable} from "/@/components/Table";
-import { PageWrapper } from '/@/components/Page';
+import {PageWrapper} from '/@/components/Page';
 import {PopConfirmButton} from "/@/components/Button";
 import {Form, Tag} from "ant-design-vue";
 import {getColumns} from "/@/views/business/client/overview/data";
@@ -248,6 +248,8 @@ import dayjs from "dayjs";
 import {downloadFile} from "/@/api/common/api";
 import {useGlobSetting} from "/@/hooks/setting";
 import {useRouter} from 'vue-router';
+import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
+import {editOrdersRemark} from "@/views/business/admin/shippingInvoice/api";
 
 export default defineComponent({
   methods: {dayjs},
@@ -607,7 +609,7 @@ export default defineComponent({
       let params = {
         clientID: client.value.id,
         shopIDs: shopIds.value,
-        type: "pre-shipping",
+        type: InvoicingMethod.PRESHIPPING,
         start: start,
         end : end,
         erpStatuses : ['1', '2'],
@@ -619,6 +621,7 @@ export default defineComponent({
           let invoiceNumber = res.invoiceCode;
           downloadInvoice(invoiceFilename);
           downloadDetailFile(invoiceNumber);
+          editInvoiceOrdersRemark(invoiceNumber, InvoicingMethod.PRESHIPPING);
           completeInvoiceLoading.value = false;
           shopIds.value = [];
           startDate.value = '';
@@ -650,6 +653,13 @@ export default defineComponent({
         createMessage.info("Download successful.")
       }).catch(e => {
         console.error(`Download invoice detail fail : ${e}`);
+      });
+    }
+    function editInvoiceOrdersRemark(invoiceNumber:string, invoicingMethod: InvoicingMethod) {
+      editOrdersRemark({invoiceNumber, invoicingMethod}).then((res) => {
+        if(Object.keys(res.failures).length > 0) {
+          createMessage.error(`Error while writing invoice number in orders on Mabang: ${res.mabangResponses.failures}`);
+        }
       });
     }
     function openInvoice(record) {

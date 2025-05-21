@@ -156,7 +156,7 @@ export default {
     platformOrderNumber: "平台订单交易号",
     preShippingInvoice: "预收物流发票",
     productAvailable: "是否有货",
-    purchaseFee: "T商品采购总费用",
+    purchaseFee: "商品采购总费用",
     purchaseInvoice: "采购发票",
     quantity: "数量",
     receiveDetailsByEmail: "发送发票详情到电子邮箱",

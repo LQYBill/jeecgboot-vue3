@@ -257,6 +257,7 @@ import {
   checkOrdersBetweenDate,
   checkSkuPrices,
   compareSku,
+  editOrdersRemark,
   fetchClientList,
   fetchCompleteFeesEstimation,
   fetchOrders,
@@ -271,11 +272,15 @@ import {
 } from "./api";
 import {columns} from "./data";
 import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
+import {offWebSocket, onWebSocket} from "@/hooks/web/useWebSocket";
+import {HttpStatusCode} from "axios";
 
 const { t } = useI18n();
-const { createMessage } = useMessage();
+const { createMessage, createConfirm, createErrorModal } = useMessage();
 
 onMounted (async ()=> {
+  offWebSocket(handleWsMsg);
+  onWebSocket(handleWsMsg);
   await loadCustomerList();
   step.value = 0;
 });
@@ -599,6 +604,7 @@ function handleOrderSelectMode(e) {
   }
 }
 async function loadOrders() {
+  orderList.value = [];
   if(searchDisabled.value === true) {
     return;
   }
@@ -616,7 +622,7 @@ async function loadOrders() {
     createMessage.warning(t('component.searchForm.warehouseSelect'));
     return;
   }
-  const type = erpStatus.value === "3" ? InvoicingMethod.POSTSHIPPING : erpStatus.value === "1,2" ? InvoicingMethod.PRESHIPPING : InvoicingMethod.ALL;
+  const type = getInvoiceMethod();
   let params = {
     clientId: customerId.value,
     shopIds: shopIDs.value!.split(','),
@@ -754,7 +760,7 @@ async function makeManualInvoice() {
     return;
   }
   const period = selectedStartDate.value.toString()+ "," + dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString();
-  const type = erpStatus.value === "3" ? InvoicingMethod.POSTSHIPPING : erpStatus.value === "1,2" ? InvoicingMethod.PRESHIPPING : InvoicingMethod.ALL;
+  const type = getInvoiceMethod();
 
   const params = {
     clientID: customerId.value,
@@ -817,7 +823,7 @@ async function makeManualCompleteInvoice() {
     createMessage.warning(t('component.searchForm.warehouseSelect'))
     return;
   }
-  const type = erpStatus.value === "3" ? InvoicingMethod.POSTSHIPPING : erpStatus.value === "1,2" ? InvoicingMethod.PRESHIPPING : InvoicingMethod.ALL;
+  const type = getInvoiceMethod();
   const period = selectedStartDate.value.toString()+ "," + dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString();
 
   let params = {
@@ -842,10 +848,12 @@ async function makeManualCompleteInvoice() {
     .then(
       res => {
         checkedKeys.value = [];
-        const filename = res.metaData.filename;
-        const code = res.metaData.invoiceCode;
+        const filename = res.filename;
+        const code = res.invoiceCode;
         downloadInvoice(filename);
         downloadDetailFile(code);
+        if(getInvoiceMethod() === InvoicingMethod.PRESHIPPING)
+          editInvoiceOrdersRemark(code, getInvoiceMethod());
       }
     ).catch(e => {
       console.error(e);
@@ -961,14 +969,13 @@ async function makeCompleteInvoice() {
   await makeCompleteInvoiceRequest(param)
     .then(
       res => {
-        const filename = res.metaData.filename;
-        const code = res.metaData.invoiceCode;
+        const filename:string = res.filename;
+        const code:string = res.invoiceCode;
         downloadInvoice(filename);
         downloadDetailFile(code);
+        if(getInvoiceMethod() === InvoicingMethod.PRESHIPPING)
+          editInvoiceOrdersRemark(code, getInvoiceMethod());
         step.value = erpStatus.value === "3" ? 2 : 8;
-        if(Object.keys(res.mabangResponses.failures).length > 0) {
-          createMessage.error(`Error while writing invoice number in orders on Mabang: ${res.mabangResponses.failures}`);
-        }
       }
     ).catch(e => {
       console.error(e);
@@ -984,7 +991,7 @@ async function makeCompleteInvoice() {
       warehouseDisabled.value = false;
     });
 } // end of makeCompleteInvoice()
-function downloadInvoice(invoiceFilename) {
+function downloadInvoice(invoiceFilename: string) {
   const param = {filename: invoiceFilename};
   downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
     createMessage.info("Download successful.")
@@ -992,7 +999,7 @@ function downloadInvoice(invoiceFilename) {
     console.error(`Download invoice fail : ${e}`);
   });
 }
-function downloadDetailFile(invoiceNumber) {
+function downloadDetailFile(invoiceNumber: string) {
   const param =
     {
       invoiceNumber: invoiceNumber,
@@ -1005,6 +1012,13 @@ function downloadDetailFile(invoiceNumber) {
     createMessage.info("Download successful.")
   }).catch(e => {
       console.error(`Download invoice detail fail : ${e}`);
+  });
+}
+function editInvoiceOrdersRemark(invoiceNumber:string, invoicingMethod: InvoicingMethod) {
+  editOrdersRemark({invoiceNumber, invoicingMethod}).then((res) => {
+    if(Object.keys(res.failures).length > 0) {
+      createMessage.error(`Error while writing invoice number in orders on Mabang: ${res.failures}`);
+    }
   });
 }
 /**
@@ -1122,7 +1136,7 @@ async function onSelectChange(selectedRowKeys: (string | number)[], selectionRow
     const params = {
       clientID: customerId.value,
       orderIds: checkedKeys.value,
-      type: erpStatus.value === "3" ? InvoicingMethod.POSTSHIPPING : erpStatus.value === "1,2" ? InvoicingMethod.POSTSHIPPING : InvoicingMethod.ALL,
+      type: getInvoiceMethod(),
     };
     controller = new AbortController();
     const {signal} = controller;
@@ -1186,7 +1200,34 @@ function handleExpand(expanded, record) {
     expandedRowKeys.value.push(record.id);
   }
 }
+function getInvoiceMethod(): InvoicingMethod {
+  return erpStatus.value === "3" ? InvoicingMethod.POSTSHIPPING : erpStatus.value === "1,2" ? InvoicingMethod.PRESHIPPING : InvoicingMethod.ALL
+}
+function handleWsMsg(data: any) {
+  try {
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+    if (parsed?.task !== 'editOrdersRemark') return;
+    const { msgTxt, code, data: msgData } = parsed;
+    let content = `<p>${t(msgTxt)}</p>`;
+    if(!!msgData) {
+      content += `<ul>`;
+      for(const key in msgData) {
+        content += `<li>${key}: ${msgData[key]}</li>`;
+      }
+      content += `</ul>`;
+    }
+    createConfirm({
+      title: 'Order remark edit status',
+      content,
+      iconType: code === HttpStatusCode.Ok ? 'success' : 'error',
+      okText: t('component.modal.okText'),
+    });
+    return;
 
+  } catch (e) {
+    console.error('[WebSocket] 消息解析失败：', e);
+  }
+}
 provide('step', step);
 </script>
 <style lang="less">
