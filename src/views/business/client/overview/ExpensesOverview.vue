@@ -291,6 +291,8 @@ import {useRouter} from 'vue-router';
 import {Currency} from "@/views/business/dto/currency.dto";
 import {Loading} from "@/components/Loading";
 import {SizeEnum} from "@/enums/sizeEnum";
+import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
+import {editOrdersRemark} from "@/views/business/admin/shippingInvoice/api";
 
 import { Api } from "../client.api";
 
@@ -653,7 +655,7 @@ function makeCompleteInvoice() {let start = startDate.value.slice(0, -9);
   let params = {
     clientID: client.value?.id,
     shopIDs: shopIds.value,
-    type: "pre-shipping",
+    type: InvoicingMethod.PRESHIPPING,
     start: start,
     end : end,
     erpStatuses : ['1', '2'],
@@ -665,6 +667,7 @@ function makeCompleteInvoice() {let start = startDate.value.slice(0, -9);
       let invoiceNumber = res.invoiceCode;
       downloadInvoice(invoiceFilename);
       downloadDetailFile(invoiceNumber);
+      editInvoiceOrdersRemark(invoiceNumber, InvoicingMethod.PRESHIPPING);
       completeInvoiceLoading.value = false;
       shopIds.value = [];
       startDate.value = '';
@@ -674,34 +677,41 @@ function makeCompleteInvoice() {let start = startDate.value.slice(0, -9);
     .catch(e => {
       console.error(e);
     })
-}
-function downloadInvoice(invoiceFilename) {
-  const param = {filename: invoiceFilename};
-  downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
-    createMessage.info("Download successful.")
-  }).catch(e => {
-    console.error(`Download invoice fail : ${e}`);
-  });
-}
-function downloadDetailFile(invoiceNumber) {
-  const param =
-    {
-      invoiceNumber: invoiceNumber,
-      invoiceEntity: client.value?.invoiceEntity,
-      internalCode: client.value?.internalCode
-    }
-  let now = dayjs().format("YYYYMMDD");
-  let detailFilename = client.value?.internalCode + "_(" + client.value?.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
-  downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {
-    createMessage.info("Download successful.")
-  }).catch(e => {
-    console.error(`Download invoice detail fail : ${e}`);
-  });
-}
-function openInvoice(record) {
-  const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
-  window.open(invoicePreviewRoute.href, '_blank');
-}
+  }
+  function downloadInvoice(invoiceFilename) {
+    const param = {filename: invoiceFilename};
+    downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
+      createMessage.info("Download successful.")
+    }).catch(e => {
+      console.error(`Download invoice fail : ${e}`);
+    });
+  }
+  function downloadDetailFile(invoiceNumber) {
+    const param =
+      {
+        invoiceNumber: invoiceNumber,
+        invoiceEntity: client.value?.invoiceEntity,
+        internalCode: client.value?.internalCode
+      }
+    let now = dayjs().format("YYYYMMDD");
+    let detailFilename = client.value?.internalCode + "_(" + client.value?.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
+    downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {
+      createMessage.info("Download successful.")
+    }).catch(e => {
+      console.error(`Download invoice detail fail : ${e}`);
+    });
+  }
+  function editInvoiceOrdersRemark(invoiceNumber:string, invoicingMethod: InvoicingMethod) {
+    editOrdersRemark({invoiceNumber, invoicingMethod}).then((res) => {
+      if(Object.keys(res.failures).length > 0) {
+        createMessage.error(`Error while writing invoice number in orders on Mabang: ${res.mabangResponses.failures}`);
+      }
+    });
+  }
+  function openInvoice(record) {
+    const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
+    window.open(invoicePreviewRoute.href, '_blank');
+  }
 
 /**
  * colorize debit and credit rows for better visibility
