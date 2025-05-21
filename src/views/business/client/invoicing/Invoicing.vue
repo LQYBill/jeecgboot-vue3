@@ -212,7 +212,7 @@ import {SearchOutlined} from "@ant-design/icons-vue";
 import {Api} from "@/views/business/client/client.api";
 import JRangeDate from "@/components/Form/src/jeecg/components/JRangeDate.vue";
 import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
-import {compareSku} from "@/views/business/admin/shippingInvoice/api";
+import {compareSku, editOrdersRemark} from "@/views/business/admin/shippingInvoice/api";
 import InvoicingOrderContentModal
   from "@/views/business/client/_components/InvoicingOrderContentModal.vue";
 
@@ -718,9 +718,10 @@ function makeManualPurchaseInvoice() {
     .then(res => {
       createMessage.success("Orders have been invoiced successfully");
 
-      const filename = res.metaData.filename;
-      const code = res.metaData.invoiceCode;
+      const filename = res.filename;
+      const code = res.invoiceCode;
       downloadInvoice(code, filename);
+      editInvoiceOrdersRemark(code, InvoicingMethod.PRESHIPPING);
     })
     .catch(e => {
       console.error(e);
@@ -753,10 +754,11 @@ function makeCompleteManualInvoice() {
     .then(res => {
       createMessage.success("Orders have been invoiced successfully");
 
-      const filename = res.metaData.filename;
-      const code = res.metaData.invoiceCode;
+      const filename = res.filename;
+      const code = res.invoiceCode;
       downloadInvoice(code, filename);
       downloadDetailFile(code);
+      editInvoiceOrdersRemark(code, InvoicingMethod.PRESHIPPING);
     })
     .catch(e => {
       console.error(e);
@@ -791,6 +793,13 @@ function downloadDetailFile(invoiceNumber: string) {
     createMessage.info("Download successful.")
   }).catch(e => {
     console.error(`Download invoice detail fail : ${e}`);
+  });
+}
+function editInvoiceOrdersRemark(invoiceNumber:string, invoicingMethod: InvoicingMethod) {
+  editOrdersRemark({invoiceNumber, invoicingMethod}).then((res) => {
+    if(Object.keys(res.failures).length > 0) {
+      createMessage.error(`Error while writing invoice number in orders on Mabang: ${res.mabangResponses.failures}`);
+    }
   });
 }
 function startGuide() {
