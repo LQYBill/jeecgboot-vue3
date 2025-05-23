@@ -285,16 +285,9 @@ export default defineComponent({
       createMessage.info("Invoicing task started ...");
       defHttp.get({
         url: Api.makeInvoice,
-        params: { shipping: clientsToInvoice.value[0], complete: clientsToInvoice.value[1] },
-      })
-        .catch((error) => {
-          createErrorModal({
-            title: 'Invoice Generation Failed',
-            content: `Error: ${error.message || 'Please contact the administrator for support.'}`,
-          });
-        });
+        params: { shipping: clientsToInvoice.value[0], complete: clientsToInvoice.value[1] }
+      });
       clearSelectedRowKeys();
-
     }
     async function loadClientToInvoice() {
       return new Promise<void>(resolve => {
