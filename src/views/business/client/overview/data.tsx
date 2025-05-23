@@ -68,3 +68,10 @@ export function getColumns(): BasicColumn[] {
     },
   ];
 }
+export const actionColumn: BasicColumn = {
+  title: t('common.operation.action'),
+  dataIndex: 'action',
+  align: 'center',
+  width: 100,
+  slots: {customRender: 'action'},
+}

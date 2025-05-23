@@ -84,6 +84,7 @@ export default {
     proofInput: '请提供付款证明',
     enNameInput: '请输入英文名',
     enterInvoiceNumber: '请输入发票号',
+    enterInvoiceNumbers: '请输入发票号',
     enterNumberOfDays: '请输入天数',
     clientInputSearch: "请输入客户进行搜索",
     shopFilter: "按店铺查看",

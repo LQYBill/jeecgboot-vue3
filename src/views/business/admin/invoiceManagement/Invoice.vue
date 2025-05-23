@@ -1,6 +1,6 @@
 <template>
   <a-card :bordered='false' v-if="pageReady">
-    <div class="table-operator">
+    <div class="table-operator" v-if="invoice_status !== 0">
       <!-- button to download invoice -->
       <a-button v-if="downloadReady" type='primary' shape="round" @click='downloadPdf()' preIcon="ant-design:download" size="large">
         {{ t("data.invoice.downloadInvoice") }}
@@ -30,13 +30,13 @@
                 :pagination='false'
       >
         <template #title>
-          <div style="padding: 0 1em;">
+          <header style="padding: 0 1em;">
             <h1 style='font-size: 2em'>{{ customer }} <span style='font-weight: 200'>({{ invoice_entity }})</span></h1>
             <a-row type="flex" justify='space-between' align-items='center'>
-              <h2 >{{ t("data.invoice.invoiceNumber") }} : {{ invoice_number }}</h2>
+              <h2>{{ t("data.invoice.invoiceNumber") }} : <span :class="invoice_status === 0 ? 'line-through':''">{{ invoice_number }}</span></h2>
               <h3>{{ t("data.client.currency") }} : {{ clientCurrency }}/{{ clientCurrencySymbol }}</h3>
             </a-row>
-          </div>
+          </header>
         </template>
         <template #footer>
           <a-row type="flex" style="align-items: center; padding: 0em 1em;">
@@ -73,6 +73,7 @@ import {Result} from "ant-design-vue";
 import {ExceptionEnum} from "/@/enums/exceptionEnum";
 import {useGo} from "/@/hooks/web/usePage";
 import {Fee} from "@/views/business/dto/fee.dto";
+import {useWatermark} from "@/hooks/web/useWatermark";
 
 export default defineComponent({
   name: 'Invoice',
@@ -91,12 +92,14 @@ export default defineComponent({
     const go = useGo();
     const ac = new AbortController();
     const {signal} = ac;
+    const { setWatermark, clear } = useWatermark();
 
     onBeforeMount(()=> {
       checkInvoice();
     });
     onUnmounted(() => {
       ac.abort(t('sys.api.abortController.onUnmount'));
+      clear();
     });
     const pageReady = ref<boolean>();
     const status = ref<any>();
@@ -117,6 +120,7 @@ export default defineComponent({
     const main_final_total = ref(0);
     const final_total_converted = ref(0);
     const invoice_type = ref();
+    const invoice_status = ref(1);
     const invoiceContentLoading = ref<boolean>(false);
     const downloadReady = ref<boolean>(false);
     const hasEmail = ref();
@@ -125,7 +129,7 @@ export default defineComponent({
     function checkInvoice() {
       invoiceContentLoading.value = true;
       pageReady.value = true;
-      let param = {
+      const param = {
         invoiceNumber: getInvoiceNum(),
       };
       defHttp.get({url: Api.checkInvoiceValidity, params: param, signal:signal}).then((res: Recordable)=>{
@@ -187,6 +191,10 @@ export default defineComponent({
           .then(res => {
             if (res !== null) {
               downloadReady.value = true;
+              if(res.status === 0) {
+                invoice_status.value = 0;
+                setWatermark(t("common.status.cancelled"));
+              }
               for (let i in res.feeAndQtyPerCountry) {
                 const fee: Fee = res.feeAndQtyPerCountry[i];
                 let subtotal = fee.unitPrice;
@@ -311,6 +319,10 @@ export default defineComponent({
       return new Promise<void>((resolve, reject) => {
         defHttp.get({url: Api.purchaseInvoiceData, params: param, signal: signal})
           .then(res=> {
+            if(res.status === 0) {
+              setWatermark(t("common.status.cancelled"));
+              invoice_status.value = 0;
+            }
             for(let sku in res.feeAndQtyPerSku) {
               const fee: Fee = res.feeAndQtyPerSku[sku];
                 let subtotal = fee.unitPrice;
@@ -338,7 +350,10 @@ export default defineComponent({
       return new Promise<void>((resolve, reject) => {
         defHttp.get({url: Api.creditInvoiceData, params: {invoiceNumber}, signal: signal})
           .then((res: Recordable) => {
-
+            if(res.status === 0) {
+              setWatermark(t("common.status.cancelled"));
+              invoice_status.value = 0;
+            }
             if(invoiceCurrency.value !== "EUR") {
               main_final_total.value = res.finalAmount;
             } else {
@@ -364,7 +379,7 @@ export default defineComponent({
         invoiceNumber: invoice_number.value
       }
       const url = invoice_type.value === '8' ? Api.downloadCreditInvoicePdf : Api.downloadCompleteInvoicePdf;
-      let filename = "Invoice N°" + invoice_number.value + " (" + customer.value + ").pdf";
+      const filename = "Invoice N°" + invoice_number.value + " (" + invoice_entity.value + ").pdf";
       downloadFile(url, filename, param);
     } // end of DownloadPdf()
     function sendEmail(){
@@ -386,13 +401,13 @@ export default defineComponent({
         invoiceNumber: invoice_number.value,
         filetype: "inventory"
       }
-      let filename = invoice_number.value + "_Inventaire_SKU.xlsx";
+      const filename = invoice_number.value + "_Inventaire_SKU.xlsx";
       downloadFile(Api.downloadCompleteInvoiceExcel, filename, params);
     }
     function getInvoiceType() {
-      let re = new RegExp('^[0-9]{4}-[0-9]{2}-([0-9])[0-9]{3}$');
+      const re = new RegExp('^[0-9]{4}-[0-9]{2}-([0-9])[0-9]{3}$');
       if (re.test(invoice_number.value)) {
-        let match = re.exec(invoice_number.value);
+        const match = re.exec(invoice_number.value);
         return match[1];
       }
       else {
@@ -441,6 +456,7 @@ export default defineComponent({
       total_quantity,
       main_final_total,
       final_total_converted,
+      invoice_status
     }
   },
 })

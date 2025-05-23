@@ -1,12 +1,10 @@
-import {BasicColumn, FormSchema} from "/@/components/Table";
+import {BasicColumn} from "/@/components/Table";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {getUserList} from "/@/api/common/api";
-import {reactive, ref} from "vue";
 
 const {t} = useI18n()
 
 // options of the select menu in search menu
-const userList = ref([]);
 export const columns: BasicColumn[] = [
   {
     title: 'id',
@@ -94,103 +92,6 @@ export const columns: BasicColumn[] = [
     defaultHidden: true,
   }
 ];
-export const searchFormSchema: FormSchema[] = [
-  {
-    field: "createBy",
-    label: t("data.invoice.createBy"),
-    labelWidth: 'auto',
-    component: 'JSearchSelect',
-    componentProps: {
-      placeholder: t('component.searchForm.userSelect'),
-      dictOptions: userList
-    },
-    // disabledLabelWidth:true,
-    itemProps: {
-      labelCol: reactive({
-        xs: { span: 8 },
-        lg: { span: 6 },
-      }),
-      wrapperCol: reactive({
-        xs: { span: 16 },
-        lg: { span: 18 },
-      }),
-    },
-    colProps: { span: 6 },
-  },
-  {
-    field: "invoiceNumber",
-    label: " " + t("data.invoice.invoiceNumber"),
-    component: 'Input',
-    componentProps: {
-      placeholder: t('component.searchForm.enterInvoiceNumber'),
-    },
-    disabledLabelWidth:true,
-    itemProps: {
-      labelCol: reactive({
-        xs: { span: 12 },
-        lg: { span: 12 },
-      }),
-      wrapperCol: reactive({
-        xs: { span: 12 },
-        lg: { span: 12 },
-      }),
-    },
-    colProps: { span: 6 },
-  },
-  {
-    field: "type",
-    label: " " + t("data.invoice.invoiceType"),
-    component: 'Select',
-    componentProps: {
-      placeholder: t("data.invoice.invoiceType"),
-      options: [
-        {label: t('data.invoice.shippingInvoice'), value: 'shipping'},
-        {label: t('data.invoice.purchaseInvoice'), value: 'purchase'},
-        {label: t('data.invoice.completeInvoice'), value: 'complete'},
-      ]
-    },
-    disabledLabelWidth:true,
-    itemProps: {
-      labelCol: reactive({
-        xs: { span: 12 },
-        lg: { span: 12 },
-      }),
-      wrapperCol: reactive({
-        xs: { span: 12 },
-        lg: { span: 12 },
-      }),
-    },
-    colProps: { span: 6 },
-  }
-];
-export const  fetchUserList = () => {
-  let param = {
-    pageNo: 1,
-    pageSize: 50
-  };
-  getUserList(param).then(res => {
-    userList.value = res.records.map(
-      user => ({
-        text: user.username,
-        value: user.username,
-      })
-    );
-    if (res.pages > 1) {
-      for (let i = 2; i <= res.pages; i++) {
-        getUserList({pageNo: i, pageSize: 50}).then(r => {
-          let oldUserList = userList.value;
-          let newUserList = r.records.map(
-            user => ({
-              text: user.username,
-              value: user.username,
-            })
-          );
-          for(let item of oldUserList) {
-            newUserList.push(item);
-          }
-          userList.value = newUserList;
-        });
-      }
-    }
-  });
+export const fetchUserList = (param) => {
+  return getUserList(param);
 }

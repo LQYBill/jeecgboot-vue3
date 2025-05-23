@@ -84,6 +84,7 @@ export default {
     proofInput: 'Provide a screenshot as payment proof',
     enNameInput: 'Please enter an English name',
     enterInvoiceNumber: 'Enter an invoice number',
+    enterInvoiceNumbers: 'Enter invoice numbers',
     enterNumberOfDays: 'Please enter the number of days',
     clientInputSearch: "Select a customer",
     dateInputSearch: "Select a date",

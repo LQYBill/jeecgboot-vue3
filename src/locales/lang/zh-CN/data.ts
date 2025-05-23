@@ -295,6 +295,7 @@ export default {
     preShippingInvoiceModeTip: "预收物流发票: 待处理和配货中的订单",
     allShippingInvoiceModeTip: "按店铺开发票: 待处理，配货中和已发货的订单",
     orderSelectModeTip: "从列表中勾选订单或自动选所有符合条件的订单",
+    compareSkus: "请首先更改不一致的SKU售价或重量，然后点击重新比较SKU按钮",
   },
   pageTitle: {
     invoicingPage: "生成发票页",
