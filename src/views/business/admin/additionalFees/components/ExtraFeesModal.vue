@@ -107,7 +107,7 @@
           :precision="2"
         >
           <template #addonAfter v-if="currentClient">
-            {{ shopMappedByClient[currentClient].currency }}
+            {{ currencyToken.EUR }}
           </template>
         </a-input-number>
       </a-form-item>

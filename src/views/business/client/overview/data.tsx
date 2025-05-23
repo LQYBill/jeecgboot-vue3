@@ -66,12 +66,12 @@ export function getColumns(): BasicColumn[] {
       dataIndex: 'currency',
       defaultHidden: true,
     },
-    {
-      title: t('common.operation.action'),
-      dataIndex: 'action',
-      align: 'center',
-      width: 100,
-      slots: {customRender: 'action'},
-    }
   ];
+}
+export const actionColumn: BasicColumn = {
+  title: t('common.operation.action'),
+  dataIndex: 'action',
+  align: 'center',
+  width: 100,
+  slots: {customRender: 'action'},
 }

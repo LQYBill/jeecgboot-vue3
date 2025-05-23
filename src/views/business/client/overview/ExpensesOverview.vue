@@ -51,39 +51,54 @@
                   </p>
                 </a-row>
                 <a-row class="invoiceToolbar">
-                  <PopConfirmButton
-                    type="warning"
-                    shape="round"
-                    title="Confirm making invoice ?"
-                    preIcon="ant-design:download-outlined"
-                    @confirm="makeInvoice"
-                    :disabled="invoiceDisabled"
-                    okText="ok" :loading="invoiceLoading"
-                    cancelText="Cancel"
-                  >
-                    {{ t("data.invoice.generateShippingInvoice") }}
-                  </PopConfirmButton>
-                  <PopConfirmButton
-                    type="warning"
-                    shape="round"
-                    title="Confirm making invoice ?"
-                    preIcon="ant-design:download-outlined"
-                    @confirm="makeCompleteInvoice"
-                    :disabled="completeInvoiceDisabled"
-                    okText="ok" :loading="completeInvoiceLoading"
-                    cancelText="Cancel"
-                  >
-                    {{ t("data.invoice.generateInvoice7pre") }}
-                  </PopConfirmButton>
+                  <div class="flex gap-2 items-center">
+                    <PopConfirmButton
+                      type="warning"
+                      shape="round"
+                      title="Confirm making invoice ?"
+                      preIcon="ant-design:download-outlined"
+                      @confirm="makeInvoice"
+                      :disabled="invoiceDisabled"
+                      okText="ok" :loading="invoiceLoading"
+                      cancelText="Cancel"
+                    >
+                      {{ t("data.invoice.generateShippingInvoice") }}
+                    </PopConfirmButton>
+                    <PopConfirmButton
+                      type="warning"
+                      shape="round"
+                      title="Confirm making invoice ?"
+                      preIcon="ant-design:download-outlined"
+                      @confirm="makeCompleteInvoice"
+                      :disabled="completeInvoiceDisabled"
+                      okText="ok" :loading="completeInvoiceLoading"
+                      cancelText="Cancel"
+                    >
+                      {{ t("data.invoice.generateInvoice7pre") }}
+                    </PopConfirmButton>
+                  </div>
+                  <div>
+                    <a-switch :checked="editMode" @change="handleEditModeChange">
+                      <template #checkedChildren>
+                        <EditOutlined/>
+                      </template>
+                      <template #unCheckedChildren>
+                        <EditOutlined/>
+                      </template>
+                    </a-switch>
+                  </div>
                 </a-row>
               </div>
             </template>
             <template #date="{ record }">
-              {{ dayjs(record.createTime).isValid() ? dayjs(record.createTime).format('DD/MM').toString() : record.createTime }}
+              <span :class="record.status === 0 ? 'line-through' : ''">
+                {{ dayjs(record.createTime).isValid() ? dayjs(record.createTime).format('DD/MM').toString() : record.createTime }}
+              </span>
             </template>
             <template #transactionType="{ record }">
               <Tag
                 :color="record.type === 'Credit' ? 'green' : 'purple'"
+                :class="record.status === 0 ? 'line-through' : ''"
               >
                 {{ record.type }}
               </Tag>
@@ -94,15 +109,20 @@
                 :size="60"
                 :imgList="[uploadUrl+record.paymentProofString]"
               />
-              <a-button
-                v-else-if="record.type=='Debit' && !!record.invoiceNumber"
-                type="primary"
-                preIcon="ant-design:eye-outlined"
-                @click="openInvoice(record)"
-                shape="round"
-              >
-                {{ record.invoiceNumber }}
-              </a-button>
+              <template v-else-if="record.type=='Debit' && !!record.invoiceNumber">
+                <a-button
+                  v-if="record.status !== 0"
+                  type="primary"
+                  preIcon="ant-design:eye-outlined"
+                  @click="openInvoice(record)"
+                  shape="round"
+                >
+                  {{ record.invoiceNumber }}
+                </a-button>
+                <span v-else class="line-through text-error">
+                  {{ record.invoiceNumber }}
+                </span>
+              </template>
             </template>
             <template #amount="{ record }">
               <span v-if="record.type == 'Credit'" class="positive-balance">
@@ -112,7 +132,7 @@
                 <span v-if="record.createTime == 'Estimation' && estimationLoading">
                   <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
                 </span>
-                  <span v-else>
+                <span v-else :class="record.status === 0 ? 'line-through' : ''">
                   - {{ record.amount }}
                 </span>
               </template>
@@ -121,35 +141,37 @@
               <template v-if="record.createTime == 'Estimation' && estimationLoading">
                 <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
               </template>
-              <template v-else-if="!!record.shippingFee">
+              <span v-else-if="!!record.shippingFee" :class="record.status === 0 ? 'line-through' : ''">
                 - {{ record.shippingFee }}
-              </template>
+              </span>
             </template>
             <template #purchaseFee="{ record }">
               <template v-if="record.createTime == 'Estimation' && estimationLoading">
                 <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
               </template>
-              <template v-else-if="!!record.purchaseFee">
+              <span v-else-if="!!record.purchaseFee" :class="record.status === 0 ? 'line-through' : ''">
                 - {{ record.purchaseFee }}
-              </template>
+              </span>
             </template>
             <template #action="{ record }">
-              <!-- TODO maybe disable if invoice not created by user -->
-              <template v-if="record.createTime !== 'Estimation' && record.type !== 'Credit'">
-                <TableAction
-                  :actions="[
-                    {
-                      label: t('common.operation.cancel'),
-                      icon: 'ic:outline-delete-outline',
-                      popConfirm: {
-                        title: t('common.operation.cancelConfirmation'),
-                        confirm: handleDelete.bind(null, record),
-                      },
-                      disabled: false,
+              <TableAction
+                :actions="[
+                  {
+                    label: t('common.operation.cancel'),
+                    icon: 'ic:outline-delete-outline',
+                    popConfirm: {
+                      title: t('common.operation.cancelConfirmation'),
+                      confirm: handleDelete.bind(null, record),
                     },
-                  ]"
-                />
-              </template>
+                    disabled: record.createTime === 'Estimation'
+                        || record.type === 'Credit'
+                        || (record.createBy !== client?.internalCode && record.createBy !== fullName)
+                        || record.createTime < dayjs().subtract(2, 'week').format('YYYY-MM-DD')
+                        || record.status === 0
+                        || record.ordered === 1,
+                  },
+                ]"
+              />
             </template>
           </BasicTable>
         </a-tab-pane>
@@ -174,30 +196,42 @@
                   </p>
                 </a-row>
                 <a-row class="invoiceToolbar">
-                  <PopConfirmButton
-                    type="warning"
-                    shape="round"
-                    title="Confirm making invoice ?"
-                    preIcon="ant-design:download-outlined"
-                    @confirm="makeInvoice"
-                    :disabled="invoiceDisabled"
-                    okText="ok" :loading="invoiceLoading"
-                    cancelText="Cancel"
-                  >
-                    {{ t("data.invoice.generateShippingInvoice") }}
-                  </PopConfirmButton>
-                  <PopConfirmButton
-                    type="warning"
-                    shape="round"
-                    title="Confirm making invoice ?"
-                    preIcon="ant-design:download-outlined"
-                    @confirm="makeCompleteInvoice"
-                    :disabled="completeInvoiceDisabled"
-                    okText="ok" :loading="completeInvoiceLoading"
-                    cancelText="Cancel"
-                  >
-                    {{ t("data.invoice.generateInvoice7pre") }}
-                  </PopConfirmButton>
+                  <div class="flex gap-2 items-center">
+                    <PopConfirmButton
+                      type="warning"
+                      shape="round"
+                      title="Confirm making invoice ?"
+                      preIcon="ant-design:download-outlined"
+                      @confirm="makeInvoice"
+                      :disabled="invoiceDisabled"
+                      okText="ok" :loading="invoiceLoading"
+                      cancelText="Cancel"
+                    >
+                      {{ t("data.invoice.generateShippingInvoice") }}
+                    </PopConfirmButton>
+                    <PopConfirmButton
+                      type="warning"
+                      shape="round"
+                      title="Confirm making invoice ?"
+                      preIcon="ant-design:download-outlined"
+                      @confirm="makeCompleteInvoice"
+                      :disabled="completeInvoiceDisabled"
+                      okText="ok" :loading="completeInvoiceLoading"
+                      cancelText="Cancel"
+                    >
+                      {{ t("data.invoice.generateInvoice7pre") }}
+                    </PopConfirmButton>
+                  </div>
+                  <div>
+                    <a-switch :checked="editMode" @change="handleEditModeChange">
+                      <template #checkedChildren>
+                        <EditOutlined/>
+                      </template>
+                      <template #unCheckedChildren>
+                        <EditOutlined/>
+                      </template>
+                    </a-switch>
+                  </div>
                 </a-row>
               </div>
             </template>
@@ -277,7 +311,8 @@ import {TableAction, TableImg, useTable} from "/@/components/Table";
 import {PageWrapper} from '/@/components/Page';
 import {PopConfirmButton} from "/@/components/Button";
 import {Form, Tag} from "ant-design-vue";
-import {getColumns} from "/@/views/business/client/overview/data";
+import {actionColumn, getColumns} from "/@/views/business/client/overview/data";
+import { EditOutlined } from '@ant-design/icons-vue';
 
 import {useI18n} from "/@/hooks/web/useI18n";
 import {defHttp} from "/@/utils/http/axios";
@@ -354,6 +389,8 @@ const eurTableLoading = ref<boolean>(true);
 const usdTableLoading = ref<boolean>(true);
 const estimationLoading = ref<boolean>(true);
 
+const editMode = ref(false);
+
 const transactionsEur = ref<any[]>([]);
 const transactionsUsd = ref<any[]>([]);
 const debit = ref();
@@ -397,6 +434,8 @@ const [registerTable, { reload: reloadEurTable}] = useTable({
   rowKey: 'id',
   loading: eurTableLoading,
   scroll: {y: false},
+  actionColumn,
+  showActionColumn: editMode,
 });
 const [registerUSDTable, {reload: reloadUsdTable}] = useTable({
   dataSource: transactionsUsd,
@@ -412,6 +451,8 @@ const [registerUSDTable, {reload: reloadUsdTable}] = useTable({
   rowKey: 'id',
   loading: usdTableLoading,
   scroll: {y: false},
+  actionColumn,
+  showActionColumn: editMode,
 });
 async function checkUser() {
   defHttp.get({url: Api.getClient})
@@ -438,7 +479,7 @@ function handleClientChange(id: any) {
   if(!!client.value && client.value.length > 0) {
     ac.abort(t('sys.api.abortController.userCancel'));
   }
-  client.value = {};
+  client.value = undefined;
   shopIds.value = [];
   startDate.value = '';
   endDate.value = '';
@@ -759,6 +800,11 @@ function handleDelete(record: Recordable) {
     }
   });
 }
+function handleEditModeChange(checked: boolean) {
+  editMode.value = checked;
+  if(checked)
+    colorizeRows();
+}
 </script>
 
 <style lang="less">
@@ -827,7 +873,8 @@ function handleDelete(record: Recordable) {
   }
   .invoiceToolbar {
     display: flex;
-    gap: 1em;
+    justify-content: space-between;
+    align-items: center;
     padding: 1em;
   }
   & > * {

@@ -1,6 +1,7 @@
 <template>
   <PageWrapper title="Invoice Management">
-    <BasicTable @register="registerTable" :rowSelection="rowSelection">
+    <InvoiceListSearchForm @search="handleSearch"/>
+    <BasicTable @register="registerTable" :rowSelection="rowSelection" ref="tableRef">
       <template #tableTitle>
         <PopConfirmButton
           v-if="checkedKeys && checkedKeys.length > 0 && !hasPurchaseInvoice()"
@@ -81,33 +82,66 @@ import {defHttp} from '/@/utils/http/axios';
 import {useMessage} from '/@/hooks/web/useMessage';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMethods} from "/@/hooks/system/useMethods";
-import {computed, onMounted, ref, unref} from "vue";
+import {computed, onMounted, reactive, ref, unref} from "vue";
 import {filterObj} from "/@/utils/common/compUtils";
 import {useUserStore} from "/@/store/modules/user";
-import {usePermissionStore} from "/@/store/modules/permission";
 import {PopConfirmButton} from "/@/components/Button";
 import { PageWrapper } from '/@/components/Page';
-import {columns, fetchUserList, searchFormSchema} from "./data/InvoiceList.data";
+import {columns} from "./data/InvoiceList.data";
 import {list, Api, setPaid} from "./api/InvoiceList.api";
 import PlainIcon from "/@/views/business/admin/invoiceManagement/components/PlainIcon.vue";
 import BasketIcon from "/@/views/business/admin/invoiceManagement/components/BasketIcon.vue";
 import {useRouter} from "vue-router";
 import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
+import {toUpper} from "lodash-es";
+import InvoiceListSearchForm
+  from "@/views/business/admin/invoiceManagement/components/InvoiceListSearchForm.vue";
 
 const userStore = useUserStore();
-const permissionStore = usePermissionStore();
 const { createMessage } = useMessage();
 const { t } = useI18n();
 const { handleExportXls } = useMethods();
 const {resolve}=useRouter();
 const { clipboardRef, copiedRef } = useCopyToClipboard();
 const username = ref<string>();
+const tableRef = ref();
 
 onMounted(async () => {
-  fetchUserList();
   username.value = userStore.getUserInfo.username;
+  loadInvoices();
 })
+const dataSource = ref<Array<Recordable>>([]);
 
+const iSorter = ref({
+  column: 'createTime',
+  order: 'desc'
+});
+const ipagination = ref({
+  current: 1,
+  defaultPageSize: 50,
+  pageSize: 50,
+  pageSizeOptions: ['50', '100', '200', '500'],
+  showQuickJumper: true,
+  showSizeChanger: true,
+  showTotal: showPaginationTotal,
+  total: 0,
+  onChange: handlePaginationChange,
+  onShowSizeChange: handleShowSizeChange,
+});
+function showPaginationTotal(total: number, range: [number, number]) {
+  return range[0] + '-' + range[1] + ' / ' + total;
+}
+function handlePaginationChange(p:number, pz:number) {
+  console.log('p', p, 'pz', pz);
+  ipagination.value.current = p;
+  ipagination.value.pageSize = pz;
+  loadInvoices();
+}
+function handleShowSizeChange(current:number, size:number) {
+  ipagination.value.current = current;
+  ipagination.value.pageSize = size;
+  loadInvoices();
+}
 const deleteBatchDisabled = ref(true);
 const downloadInvoiceDisabled = ref(true);
 const downloadDetailDisabled = ref(true);
@@ -117,25 +151,24 @@ const paidDisabled = ref(false);
 const deleteBatchLoading = ref<boolean>(false);
 const paidLoading = ref<boolean>(false);
 
-// get the list of all shipping invoice
+const searchState = reactive<Record<string, string | string[]>>({
+  createBy: '',
+  clientId: '',
+  invoiceNumbers: [] as string[],
+  type: '',
+});
 
 // creating table
 const [registerTable, { reload, clearSelectedRowKeys, setLoading }] = useTable({
   title: 'Invoice List',
   titleHelpMessage: "You can view and download all shipping invoices on this page.",
-  api: list,
+  dataSource,
   columns,
-  formConfig: {
-    schemas: searchFormSchema,
-  },
-  //自定义默认排序
-  defSort: {
-    column: 'createTime',
-    order: 'desc',
-  },
+  defSort: iSorter,
+  pagination: ipagination,
   bordered: true,
   striped: true,
-  useSearchForm: true,
+  useSearchForm: false,
   showTableSetting: true,
   showSummary: true,
   clickToRowSelect: true,
@@ -170,6 +203,32 @@ const exportParams = computed(()=>{
   return filterObj(paramsForm)
 });
 
+function loadInvoices(page?:number) {
+  if (page) {
+    ipagination.value.current = page;
+  }
+  const params = getQueryParams();
+  list(params).then((res) => {
+    dataSource.value = res.records;
+    tableRef.value.setPagination({
+      current: res.current,
+      pageSize: res.size,
+      total: res.total
+    })
+  })
+}
+function getQueryParams() {
+  let params = Object.assign(iSorter.value);
+  params.pageNo = ipagination.value.current;
+  params.pageSize = ipagination.value.pageSize;
+  params.order = toUpper(iSorter.value.order);
+  params.column = iSorter.value.column;
+  params.createBy = searchState.createBy;
+  params.clientId = searchState.clientId;
+  params.invoiceNumber = searchState.invoiceNumbers;
+  params.type = searchState.type;
+  return filterObj(params);
+}
 function downloadExcelInvoice(type : string) {
   if(checkedKeys.value.length === 0) {
     downloadInvoiceDisabled.value = true;
@@ -307,6 +366,14 @@ function hasPurchaseInvoice() {
     }
   }
   return false;
+}
+function handleSearch({clientId, createBy, invoiceNumbers, type}): void {
+  searchState.clientId = clientId;
+  searchState.createBy = createBy;
+  searchState.invoiceNumbers = invoiceNumbers;
+  searchState.type = type;
+
+  loadInvoices(1);
 }
 </script>
 <style lang="less">

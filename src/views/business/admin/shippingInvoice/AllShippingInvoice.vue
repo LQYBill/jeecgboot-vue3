@@ -235,7 +235,7 @@
 </template>
 <script setup lang="ts">
 import {PageWrapper} from "/@/components/Page";
-import {onMounted, onUnmounted, provide, reactive, ref} from "vue";
+import {onMounted, onUnmounted, provide, reactive, ref, h} from "vue";
 import {useMessage} from "/@/hooks/web/useMessage";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {downloadFile} from "/@/api/common/api";
@@ -277,7 +277,7 @@ import {offWebSocket, onWebSocket} from "@/hooks/web/useWebSocket";
 import {HttpStatusCode} from "axios";
 
 const { t } = useI18n();
-const { createMessage, createConfirm, createErrorModal } = useMessage();
+const { createMessage, notification } = useMessage();
 
 onMounted (async ()=> {
   offWebSocket(handleWsMsg);
@@ -1217,12 +1217,23 @@ function handleWsMsg(data: any) {
       }
       content += `</ul>`;
     }
-    createConfirm({
-      title: 'Order remark edit status',
-      content,
-      iconType: code === HttpStatusCode.Ok ? 'success' : 'error',
-      okText: t('component.modal.okText'),
+    const vnodeContent = h('div', {
+      innerHTML: content
     });
+    if (code === HttpStatusCode.Ok)
+      notification.success({
+        message: 'Order remark edit status',
+        description: vnodeContent,
+        duration: null,
+        placement: 'bottomRight',
+      });
+    else
+      notification.error({
+        message: 'Order remark edit status',
+        description: vnodeContent,
+        duration: null,
+        placement: 'bottomRight',
+      });
     return;
 
   } catch (e) {
