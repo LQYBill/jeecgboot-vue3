@@ -24,6 +24,9 @@
       <template #action="{ record }">
         <TableAction :actions="getTableAction(record)" :dropDownActions="getDropDownAction(record)" />
       </template>
+      <template #name="{ text }">
+        {{ t(text) }}
+      </template>
     </BasicTable>
     <MenuDrawer @register="registerDrawer" @success="handleSuccess" :showFooter="showFooter" />
     <DataRuleList @register="registerDrawer1" />
