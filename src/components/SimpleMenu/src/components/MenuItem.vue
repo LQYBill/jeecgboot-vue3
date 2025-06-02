@@ -25,6 +25,7 @@
   import { Tooltip } from 'ant-design-vue';
   import { useSimpleRootMenuContext } from './useSimpleMenuContext';
   import { useLocaleStore } from '/@/store/modules/locale';
+  import {useI18n} from "vue-i18n";
 
   export default defineComponent({
     name: 'MenuItem',
@@ -45,6 +46,8 @@
       const { getItemStyle, getParentList, getParentMenu, getParentRootMenu } = useMenuItem(instance);
 
       const { prefixCls } = useDesign('menu');
+
+      const { t } = useI18n();
 
       const { rootMenuEmitter, activeName } = useSimpleRootMenuContext();
 
@@ -112,7 +115,7 @@
         if (instance!.attrs) {
           let item: any = instance!.attrs.item;
           if (item) {
-            title = item.title;
+            title = t(item.title);
           }
         }
         if (localeStore) {
@@ -121,7 +124,7 @@
       }
       //update-end-author:taoyan date:2022-6-1 for: VUEN-1144 online 配置成菜单后，打开菜单，显示名称未展示为菜单名称
 
-      return { getClass, prefixCls, getItemStyle, getCollapse, handleClickItem, showTooptip };
+      return { getClass, prefixCls, getItemStyle, getCollapse, handleClickItem, showTooptip, t };
     },
   });
 </script>

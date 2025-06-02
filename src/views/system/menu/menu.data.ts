@@ -22,6 +22,7 @@ export const columns: BasicColumn[] = [
     dataIndex: 'name',
     width: 200,
     align: 'left',
+    slots: { customRender: 'name' },
   },
   {
     title: '菜单类型',
