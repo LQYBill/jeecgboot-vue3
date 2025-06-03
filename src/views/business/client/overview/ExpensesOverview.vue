@@ -236,11 +236,14 @@
               </div>
             </template>
             <template #date="{ record }">
-              {{ dayjs(record.createTime).isValid() ? dayjs(record.createTime).format('DD/MM').toString() : record.createTime }}
+              <span :class="record.status === 0 ? 'line-through' : ''">
+                {{ dayjs(record.createTime).isValid() ? dayjs(record.createTime).format('DD/MM').toString() : record.createTime }}
+              </span>
             </template>
             <template #transactionType="{ record }">
               <Tag
                 :color="record.type === 'Credit' ? 'green' : 'purple'"
+                :class="record.status === 0 ? 'line-through' : ''"
               >
                 {{ record.type }}
               </Tag>
@@ -251,15 +254,20 @@
                 :size="60"
                 :imgList="[uploadUrl+record.paymentProofString]"
               />
-              <a-button
-                v-else-if="record.type=='Debit' && !!record.invoiceNumber"
-                type="primary"
-                preIcon="ant-design:eye-outlined"
-                @click="openInvoice(record)"
-                shape="round"
-              >
-                {{ record.invoiceNumber }}
-              </a-button>
+              <template v-else-if="record.type=='Debit' && !!record.invoiceNumber">
+                <a-button
+                  v-if="record.status !== 0"
+                  type="primary"
+                  preIcon="ant-design:eye-outlined"
+                  @click="openInvoice(record)"
+                  shape="round"
+                >
+                  {{ record.invoiceNumber }}
+                </a-button>
+                <span v-else class="line-through text-error">
+                  {{ record.invoiceNumber }}
+                </span>
+              </template>
             </template>
             <template #amount="{ record }">
               <span v-if="record.type == 'Credit'" class="positive-balance">
@@ -269,7 +277,7 @@
                 <span v-if="record.createTime == 'Estimation' && estimationLoading">
                   <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
                 </span>
-                <span v-else>
+                <span v-else :class="record.status === 0 ? 'line-through' : ''">
                   - {{ record.amount }}
                 </span>
               </template>
@@ -278,7 +286,7 @@
               <template v-if="record.createTime == 'Estimation' && estimationLoading">
                 <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
               </template>
-              <template v-else-if="!!record.shippingFee">
+              <template v-else-if="!!record.shippingFee" :class="record.status === 0 ? 'line-through' : ''">
                 - {{ record.shippingFee }}
               </template>
             </template>
@@ -286,7 +294,7 @@
               <template v-if="record.createTime == 'Estimation' && estimationLoading">
                 <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
               </template>
-              <template v-else-if="!!record.purchaseFee">
+              <template v-else-if="!!record.purchaseFee" :class="record.status === 0 ? 'line-through' : ''">
                 - {{ record.purchaseFee }}
               </template>
             </template>
