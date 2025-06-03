@@ -305,6 +305,26 @@
                 :imgList="[uploadUrl+text]"
               />
             </template>
+            <template #action="{ record }">
+              <TableAction
+                :actions="[
+                  {
+                    label: t('common.operation.cancel'),
+                    icon: 'ic:outline-delete-outline',
+                    popConfirm: {
+                      title: t('common.operation.cancelConfirmation'),
+                      confirm: handleDelete.bind(null, record),
+                    },
+                    disabled: record.createTime === 'Estimation'
+                        || record.type === 'Credit'
+                        || (record.createBy !== client?.internalCode && record.createBy !== fullName)
+                        || record.createTime < dayjs().subtract(2, 'week').format('YYYY-MM-DD')
+                        || record.status === 0
+                        || record.ordered === 1,
+                  },
+                ]"
+              />
+            </template>
           </BasicTable>
         </a-tab-pane>
       </a-tabs>
