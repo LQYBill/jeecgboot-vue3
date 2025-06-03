@@ -1,5 +1,14 @@
 <template>
   <PageWrapper :title="t('data.product.productListPage')">
+    <div v-if="showProgress" style="margin-bottom: 16px">
+      <a-progress
+        :percent="progress"
+        :steps="5"
+        :stroke-width="16"
+        status="active"
+      />
+      <div style="margin-top: 8px">{{ msg }}</div>
+    </div>
     <ProductListResults/>
     <BasicTable @register="registerTable" ref="tableRef">
       <template #tableTitle>
@@ -8,6 +17,9 @@
         </a-upload>
         <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('Sku Weight List', Api.exportExcel, exportParams)">
           {{ t("common.operation.export") }}
+        </a-button>
+        <a-button v-if="username === 'admin' || username === 'Gauthier'|| username === '杨雪'" type="error" preIcon="ant-design:delete-outlined" @click="handleDeleteBatch" :disabled="batchEditDisabled">
+          {{ t('common.operation.delete') }}
         </a-button>
       </template>
       <template #toolbar>
@@ -82,29 +94,39 @@ import {filterObj} from "@/utils/common/compUtils";
 import {SearchOutlined} from "@ant-design/icons-vue";
 import ProductListResults from "@/views/business/admin/product/modules/ProductListResults.vue";
 import {useMethods} from "@/hooks/system/useMethods";
+import {useUserStore} from "/@/store/modules/user";
 import { Api } from "./data";
 import { useMessage } from '/@/hooks/web/useMessage';
 import {onWebSocket,offWebSocket} from '/@/hooks/web/useWebSocket';
-import { useRoute } from 'vue-router';
+import { Modal } from 'ant-design-vue';
+import { h } from 'vue';
+import {defHttp} from "@/utils/http/axios";
 
-const route = useRoute();
+type RowType = 'success' | 'warning' | 'fail';
+const showProgress = ref(false);
+const progress = ref(0);
+const msg = ref('');
+
 const { t } = useI18n();
 const { handleImportXls, handleExportXls } = useMethods();
 
 const tableRef = ref();
-
 const isDisabled = ref<boolean>(false);
 const batchEditDisabled =ref<boolean>(true);
-
 const isReady = ref(false);
 const skuList = ref([]);
 const productListZh = ref<string[]>();
 const productListEn = ref<string[]>();
 const erpCodes = ref<string[]>();
+const userStore = useUserStore();
+const username = ref<string>();
+const { createMessage} = useMessage();
 
-const { createMessage, createConfirm } = useMessage();
+const results = reactive({ successes: {}, failures: {} });
+const mabangResults = reactive({ successes: {}, failures: {} });
+provide('results', results);
+provide('mabangResults', mabangResults);
 
-const results = ref<Recordable>({});
 
 const exportParams = computed(()=>{
   let paramsForm = {};
@@ -156,6 +178,7 @@ onMounted(async () => {
   await loadSkuList(1);
   offWebSocket(handleWsMessage);
   onWebSocket(handleWsMessage);
+  username.value = userStore.getUserInfo.username;
 });
 
 const loadSkuList = async (arg?:number) => {
@@ -173,43 +196,37 @@ function handleWsMessage(data: any) {
   console.log('%c[WebSocket] handleWsMessage-Received raw message:', 'color: #0af;', data);
   try {
     const parsed = typeof data === 'string' ? JSON.parse(data) : data;
-    // Check if on the product-list page
-    const isCurrentPage = route.name === 'product-list';
-    if (parsed?.cmd === 'user' && parsed?.msgTxt?.includes('全部完成')) {
-      const { total, success, failure } = parsed.data || {};
-      const hasStats = parsed.data && total !== undefined;
-
-      const content = hasStats
-        ? `
-          ${parsed.msgTxt}<br/>
-          共处理：<b>${total}</b> 条<br/>
-          成功：<b style="color:green;">${success}</b> 条<br/>
-          失败：<b style="color:red;">${failure}</b> 条
-        `
-        : parsed.msgTxt;
-
-      createConfirm({
-        title: '批量操作完成提示',
-        content,
-        iconType: 'info',
-        okText: '我知道了',
-        onOk: async () => {
-          console.log('[WebSocket] User confirmed');
-          if (isCurrentPage) {
-            console.log('[WebSocket] Refreshing SKU list...');
-            if (!tableRef.value) {
-              console.warn('[WebSocket] tableRef is not initialized, skipping refresh');
-              return;
-            }
-            await loadSkuList(1);
-          } else {
-            console.log('[WebSocket] Not on the target page, no refresh');
+    const { cmd, type, data: msgData = {}, msgTxt } = parsed;
+    console.log('parsed?.cmd ==', parsed?.cmd,'parsed?.data', parsed?.data);
+    if (['import-result', 'update-result'].includes(cmd) && msgData) {
+      const { successes, failures } = msgData;
+      if (successes || failures) {
+        Object.assign(results.successes, successes || {});
+        Object.assign(results.failures, failures || {});
+        handleUpdateResponse(parsed);
+      }
+    }
+    if(['mabang-result'].includes(cmd) && msgData) {
+      const { successes, failures } = msgData;
+      if (successes || failures) {
+        Object.assign(mabangResults.successes, successes || {});
+        Object.assign(mabangResults.failures, failures || {});
+        handleUpdateResponse(parsed);
+      }
+      showProgress.value = true;
+      if (type === 'progress' || type === 'complete') {
+        const progressNum = msgData?.progress || 0;
+        progress.value = progressNum;
+        if (progressNum >= 100 || type === 'complete') {
+          msg.value = '马帮重量全部更新完成！';
+          const { success, failure } = msgData;
+          if (type === 'complete') {
+            console.log(`马帮更新完成，成功 ${success} 条，失败 ${failure} 条`);
           }
-        },
-      });
-    } else {
-      // Normal push message
-      createMessage.info(parsed?.msgTxt || '收到一条消息');
+        } else {
+          msg.value = msgTxt || '马帮重量更新中...';
+        }
+      }
     }
   } catch (e) {
     console.error('%c[WebSocket] Failed to parse message:', 'color: red;', e);
@@ -253,7 +270,7 @@ const [registerTable, { getSelectRows, getSelectRowKeys, clearSelectedRowKeys, s
     onChange: onSelectChange
   },
   canResize: true,
-  rowKey: 'id',
+  rowKey: 'weightId',
 });
 const [registerModal, { openModal }] = useModal();
 
@@ -320,14 +337,96 @@ function handleShowSizeChange(current:number, size:number) {
   loadSkuList(1);
 }
 function handleSuccess(res: Recordable) {
-  results.value = res;
+  Object.assign(results.successes, res.successes || {});
+  Object.assign(results.failures, res.failures || {});
   loadSkuList();
 }
 function handleImport(res) {
-  results.value = res.result;
+  Object.assign(results.successes, res.result.successes || {});
+  Object.assign(results.failures, res.result.failures || {});
   loadSkuList();
 }
-provide('results', results);
+async function handleDeleteBatch() {
+  const ids = checkedKeys.value;
+  if (!ids || ids.length === 0) {
+    createMessage.warning('请选择至少一项进行删除');
+    return;
+  }
+
+  Modal.confirm({
+    title: t('common.operation.deleteBatchConfirmation'),
+    content: `确定要删除这 ${ids.length} 项吗？`,
+    okText: t('common.operation.confirm'),
+    cancelText: t('common.operation.cancel'),
+    onOk: async () => {
+      try {
+        await defHttp.delete({ url: Api.deleteBatch, data: ids });
+        createMessage.success('删除成功');
+        await loadSkuList(1);
+        clearSelectedRowKeys();
+      } catch (error) {
+        createMessage.error('删除失败');
+      }
+    },
+  });
+}
+
+function handleUpdateResponse(parsed: any) {
+  const { msgTxt = '导入完成', data = {} } = parsed;
+  const successes = JSON.parse(JSON.stringify(data.successes || {}));
+  const failures = JSON.parse(JSON.stringify(data.failures || {}));
+  const parseMessage = (msg: any): string => {
+    if (typeof msg === 'string') return msg;
+    if (Array.isArray(msg)) return msg[0] || '';
+    if (typeof msg === 'object' && msg.message) return msg.message;
+    return String(msg);
+  };
+  const rows: [string, string, RowType][] = [];
+  for (const [row, msg] of Object.entries(successes)) {
+    const message = parseMessage(msg);
+    const type: RowType = /跳过/.test(message) ? 'warning' : 'success';
+    console.log('Row:', row, 'Type:', type, 'Message:', message);
+    const displayRow = row.trim() === '' ? '无行号' : row;
+    rows.push([displayRow, message, type]);
+  }
+  for (const [row, msg] of Object.entries(failures)) {
+    const message = parseMessage(msg);
+    const displayRow = row.trim() === '' ? '无行号' : row;
+    rows.push([displayRow, message, 'fail']);
+  }
+  const shouldSort = rows.length > 0 && rows.every(item => item[0] !== '无行号');
+  if (shouldSort) {
+    rows.sort((a, b) => {
+      const aNum = parseInt(a[0].replace(/\D/g, ''), 10);
+      const bNum = parseInt(b[0].replace(/\D/g, ''), 10);
+      return aNum - bNum;
+    });
+  }
+  const nodes = rows.map(([row, msg, type]) => {
+    const colorMap = {
+      success: 'green',
+      warning: 'orange',
+      fail: 'red',
+    };
+    const iconMap = {
+      success: '✅',
+      warning: '⚠️',
+      fail: '❌',
+    };
+    return h('div', [
+      h('span', {
+        style: `color: ${colorMap[type]}; font-weight: 500; margin-right: 4px`,
+      }, `${iconMap[type]} ${row}`),
+      msg,
+    ]);
+  });
+  Modal.info({
+    title: msgTxt,
+    width: 600,
+    content: () => h('div', nodes),
+    okText: '知道了',
+  });
+}
 </script>
 <style>
 
