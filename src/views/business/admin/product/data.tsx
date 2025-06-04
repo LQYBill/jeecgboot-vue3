@@ -6,8 +6,10 @@ const { t } = useI18n();
 
 export const Api = {
   list: '/sku/listWithFilters',
+  listAll: '/sku/listAllWithFilters',
   update: '/skuWeight/update',
   updateBatch: '/skuWeight/updateBatch',
+  deleteBatch: '/skuWeight/deleteBatch',
   importExcel: '/skuWeight/importExcel',
   exportExcel: '/skuWeight/exportXls',
 };
