@@ -5,7 +5,7 @@ export default {
     toNavigate: 'to navigate',
   },
   copy: {
-    success: 'Copied',
+    success: 'Copied to clipboard',
     noValue: 'Nothing to copy'
   },
   countdown: {

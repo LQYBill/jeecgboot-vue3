@@ -153,6 +153,7 @@ export default {
     platformOrderIDMabang: "Platform Order ID (Mabang Order Number)",
     platformOrderContentList: "List of platform order content",
     platformOrderNumber: "Platform Order Number",
+    platformOrderNumbers: "Platform Order Numbers",
     preShippingInvoice: "Pre-Shipping Invoice",
     productAvailable: "In Stock",
     purchaseFee: "Purchase Fee",
@@ -295,6 +296,7 @@ export default {
     allShippingInvoiceModeTip: "All Shipping Invoice: shipped, pending and in preparation orders",
     orderSelectModeTip: "You can manually select orders to invoice, or automatically select all available orders",
     compareSkus: "First make sure you've updated the skus, then you can task the app to recheck the skus for discrepancies.",
+    desyncTips: "This field indicates if there's a discrepancy in the Sku information between the app database and the ERP system. If it is the case, you can click on the order number to see which Sku is concerned",
   },
   pageTitle: {
     invoicingPage: "Invoicing page",

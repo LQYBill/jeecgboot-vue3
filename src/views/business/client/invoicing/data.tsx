@@ -78,6 +78,7 @@ export function getColumns(): BasicColumn[] {
       align:"center",
       dataIndex: 'hasDesyncedSku',
       slots: {customRender: 'hasDesyncedSku'},
+      helpMessage: t('data.tips.desyncTips')
     }
   ];
 }
