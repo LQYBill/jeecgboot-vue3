@@ -10,8 +10,12 @@ enum Api {
   downloadInvoice = '/shippingInvoice/download',
   downloadInvoiceInventory = '/shippingInvoice/downloadInvoiceInventory',
   downloadInventory = '/shippingInvoice/downloadInventory',
+  getClient = '/userClient/getClient',
   getMabangUsername = '/sys/user/getMabangUsername',
   syncSkuQty = '/sku/syncSkuQty',
+}
+export const getClient = async () => {
+  return await defHttp.get({url: Api.getClient});
 }
 export const getMabangUsername = async (handleSuccess:any) => {
   return defHttp.get({url: Api.getMabangUsername})

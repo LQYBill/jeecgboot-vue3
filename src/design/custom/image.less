@@ -1,0 +1,34 @@
+img {
+  position: relative;
+}
+.ant-image-error {
+  height: 100%;
+}
+.ant-image-error > img.ant-image-img {
+  height: 100%;
+}
+img::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  white-space: pre-wrap;
+  border: 1px solid #ccc;
+  background: #fff;
+  padding:5px;
+ }
+img::after {
+  content: "Image not found";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  white-space: pre-wrap;
+  border-radius: 10px;
+  background: #fff;
+  height: 100%;
+  line-height: 1;
+}

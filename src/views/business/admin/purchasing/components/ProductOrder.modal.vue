@@ -2,51 +2,51 @@
   <BasicModal v-bind="$attrs" @register="registerModal" destroyOnClose :title="title" :width="800"
               @ok="handleSubmit">
     <slot>
-      <div class="flex flex-row flex-nowrap text-center h-8 mb-4">
+      <div class="flex flex-row items-center flex-nowrap text-center min-h-8 mb-4">
         <div class="flex flex-row flex-1 border-b" v-for="n in 2" :class="n==2 ? 'border-l' : '' ">
-          <h2 class="w-64 text-sm">{{ t('data.product.product') }}</h2>
-          <div class="flex items-center w-full flex-1">
-            <h2 class="flex-1 text-sm">{{ t('data.sku.sales') }} 7 | 28 | 42</h2>
-            <h2 class="flex-0.5 text-sm">{{ t('data.order.stock') }}</h2>
-            <h2 class="flex-1 text-sm">{{ t('data.invoice.quantity') }}</h2>
-            <h2 class="flex-0.5 text-sm" :class="n==1 ? 'mr-4' : 'mr-0'">{{ t('data.invoice.subTotal') }}</h2>
+          <h2 class="w-64 text-sm flex items-center justify-center">{{ t('data.product.product') }}</h2>
+          <div class="grid grid-cols-6 flex-1">
+            <h2 class="col-span-2 text-sm flex items-center justify-center">{{ t('data.sku.sales') }} 7 | 28 | 42</h2>
+            <h2 class="text-sm flex items-center justify-center">{{ t('data.order.stock') }}</h2>
+            <h2 class="col-span-2 text-sm flex items-center justify-center">{{ t('data.invoice.quantity') }}</h2>
+            <h2 class=" text-sm flex items-center justify-center" :class="n==1 ? 'mr-4' : 'mr-0'">{{ t('data.invoice.subTotal') }}</h2>
           </div>
         </div>
       </div>
     </slot>
     <BasicForm @register="registerForm" @change="calculateTotal">
-      <template #qty="{ model, field, schema }">
-        <div class="flex items-center flex-nowrap">
+      <template #qty="{ model, field }">
+        <div class="grid grid-cols-6 items-center">
           <!-- sales 7,14,42 -->
-          <div class="flex flex-col text-sm flex-1">
-            <span class="qtyPerPeriod ">
+          <div class="flex text-sm items-center justify-center col-span-2">
+            <div class="qtyPerPeriod w-full">
               <span class="flex-1 border-r">{{selectedSkuMap.get(field).salesLastWeek == null ? 0 : selectedSkuMap.get(field).salesLastWeek}}</span>
               <span class="flex-1 border-r">{{selectedSkuMap.get(field).salesFourWeeks == null ? 0 : selectedSkuMap.get(field).salesFourWeeks}}</span>
               <span class="flex-1">{{selectedSkuMap.get(field).salesSixWeeks == null ? 0 : selectedSkuMap.get(field).salesSixWeeks}}</span>
-            </span>
+            </div>
           </div>
-          <div class="flex items-center justify-center flex-0.5">
+          <div class="flex items-center justify-center">
 <!--            <StockIcon :status="selectedSkuMap.get(field).stock > 0 ? 'normal' : 'error'" class="basis-2/4 w-full block!important text-right!important" width="24px" height="24px"></StockIcon>-->
 <!--            <Icon icon="ant-design:gold-outlined" :color="selectedSkuMap.get(field).stock > 0 ? 'black' : 'red'" class="basis-2/4 w-full block!important text-right!important"></Icon>-->
             <span v-if="selectedSkuMap.get(field).stock == 0" class="text-center  text-red-500">{{selectedSkuMap.get(field).stock}}</span>
-            <span v-else-if="selectedSkuMap.get(field).stock < 0" class="text-center  bg-red text-white px-1">{{selectedSkuMap.get(field).stock}}</span>
+            <span v-else-if="selectedSkuMap.get(field).stock < 0" class="text-center bg-red/60 rounded-md text-white px-1">{{selectedSkuMap.get(field).stock}}</span>
             <span v-else class="text-center ">{{selectedSkuMap.get(field).stock}}</span>
           </div>
-          <div class="flex flex-col flex-1">
-            <InputNumber class="qtyPicker" v-model:value="model[field]" :min="0" :style="{width: '100%',minWidth: '11rem'}" placeholder="Please enter the quantity" @change="calculateTotal">
+          <div class="flex flex-col col-span-2">
+            <InputNumber class="qtyPicker" v-model:value="model[field]" :min="0" placeholder="Please enter the quantity" @change="calculateTotal">
               <template #addonAfter>
                 <span style="color: #9CA3AF;">{{ selectedSkuMap.get(field).skuPrice }}€/pcs</span>
               </template>
             </InputNumber>
           </div>
-          <div class="flex flex-col border-1 text-center flex-0.5 mr-4">
+          <div class="flex flex-col border-1 text-center rounded-r-md">
             <span class="pricePerSku">{{ Number((model[field] * selectedSkuMap.get(field).skuPrice).toFixed(2)) }}€</span>
           </div>
         </div>
       </template>
     </BasicForm>
     <BasicForm @register="registerForm1" @change="calculateTotal" id="picker-form" style="padding: 6rem 6rem 0 6rem">
-      <template #autoPicker="{ model, field, schema }">
+      <template #autoPicker="{ model, field }">
         <div class="flex w-full justify-start gap-4">
           <div class="flex items-center justify-center">
             <InputNumber class="" style="width: 6rem" v-model:value="model[field]" :min="0" :placeholder="t('component.searchForm.enterNumberOfDays')" @change="handleSetSkuOrderQty"/>
@@ -63,7 +63,7 @@
           </a-tooltip>
         </div>
       </template>
-      <template #setQtyToAll="{ model, field, schema }">
+      <template #setQtyToAll="{ model, field }">
         <div class="flex w-full">
           <div class="flex basis-full flex-1 items-center justify-center">
             <InputNumber class="" style="width: 6rem" v-model:value="model[field]" :min="0" :placeholder="t('component.searchForm.qtyAutoPicker')" @change="handleSetQtyToAll"/>
@@ -91,16 +91,14 @@ import {BasicModal, useModalInner} from '/@/components/Modal';
 import {BasicForm, useForm} from '/@/components/Form/index';
 import {formSchema} from '../ProductOrder.data';
 import {createPurchaseInvoice} from '../ProductOrder.api';
-import {useMessage} from "/@/hooks/web/useMessage";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {Modal} from "ant-design-vue";
 import {InputNumber} from "ant-design-vue";
 import BasicHelp from "/@/components/Basic/src/BasicHelp.vue";
 
 const {t} = useI18n();
-const {createMessage} = useMessage();
-// Emits声明
 const emit = defineEmits(['register', 'success']);
+const internalUse = ref(false);
 const selectedSku = ref<any>([]);
 const selectedSkuMap = ref(new Map());
 const orderTotal = ref<number>(0);
@@ -109,7 +107,7 @@ const isAdjusted = ref<boolean>(false);
 const skuQtyToOrder = ref<any>({});
 const skuQtyToOrderBeforeAdjust = ref<any>({});
 //表单配置
-const [registerForm, {appendSchemaByField, removeSchemaByFiled, setProps, resetFields, setFieldsValue, validate, getFieldsValue}] = useForm({
+const [registerForm, {appendSchemaByField, setProps, resetFields, setFieldsValue, validate, getFieldsValue}] = useForm({
   //labelWidth: 150,
   schemas: formSchema,
   labelWidth: 256,
@@ -141,7 +139,7 @@ const [registerForm1] = useForm({
         // min: 0,
         // placeholder: 'Please enter the number of days',
       // },
-      dynamicRules: ({ values }) => {
+      dynamicRules: () => {
         return [
           {
             validator: (_, value) => {
@@ -166,7 +164,7 @@ const [registerForm1] = useForm({
         xxl: {span: 6},
       },
       defaultValue: 0,
-      dynamicRules: ({ values }) => {
+      dynamicRules: () => {
         return [
           {
             validator: (_, value) => {
@@ -204,15 +202,19 @@ const [registerModal, {setModalProps, closeModal}, ] = useModalInner(async (data
       disabled: true,
     }
   });
+  internalUse.value = data?.internalUse || false;
   selectedSku.value = data?.selectedRows;
   if(selectedSku.value.length > 0) {
     for(let i = 0; i < selectedSku.value.length; i++) {
       selectedSkuMap.value.set(selectedSku.value[i].erpCode, selectedSku.value[i]);
-      appendSchemaByField(
+      await appendSchemaByField(
         {
           field: `${selectedSku.value[i].erpCode}`,
           component: 'InputNumber',
-          label: h('span', {'innerHTML': selectedSku.value[i].erpCode + '<br/><span class="text-xs text-gray-400 leading-none">(' + selectedSku.value[i].zhName + ')</span>'}),
+          label: internalUse.value ? h('span', {'innerHTML': selectedSku.value[i].erpCode + '<br/><span class="text-xs text-gray-400 leading-none">(' + selectedSku.value[i].zhName + ')</span>'}) : h('span', {
+            'innerHTML': selectedSku.value[i].enName,
+            'class': 'whitespace-normal'
+          }),
           // subLabel: `${selectedSku.value[i].erpCode}`,
           required: true,
           colProps: {
@@ -223,15 +225,15 @@ const [registerModal, {setModalProps, closeModal}, ] = useModalInner(async (data
             // extra: `${selectedSku.value[i].product}`,
           },
           // componentProps: {
-            // addonAfter: `${selectedSku.value[i].skuPrice}€/pcs`,
-            // placeholder: 'Please enter the quantity',
-            // onChange: () => {
-            //   calculateTotal();
-            // },
-            // min: 0,
-            // style: {width: '11rem'}
+          // addonAfter: `${selectedSku.value[i].skuPrice}€/pcs`,
+          // placeholder: 'Please enter the quantity',
+          // onChange: () => {
+          //   calculateTotal();
           // },
-          dynamicRules: ({ values }) => {
+          // min: 0,
+          // style: {width: '11rem'}
+          // },
+          dynamicRules: () => {
             return [
               {
                 validator: (_, value) => {
@@ -262,7 +264,7 @@ const [registerModal, {setModalProps, closeModal}, ] = useModalInner(async (data
 const title = t('data.order.placeOrder');
 
 //表单提交事件
-async function handleSubmit(v) {
+async function handleSubmit(_v) {
   Modal.confirm({
     title: t('data.order.createOrderConfirmation'),
     content: h('span', {'innerHTML': t('data.order.createSkuOrderConfirmationContent1') + ' <b>' + orderQty.value + '</b> skus' + t('data.order.createSkuOrderConfirmationContent2') + ' <b>' + orderTotal.value + '</b> €'}),
@@ -315,7 +317,7 @@ async function handleSetQtyToAll(qty) {
 }
 
 function calculateTotal() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     setTimeout(() => {
       let sum:number = 0;
       let qty:number = 0;
@@ -393,7 +395,7 @@ async function handleFillNegativeStocks() {
   color: #9CA3AF;
   text-align: center;
   //@apply flex border rounded-full h-full py-0.5 mr-1 bg-primary bg-opacity-10;
-  @apply flex h-full py-0.5 mr-1;
+  @apply grid h-full py-0.5 grid-cols-3;
   //span:nth-child(1) {
   //  color: @warning-color;
   //}
@@ -428,5 +430,11 @@ span.jeecg-basic-help, .jeecg-basic-table-header-cell__help {
 }
 .pricePerSku {
   color: @primary-color;
+}
+.qtyPicker .ant-input-number-input-wrap input.ant-input-number-input {
+  min-width:4rem;
+}
+.qtyPicker .ant-input-number {
+  min-width: 0;
 }
 </style>
