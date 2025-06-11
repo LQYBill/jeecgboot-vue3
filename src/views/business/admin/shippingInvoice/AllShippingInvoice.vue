@@ -54,6 +54,7 @@
                 v-model:value="formState.customer"
                 allowClear
                 :disabled="customerDisabled"
+                ref="customerRef"
               />
             </a-form-item>
           </a-col>
@@ -192,6 +193,14 @@
           @change="handleTableChange"
           ref="tableRef"
         >
+          <template #tableTitle>
+            <a-button type="primary" @click="handleCopyOrder('platformOrderId')" preIcon="ant-design:copy-outlined" :disabled="copyDisabled">
+              {{ t('common.operation.copy') + ' ' + t('data.invoice.platformOrderID') }}
+            </a-button>
+            <a-button type="primary" @click="handleCopyOrder('platformOrderNumber')" preIcon="ant-design:copy-outlined" :disabled="copyDisabled">
+              {{ t('common.operation.copy') + ' ' + t('data.invoice.platformOrderNumbers') }}
+            </a-button>
+          </template>
           <!-- Expanded Sub Table -->
           <template v-slot:expandedRowRender="record">
             <platform-order-content-sub-table :record='record' />
@@ -235,7 +244,7 @@
 </template>
 <script setup lang="ts">
 import {PageWrapper} from "/@/components/Page";
-import {onMounted, onUnmounted, provide, reactive, ref, h} from "vue";
+import {onMounted, onUnmounted, provide, reactive, ref, h, unref, nextTick} from "vue";
 import {useMessage} from "/@/hooks/web/useMessage";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {downloadFile} from "/@/api/common/api";
@@ -275,9 +284,11 @@ import {columns} from "./data";
 import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
 import {offWebSocket, onWebSocket} from "@/hooks/web/useWebSocket";
 import {HttpStatusCode} from "axios";
+import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 
 const { t } = useI18n();
 const { createMessage, notification } = useMessage();
+const { clipboardRef, copiedRef } = useCopyToClipboard();
 
 onMounted (async ()=> {
   offWebSocket(handleWsMsg);
@@ -291,6 +302,7 @@ onUnmounted(() => {
 let controller = new AbortController();
 const useForm = Form.useForm;
 const formRef = ref();
+const customerRef = ref();
 const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 6 } });
 const wrapperCol = ref<any>({ xs: { span: 24 }, sm: { span: 18 } });
 const validatorRules = ref({
@@ -362,6 +374,8 @@ const completeInvoiceDisabled = ref<boolean>(true);
 const makeInvoiceLoading = ref<boolean>(false);
 const completeInvoiceLoading = ref<boolean>(false);
 
+const copyDisabled = ref<boolean>(true);
+
 const orderList = ref<any[]>([]);
 
 const tableRef = ref();
@@ -392,7 +406,7 @@ const iSorter = ref({
 });
 const iFilters = ref<any>({});
 
-const [registerTable] = useTable({
+const [registerTable, {getSelectRows}] = useTable({
   title: t('data.invoice.orderList'),
   isTreeTable: true,
   expandIconColumnIndex: 1,
@@ -444,6 +458,10 @@ function handleInvoiceModeChange(e: Event) {
   customerDisabled.value = false;
   clearField('client');
   step.value = 1;
+  nextTick(() => {
+    customerRef.value.focus()
+  })
+  console.log('customerRef', customerRef.value);
 }
 function handleClientChange(id: string) {
   isSkuCompareReady.value = false;
@@ -1133,6 +1151,7 @@ async function onSelectChange(selectedRowKeys: (string | number)[], selectionRow
     }
 
     checkedKeys.value = selectedRowKeys;
+    copyDisabled.value = false;
     step.value = 7;
     const params = {
       clientID: customerId.value,
@@ -1172,6 +1191,7 @@ async function onSelectChange(selectedRowKeys: (string | number)[], selectionRow
     checkedKeys.value = selectedRowKeys;
     estimation.value = [];
     estimatesReady.value = true;
+    copyDisabled.value = true;
     manualCompleteInvoiceDisabled.value = true;
     makeManualInvoiceDisabled.value = true;
   }
@@ -1238,6 +1258,13 @@ function handleWsMsg(data: any) {
 
   } catch (e) {
     console.error('[WebSocket] 消息解析失败：', e);
+  }
+}
+function handleCopyOrder(arg: 'platformOrderId' | 'platformOrderNumber') {
+  const selectedRows = getSelectRows();
+  clipboardRef.value = selectedRows.map(row => row[arg]).join(',');
+  if(unref(copiedRef)) {
+    createMessage.warning(t('component.copy.success'));
   }
 }
 provide('step', step);

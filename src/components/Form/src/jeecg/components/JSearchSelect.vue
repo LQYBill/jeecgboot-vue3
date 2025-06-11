@@ -13,6 +13,7 @@
     :notFoundContent="loading ? undefined : null"
     @search="loadData"
     @change="handleAsyncChange"
+    ref="selectRef"
   >
     <template #notFoundContent>
       <a-spin size="small" />
@@ -30,6 +31,7 @@
     :filterOption="filterOption"
     :notFoundContent="loading ? undefined : null"
     @change="handleChange"
+    ref="selectRef"
   >
     <template #notFoundContent>
       <a-spin v-if="loading" size="small" />
@@ -40,7 +42,7 @@
 
 <script lang="ts">
   import { useDebounceFn } from '@vueuse/core';
-  import { defineComponent, PropType, ref, reactive, watchEffect, computed, unref, watch, onMounted } from 'vue';
+  import { defineComponent, PropType, ref, reactive, watchEffect, computed, unref, watch, onMounted, defineExpose } from 'vue';
   import { propTypes } from '/@/utils/propTypes';
   import { useAttrs } from '/@/hooks/core/useAttrs';
   import { initDictOptions } from '/@/utils/dict/index';
@@ -75,7 +77,8 @@
       //update-end-author:taoyan date:2022-8-15 for: VUEN-1971 【online 专项测试】关联记录和他表字段 1
     },
     emits: ['change', 'update:value'],
-    setup(props, { emit, refs }) {
+    setup(props, { emit, refs, expose}) {
+      const selectRef = ref()
       const options = ref<any[]>([]);
       const loading = ref(false);
       // update-begin--author:liaozhiyang---date:20231205---for：【issues/897】JSearchSelect组件添加class/style样式不生效
@@ -136,6 +139,14 @@
         },
         { immediate: true }
       );
+      // Gauthier WIA Sourcing allow focus
+      expose({
+        focus: () => {
+          if (selectRef.value) {
+            selectRef.value.focus();
+          }
+        },
+      })
       /**
        * 异步查询数据
        */
@@ -342,6 +353,7 @@
         filterOption,
         handleChange,
         handleAsyncChange,
+        selectRef,
       };
     },
   });
