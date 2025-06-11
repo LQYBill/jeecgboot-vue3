@@ -207,13 +207,13 @@ const [registerModal, {setModalProps, closeModal}, ] = useModalInner(async (data
   if(selectedSku.value.length > 0) {
     for(let i = 0; i < selectedSku.value.length; i++) {
       selectedSkuMap.value.set(selectedSku.value[i].erpCode, selectedSku.value[i]);
+      const displayName = internalUse.value ? selectedSku.value[i].zhName : selectedSku.value[i].enName;
       await appendSchemaByField(
         {
           field: `${selectedSku.value[i].erpCode}`,
           component: 'InputNumber',
-          label: internalUse.value ? h('span', {'innerHTML': selectedSku.value[i].erpCode + '<br/><span class="text-xs text-gray-400 leading-none">(' + selectedSku.value[i].zhName + ')</span>'}) : h('span', {
-            'innerHTML': selectedSku.value[i].enName,
-            'class': 'whitespace-normal'
+          label: h('span', {
+            'innerHTML': selectedSku.value[i].erpCode + '<br/><span class="text-xs text-gray-400 leading-none whitespace-break-spaces">(' + displayName + ')</span>'
           }),
           // subLabel: `${selectedSku.value[i].erpCode}`,
           required: true,
@@ -436,5 +436,8 @@ span.jeecg-basic-help, .jeecg-basic-table-header-cell__help {
 }
 .qtyPicker .ant-input-number {
   min-width: 0;
+}
+.jeecg-basic-form .ant-form-item-label > label {
+  height: 64px;
 }
 </style>

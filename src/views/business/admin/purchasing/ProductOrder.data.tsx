@@ -9,7 +9,7 @@ export const columns: BasicColumn[] = [
     align: 'center',
     dataIndex: 'erpCode',
     customFilterDropdown: true,
-    onFilter: (value, record:any) => {
+    onFilter: (value: string, record: Recordable) => {
       for (let i = 0; i < value.length; i++) {
         if (record.product.toString().toLowerCase().includes(value[i].toLowerCase())) {
           return true;
@@ -26,7 +26,7 @@ export const columns: BasicColumn[] = [
         dataIndex: 'zhName',
         align: 'center',
         customFilterDropdown: true,
-        onFilter: (value, record:any) => {
+        onFilter: (value:string, record:Recordable) => {
           for (let i = 0; i < value.length; i++) {
             if (record.zhName.toString().toLowerCase().includes(value[i].toLowerCase())) {
               return true;
@@ -40,7 +40,7 @@ export const columns: BasicColumn[] = [
         dataIndex: 'enName',
         align: 'center',
         customFilterDropdown: true,
-        onFilter: (value, record:any) => {
+        onFilter: (value:string, record:Recordable) => {
           for (let i = 0; i < value.length; i++) {
             if (record.enName.toString().toLowerCase().includes(value[i].toLowerCase())) {
               return true;
@@ -125,14 +125,13 @@ export const clientColumns: BasicColumn[] = [
     align: 'center',
     dataIndex: 'erpCode',
     customFilterDropdown: true,
-    onFilter: (value, record:any) => {
+    onFilter: (value:string, record:Recordable) => {
       for (let i = 0; i < value.length; i++) {
         if (record.product.toString().toLowerCase().includes(value[i].toLowerCase())) {
           return true;
         }
       }
     },
-    defaultHidden: true,
   },
   {
     title: t('data.product.product'),
@@ -143,7 +142,7 @@ export const clientColumns: BasicColumn[] = [
         dataIndex: 'enName',
         align: 'center',
         customFilterDropdown: true,
-        onFilter: (value, record:any) => {
+        onFilter: (value:string, record:Recordable) => {
           for (let i = 0; i < value.length; i++) {
             if (record.enName.toString().toLowerCase().includes(value[i].toLowerCase())) {
               return true;
