@@ -154,6 +154,7 @@ export default {
     platformOrderIDMabang: "平台订单ID(马帮订单号)",
     platformOrderContentList: "平台订单内容内嵌列表",
     platformOrderNumber: "平台订单交易号",
+    platformOrderNumbers: "平台订单交易号",
     preShippingInvoice: "预收物流发票",
     productAvailable: "是否有货",
     purchaseFee: "商品采购总费用",
@@ -296,6 +297,8 @@ export default {
     allShippingInvoiceModeTip: "按店铺开发票: 待处理，配货中和已发货的订单",
     orderSelectModeTip: "从列表中勾选订单或自动选所有符合条件的订单",
     compareSkus: "请首先更改不一致的SKU售价或重量，然后点击重新比较SKU按钮",
+    //This field indicates if there's a discrepancy in the Sku information between the app database and the ERP system. If it is the case, you can click on the order number to see which Sku is concerned
+    desyncTips: "此字段表示应用程序数据库和ERP系统之间的SKU信息是否存在差异。如果是这种情况，您可以点击订单号查看相关的SKU信息",
   },
   pageTitle: {
     invoicingPage: "生成发票页",

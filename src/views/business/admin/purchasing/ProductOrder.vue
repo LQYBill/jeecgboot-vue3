@@ -1,7 +1,7 @@
 <template>
   <PageWrapper :title="t('data.pageTitle.productOrderPage')" v-if="hasMabangUsername">
-    <a-card>
-       <a-form ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
+    <a-card class="min-h-svh">
+       <a-form v-if="internalUse" ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
          <a-row>
            <a-col>
              <a-form-item
@@ -149,10 +149,10 @@ import {BasicTable, SorterResult, TableImg, useTable} from "/@/components/Table"
 import {
   downloadInventory,
   downloadInvoice, getAllSelectableSkus,
-  getMabangUsername, listClientSkus,
+  getMabangUsername, getClient, listClientSkus,
   listCustomers, syncSkuQty,
 } from "./ProductOrder.api";
-import { columns } from "./ProductOrder.data";
+import { columns, clientColumns } from "./ProductOrder.data";
 import ProductOrderModal from "./components/ProductOrder.modal.vue";
 import {ExceptionEnum} from "/@/enums/exceptionEnum";
 import {useGo} from "/@/hooks/web/usePage";
@@ -166,7 +166,7 @@ const go = useGo();
 
 const tableRef = ref();
 onMounted(() => {
-  checkUserMabangUsername();
+  checkUser();
 });
 const useForm = Form.useForm;
 const formRef = ref<Nullable<FormActionType>>(null);
@@ -183,6 +183,7 @@ const formState = reactive<Record<string, any>>({
 });
 const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
+const internalUse = ref(false);
 const hasMabangUsername = ref<boolean>(false);
 
 const customerSelectList = ref<any>();
@@ -197,10 +198,11 @@ const productListDisabled = ref<boolean>(true);
 const allSelected = ref<boolean>(false);
 const allSkus = ref<any>([]);
 
-const client = ref<any>();
+const client = ref<Recordable>();
 
 const skuList = ref<any>([]);
 
+const tableLoading = ref<boolean>(false);
 const orderDisabled = ref<boolean>(true);
 const syncLoading = ref<boolean>(false);
 const syncDisabled = ref<boolean>(true);
@@ -236,8 +238,8 @@ const ipagination = ref({
   onChange: handlePaginationChange,
   onShowSizeChange: handleShowSizeChange,
 });
-const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, setLoading}] = useTable({
-  columns: columns,
+const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, setColumns }] = useTable({
+  columns: clientColumns,
   dataSource: skuList,
   rowSelection: {
     type: 'checkbox',
@@ -258,16 +260,36 @@ const [registerTable, { reload, clearSelectedRowKeys, getSelectRows, setLoading}
   canResize: true,
   rowKey: 'id',
   sortFn: handleSorterChange,
+  loading: tableLoading,
 });
 const [registerModal, {openModal}] = useModal();
 
+async function checkUser() {
+  await getClient().then( async (res) => {
+    if(!!res.internal) {
+      internalUse.value = true;
+    }
+    else {
+      client.value = res.client;
+    }
+    await checkUserMabangUsername();
+  }).catch(err => {
+    console.error("Error fetching client: ", err);
+  });
+}
 async function checkUserMabangUsername() {
   await getMabangUsername(handleMabangUsername);
 }
-function handleMabangUsername(username: string | null) {
+async function handleMabangUsername(username: string | null) {
   hasMabangUsername.value = username !== null;
-  if(hasMabangUsername.value) {
-    loadCustomerList();
+  if(!hasMabangUsername.value) {
+    createMessage.error(t('sys.invoice.missingMabangUsername'));
+    return;
+  }
+  if(internalUse.value) {
+    await loadCustomerList();
+  } else {
+    await loadSkuList(1);
   }
 }
 async function loadCustomerList() {
@@ -276,9 +298,10 @@ async function loadCustomerList() {
 function handleSetCustomer(selectList, list) {
   customerSelectList.value = selectList;
   customerList.value = list;
+  setColumns(columns);
 }
 async function handleClientChange(id) {
-  client.value = [];
+  client.value = {};
   skuList.value = [];
   state.searchText = [];
   formState.erpCode = [];
@@ -290,7 +313,7 @@ async function handleClientChange(id) {
   selectAllVisible.value = true;
   unselectAllDisabled.value = true;
   unselectAllVisible.value = false;
-  setLoading(false);
+  tableLoading.value = false;
 
   let index = customerList.value.map(i => i.id).indexOf(id);
   client.value = customerList.value[index];
@@ -312,7 +335,7 @@ function getQueryParams() {
   params.pageSize = pageSize.value;
   params.order = iSorter.value.order;
   params.column = iSorter.value.column;
-  params.clientId = client.value.id;
+  params.clientId = client.value?.id;
   params.erpCodes = formState.erpCode.toString();
   params.zhNames = formState.zhName.toString();
   params.enNames = formState.enName.toString();
@@ -321,14 +344,15 @@ function getQueryParams() {
 async function loadSkuList(arg?:number) {
   if(arg === 1) {
     currentPage.value = 1;
-    clearSelectedRowKeys();
+    if(!!tableRef.value)
+      clearSelectedRowKeys();
   }
-  let params = getQueryParams();
-  setLoading(true);
+  const params = getQueryParams();
+  tableLoading.value =true;
   await listClientSkus(params, handleSetSkus).then(() => {
     selectAllDisabled.value = skuList.value.length <= 0;
   });
-  setLoading(false);
+  tableLoading.value =false;
 }
 
 function handleSetSkus(res) {
@@ -346,6 +370,7 @@ function orderMenu() {
   openModal(true, {
     showFooter: true,
     selectedRows: allSelected.value ? allSkus.value : getSelectRows(),
+    internalUse: internalUse.value,
   })
 }
 function handleModalSuccess (result:InvoiceMetaData) {
@@ -451,7 +476,7 @@ async function handleSelectAllSkus() {
   allSelected.value = true;
   clearSelectedRowKeys();
   let params = getQueryParams();
-  setLoading(true);
+  tableLoading.value =true;
   await getAllSelectableSkus(params, handleSetSelectedSkus);
 }
 async function handleUnselectAllSkus() {
@@ -461,7 +486,7 @@ async function handleUnselectAllSkus() {
 }
 function handleSetSelectedSkus(res) {
   allSkus.value = res;
-  setLoading(false);
+  tableLoading.value =false;
 }
 // for 404
 function returnHome() {

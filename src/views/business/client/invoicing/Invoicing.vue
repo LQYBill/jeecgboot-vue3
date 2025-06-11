@@ -77,46 +77,53 @@
       </a-form>
       <BasicTable @register="registerTable" id="orders-list-table" ref="tableRef">
         <template #tableTitle>
-          <PopConfirmButton
-            v-if="!excludedClients.includes(client?.internalCode)"
-            type="primary"
-            title="Confirm making shipping invoice ?"
-            preIcon="ant-design:rocket-outlined"
-            @confirm="makeManualShippingInvoice"
-            :disabled="makeShippingDisabled"
-            okText="ok" :loading="makeShippingLoading"
-            cancelText="Cancel"
-          >
-            {{ t("data.invoice.generateShippingInvoice") }}
-          </PopConfirmButton>
-          <PopConfirmButton
-            v-if="!excludedClients.includes(client?.internalCode)"
-            type="success"
-            title="Confirm making purchase invoice ?"
-            preIcon="ant-design:shopping-outlined"
-            @confirm="makeManualPurchaseInvoice"
-            :disabled="makePurchaseDisabled"
-            okText="ok" :loading="makePurchaseLoading"
-            cancelText="Cancel"
-          >
-            {{ t("data.invoice.generatePurchaseInvoice") }}
-          </PopConfirmButton>
-          <PopConfirmButton
-            type="default"
-            title="Confirm making purchase and shipping invoice ?"
-            preIcon="ant-design:calculator-outlined"
-            @confirm="makeCompleteManualInvoice"
-            :disabled="makeCompleteDisabled"
-            okText="ok" :loading="makeCompleteLoading"
-            cancelText="Cancel"
-          >
-            {{ t("data.invoice.generateInvoice7pre") }}
-          </PopConfirmButton>
-          <a-button class="mr-2" type="primary" preIcon="ant-design:sync-outlined" @click="handleSyncSkus" :disabled="Object.keys(client).length === 0 || !isSkuCompareReady" :loading="!isSkuCompareReady">
-            {{ t("common.operation.compareSkus") }}
-            <BasicHelp :text="t('data.tips.compareSkus')"/>
-          </a-button>
-          <a-button @click="openHelpModal" type="warning">Help</a-button>
+          <div class="flex item-center justify-start gap-2">
+            <PopConfirmButton
+              v-if="!excludedClients.includes(client?.internalCode)"
+              type="primary"
+              title="Confirm making shipping invoice ?"
+              preIcon="ant-design:rocket-outlined"
+              @confirm="makeManualShippingInvoice"
+              :disabled="makeShippingDisabled"
+              okText="ok" :loading="makeShippingLoading"
+              cancelText="Cancel"
+            >
+              {{ t("data.invoice.generateShippingInvoice") }}
+            </PopConfirmButton>
+            <PopConfirmButton
+              v-if="!excludedClients.includes(client?.internalCode)"
+              type="success"
+              title="Confirm making purchase invoice ?"
+              preIcon="ant-design:shopping-outlined"
+              @confirm="makeManualPurchaseInvoice"
+              :disabled="makePurchaseDisabled"
+              okText="ok" :loading="makePurchaseLoading"
+              cancelText="Cancel"
+            >
+              {{ t("data.invoice.generatePurchaseInvoice") }}
+            </PopConfirmButton>
+            <PopConfirmButton
+              type="default"
+              title="Confirm making purchase and shipping invoice ?"
+              preIcon="ant-design:calculator-outlined"
+              @confirm="makeCompleteManualInvoice"
+              :disabled="makeCompleteDisabled"
+              okText="ok" :loading="makeCompleteLoading"
+              cancelText="Cancel"
+            >
+              {{ t("data.invoice.generateInvoice7pre") }}
+            </PopConfirmButton>
+          </div>
+          <div class="flex item-center justify-start gap-2">
+            <a-button type="primary" @click="handleCopyOrderNumbers" preIcon="ant-design:copy-outlined" :disabled="copyDisabled">
+              {{ t('common.operation.copy') + ' ' + t('data.invoice.platformOrderNumbers') }}
+            </a-button>
+            <a-button class="mr-2" type="default" preIcon="ant-design:sync-outlined" @click="handleSyncSkus" :disabled="Object.keys(client).length === 0 || !isSkuCompareReady" :loading="!isSkuCompareReady">
+              {{ t("common.operation.compareSkus") }}
+              <BasicHelp :text="t('data.tips.compareSkus')"/>
+            </a-button>
+            <a-button @click="openHelpModal" type="warning">Help</a-button>
+          </div>
         </template>
         <template #platformOrderNumber="{record}">
           <a-button type="link"
@@ -183,12 +190,12 @@
 </template>
 <script lang="ts" setup>
 
-import {onBeforeMount, reactive, ref,  Ref} from "vue";
+import {onBeforeMount, reactive, ref, Ref, unref} from "vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
 import {SorterResult, useTable} from "/@/components/Table";
-import { PageWrapper } from '/@/components/Page';
+import {PageWrapper} from '/@/components/Page';
 import {
   fetchValidPeriod,
   getColumns,
@@ -217,8 +224,11 @@ import {compareSku, editOrdersRemark} from "@/views/business/admin/shippingInvoi
 import InvoicingOrderContentModal
   from "@/views/business/client/_components/InvoicingOrderContentModal.vue";
 import BasicHelp from "@/components/Basic/src/BasicHelp.vue";
+import {ManualInvoiceParam} from "@/views/business/types/manualInvoiceParam";
+import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 
 const { t } = useI18n();
+const { clipboardRef, copiedRef } = useCopyToClipboard();
 const { createMessage } = useMessage();
 
 onBeforeMount(() => {
@@ -252,12 +262,19 @@ const internalUse = ref<boolean>(false);
 const customerList = ref<any[]>([]);
 const customerSelectList = ref<any[]>([]);
 const customerListDisabled = ref<boolean>(false);
-const excludedClients = ['RB', 'JBL2', 'JBL'];
+// clients that can only make complete invoice
+const excludedClients = ['RB', 'JBL2', 'JBL', 'LA', 'KB'];
+// clients that can invoice an order with complete invoice method even when the sku's stock is available.
+const clientCompleteBypassList = ref<string[]>([
+  'LA',
+  'KB'
+]);
 
 const client: Ref<Record<string, string>> = ref({});
 
-const orderList = ref<any[]>([]);
+const orderList = ref<Recordable[]>([]);
 const shopList = ref<any[]>([]);
+const selectedOrdersWithStock = ref<string[]>([]);
 
 const selectedStartDate = ref<string>();
 const selectedEndDate = ref<string>();
@@ -270,6 +287,7 @@ const searchDisabled = ref<boolean>(true);
 const shopDisabled = ref<boolean>(false);
 
 const isSkuCompareReady = ref<boolean>(false);
+const copyDisabled = ref<boolean>(true);
 
 const makeShippingDisabled = ref<boolean>(true);
 const makeShippingLoading = ref<boolean>(false);
@@ -394,6 +412,7 @@ function handleShopChange(shops) {
   total.value = 0;
   clearSelectedRowKeys();
   orderList.value = [];
+  selectedOrdersWithStock.value = [];
   selectedShopIds.value = shops;
   makeShippingDisabled.value = true;
   makeShippingLoading.value = false;
@@ -448,6 +467,7 @@ function clearField(field:any) {
       selectedShopIds.value = [];
       shopList.value = [];
       orderList.value = [];
+      selectedOrdersWithStock.value = [];
       dateDisabled.value = true;
       searchDisabled.value = true;
       try{
@@ -538,6 +558,7 @@ function loadOrders(arg?:number) {
     ipagination.value.current = 1;
     clearSelectedRowKeys();
     estimation.value = [];
+    selectedOrdersWithStock.value = [];
   }
   let params = getQueryParams();
   orderList.value = [];
@@ -570,15 +591,17 @@ function loadOrders(arg?:number) {
 function showPaginationTotal(total: number, range: [number, number]) {
   return range[0] + '-' + range[1] + ' / ' + total;
 }
-function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
+function onSelectChange(selectedRowKeys: (string | number)[], selectionRows: Recordable[]) {
   makeShippingDisabled.value = true;
   makePurchaseDisabled.value = true;
   makeCompleteDisabled.value = true;
   if(selectedRowKeys.length == 0) {
     estimation.value = [];
+    copyDisabled.value = true;
     return;
   }
   estimatesReady.value = false;
+  copyDisabled.value = false;
   // deactivate undesired checked keys and buttons
   let uncheckableRowKeys:any[] = [];
   let shippingInvoiceAvailable = true;
@@ -591,12 +614,17 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
       shippingInvoiceAvailable = false;
     if(['-1', '1', '2'].indexOf(row.purchaseAvailable) > -1)
       purchaseInvoiceAvailable = false;
-    if(row.productAvailable == '1') // product already in stock
+    if(row.productAvailable == '1') {// product already in stock
       purchaseInvoiceAvailable = false;
+      if(!selectedOrdersWithStock.value.includes(row.id))
+        selectedOrdersWithStock.value.push(row.id);
+    }
   }
   makeShippingDisabled.value = !shippingInvoiceAvailable;
   makePurchaseDisabled.value = !purchaseInvoiceAvailable;
-  makeCompleteDisabled.value = !(shippingInvoiceAvailable && purchaseInvoiceAvailable);
+  makeCompleteDisabled.value = clientCompleteBypassList.value.includes(client.value.internalCode) ?
+    !shippingInvoiceAvailable
+    : !(shippingInvoiceAvailable && purchaseInvoiceAvailable);
 
   for(let idx of uncheckableRowKeys) {
     let index = selectedRowKeys.indexOf(idx);
@@ -666,7 +694,7 @@ function getPeriod() {
 }
 function makeManualShippingInvoice() {
   const period = getPeriod();
-  const params = {
+  const params: ManualInvoiceParam = {
     clientID: client.value.id,
     orderIds: getSelectRowKeys(),
     type: InvoicingMethod.PRESHIPPING,
@@ -702,7 +730,7 @@ function makeManualShippingInvoice() {
 }
 function makeManualPurchaseInvoice() {
   const period = getPeriod();
-  const params = {
+  const params: ManualInvoiceParam = {
     clientID: client.value.id,
     orderIds: getSelectRowKeys(),
     type: InvoicingMethod.PRESHIPPING,
@@ -738,13 +766,16 @@ function makeManualPurchaseInvoice() {
 }
 function makeCompleteManualInvoice() {
   const period = getPeriod();
-  const params = {
+  let params: ManualInvoiceParam = {
     clientID: client.value.id,
     orderIds: getSelectRowKeys(),
     type: InvoicingMethod.PRESHIPPING,
     start: period.start,
     end: period.end,
   };
+  if(clientCompleteBypassList.value.includes(client.value.internalCode) && selectedOrdersWithStock.value.length > 0) {
+    params.ordersWithStock = selectedOrdersWithStock.value;
+  }
   shopDisabled.value = true;
   searchDisabled.value = true;
   makeShippingDisabled.value = true;
@@ -850,6 +881,13 @@ const handleReset = (clearFilters) => {
   formState.purchaseAvailable = [];
   formState.productAvailable = [];
 };
+function handleCopyOrderNumbers() {
+  const selectedRows = getSelectRows();
+  clipboardRef.value = selectedRows.map(row => row.platformOrderNumber).join(',');
+  if(unref(copiedRef)) {
+    createMessage.warning(t('component.copy.success'));
+  }
+}
 </script>
 <style lang="less">
 @geekBlue: #1d39c4;

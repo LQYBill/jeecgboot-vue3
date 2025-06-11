@@ -1,6 +1,6 @@
 export default {
   invoicing: {
-    default: 'Invoicing',
+    default: '开票',
     invoicingPage: '开票页面',
     skuOrderPage: 'SKU采购',
     purchaseOrderManagementPage: '采购订单管理',
