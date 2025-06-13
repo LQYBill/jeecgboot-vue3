@@ -52,6 +52,7 @@ export default {
     maxValue: '最大值为{ num }',
     required: '必填',
     notRequired: '非必填',
+    notEmpty: '不能为空',
   },
   icon: {
     placeholder: '点击选择图标',
