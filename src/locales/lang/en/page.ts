@@ -10,6 +10,10 @@ export default {
     additionnalFeesPage: 'Additional Fees',
     billableOrdersBreakdownPage: 'Billable Order Breakdown',
   },
+  clientManagement: {
+    default: 'Client Management',
+    shopOptions: 'Shop Options',
+  },
   client: {
     default: 'Client',
     expensesOverviewPage: 'Expenses Overview',

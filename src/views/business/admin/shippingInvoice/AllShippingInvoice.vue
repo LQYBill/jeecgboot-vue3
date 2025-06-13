@@ -252,7 +252,7 @@ import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect
 import JSelectMultiple from "/@/components/Form/src/jeecg/components/JSelectMultiple.vue";
 import {Divider, Form, Tag} from "ant-design-vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
-import {useTable} from "/@/components/Table";
+import {TableRowSelection, useTable} from "/@/components/Table";
 import dayjs, {Dayjs} from "dayjs";
 import PlatformOrderContentSubTable
   from "/@/views/business/admin/platformOrder/subTables/PlatformOrderContentSubTable.vue";
@@ -285,6 +285,7 @@ import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
 import {offWebSocket, onWebSocket} from "@/hooks/web/useWebSocket";
 import {HttpStatusCode} from "axios";
 import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
+import {Key} from "ant-design-vue/lib/table/interface";
 
 const { t } = useI18n();
 const { createMessage, notification } = useMessage();
@@ -380,11 +381,11 @@ const orderList = ref<any[]>([]);
 
 const tableRef = ref();
 const expandedRowKeys = ref<any[]>([]);
-const checkedKeys = ref<Array<string | number>>([]);
-const rowSelection = {
+const checkedKeys = ref<Array<Key>>([]);
+const rowSelection: TableRowSelection<any> = {
   type: 'checkbox',
   columnWidth: 30,
-  selectedRowKeys: checkedKeys,
+  selectedRowKeys: checkedKeys.value,
   onChange: onSelectChange,
   getCheckboxProps: getCheckboxProps
 };
@@ -806,6 +807,7 @@ async function makeManualInvoice() {
         let code = res.invoiceCode;
         downloadInvoice(filename);
         downloadDetailFile(code);
+        editInvoiceOrdersRemark(code, null);
         ipagination.value.current = 1;
         findOrdersLoading.value = true;
         loadOrders();
@@ -935,6 +937,7 @@ async function makeInvoice() {
         const invoiceNumber = res.invoiceCode;
         downloadInvoice(invoiceFilename);
         downloadDetailFile(invoiceNumber);
+        editInvoiceOrdersRemark(invoiceNumber, null);
         step.value = erpStatus.value === "3" ? 2 : 8;
       }
     ).catch(e => {
@@ -1033,7 +1036,7 @@ function downloadDetailFile(invoiceNumber: string) {
       console.error(`Download invoice detail fail : ${e}`);
   });
 }
-function editInvoiceOrdersRemark(invoiceNumber:string, invoicingMethod: InvoicingMethod) {
+function editInvoiceOrdersRemark(invoiceNumber:string, invoicingMethod: InvoicingMethod | null) {
   editOrdersRemark({invoiceNumber, invoicingMethod}).then((res) => {
     if(Object.keys(res.failures).length > 0) {
       createMessage.error(`Error while writing invoice number in orders on Mabang: ${res.failures}`);

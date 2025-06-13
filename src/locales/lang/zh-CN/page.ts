@@ -10,6 +10,10 @@ export default {
     additionnalFeesPage: '开票附加费用',
     billableOrdersBreakdownPage: '未开票订单数据',
   },
+  clientManagement: {
+    default: '客户管理',
+    shopOptions: '店铺选项',
+  },
   client: {
     default: '客户',
     expensesOverviewPage: '费用概览',
