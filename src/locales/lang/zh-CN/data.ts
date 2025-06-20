@@ -121,6 +121,7 @@ export default {
     details: "明细",
     discountAmount: "减免金额",
     downloadDetails: "下载发票详情",
+    downloadDetailsComplete: "下载完整发票详情",
     downloadInvoice: "下载发票",
     effectiveDate: "生效日期",
     erpStatus: "ERP中状态",

@@ -120,6 +120,7 @@ export default {
     details: "Details",
     discountAmount: "Discount Amount",
     downloadDetails: "Download Details",
+    downloadDetailsComplete: "Download Complete Details",
     downloadInvoice: "Download Invoice",
     effectiveDate: "Effective Date",
     erpStatus: "ERP Status",
