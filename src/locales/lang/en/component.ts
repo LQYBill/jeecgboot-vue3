@@ -52,6 +52,7 @@ export default {
     maxValue: 'The maximum value is {num}',
     required: 'Required',
     notRequired: 'Not required',
+    notEmpty: 'Cannot be empty',
   },
   icon: {
     placeholder: 'Click the select icon',

@@ -8,6 +8,7 @@ enum Api {
   listClientSkus = '/sku/listWithFilters',
   listAllSelectableSkuIds = '/sku/listAllSelectableSkuIds',
   downloadInvoice = '/shippingInvoice/download',
+  downloadInvoicePdf = '/generated/shippingInvoice/downloadPdf',
   downloadInvoiceInventory = '/shippingInvoice/downloadInvoiceInventory',
   downloadInventory = '/shippingInvoice/downloadInventory',
   getClient = '/userClient/getClient',
@@ -19,7 +20,7 @@ enum Api {
 export const getClient = async () => {
   return await defHttp.get({url: Api.getClient});
 }
-export const getMabangUsername = async (handleSuccess:any) => {
+export const getMabangUsername = async (handleSuccess:Function) => {
   return defHttp.get({url: Api.getMabangUsername})
     .then(res => {
       handleSuccess(res);
@@ -27,7 +28,7 @@ export const getMabangUsername = async (handleSuccess:any) => {
       handleSuccess(null);
     });
 }
-export const listCustomers = async (handleSuccess:any) => {
+export const listCustomers = async (handleSuccess:Function) => {
   return defHttp.get({url: Api.getClientList})
     .then(res => {
       let customerSelectList = res.map(
@@ -53,7 +54,7 @@ export const listCustomers = async (handleSuccess:any) => {
       console.error(e);
     })
 }
-export const listClientSkus = async (params:any, handleSuccess:any) => {
+export const listClientSkus = async (params:any, handleSuccess:Function) => {
   return defHttp.get({url: Api.listClientSkus, params})
     .then(res => {
       handleSuccess(res);
@@ -62,7 +63,7 @@ export const listClientSkus = async (params:any, handleSuccess:any) => {
       console.error(e);
     });
 }
-export const getAllSelectableSkus = async (params: Record<string, any>, handleSuccess:any) => {
+export const getAllSelectableSkus = async (params: Record<string, any>, handleSuccess:Function) => {
   return defHttp.get({url: Api.listAllSelectableSkuIds, params}).then(res => {
     handleSuccess(res);
   })
@@ -71,9 +72,18 @@ export const createPurchaseInvoice = (params:any) => {
   return defHttp.post({url: Api.createOrder, params});
 }
 
-export const downloadInvoice = (invoiceFilename:string, handleSuccess:any) => {
+export const downloadInvoice = (invoiceFilename:string, handleSuccess:Function) => {
   const param = {filename: invoiceFilename, type:'purchase'};
   downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
+    handleSuccess();
+  }).catch(e => {
+    console.error(`Download invoice fail : ${e}`);
+  });
+}
+export const downloadInvoicePdf = (metaData:InvoiceMetaData, handleSuccess:Function) => {
+  const param = {invoiceNumber: metaData.invoiceCode};
+  const filename = metaData.filename.endsWith('.xlsx') ? metaData.filename.slice(0,-5)+'.pdf' : metaData.filename.slice(0,-4)+'.pdf';
+  downloadFile(Api.downloadInvoicePdf, filename, param).then(() => {
     handleSuccess();
   }).catch(e => {
     console.error(`Download invoice fail : ${e}`);

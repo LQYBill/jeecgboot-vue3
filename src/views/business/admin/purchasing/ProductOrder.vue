@@ -161,7 +161,7 @@ import {
   downloadInventory,
   downloadInvoice, getAllSelectableSkus,
   getMabangUsername, getClient, listClientSkus,
-  listCustomers, syncSkuQty, skuOrderExport, placeOrderByExcel,
+  listCustomers, syncSkuQty, skuOrderExport, placeOrderByExcel, downloadInvoicePdf,
 } from './ProductOrder.api';
 import { columns, clientColumns } from "./ProductOrder.data";
 import ProductOrderModal from "./components/ProductOrder.modal.vue";
@@ -385,7 +385,10 @@ function orderMenu() {
   })
 }
 function handleModalSuccess (result:InvoiceMetaData) {
-  downloadInvoice(result.filename, handleDownloadSuccess);
+  if(internalUse.value)
+    downloadInvoice(result.filename, handleDownloadSuccess);
+  else
+    downloadInvoicePdf(result, handleDownloadSuccess);
   downloadInventory(result, handleDownloadSuccess);
   clearSelectedRowKeys();
   reload();
