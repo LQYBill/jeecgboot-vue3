@@ -54,6 +54,7 @@ export default {
     ordered: "采购中",
     outOfStock: "缺货",
     placeOrder: "提交订单",
+    placeOrderByExcel: "通过Excel采购",
     reason: "原因",
     shippedUninvoicedOrdersAmountToBill: "已发货未开票应收款",
     shippedUninvoicedOrdersVolume: "已发货未开票订单量",

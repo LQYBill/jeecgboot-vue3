@@ -54,6 +54,7 @@ export default {
     ordered: "Ordered",
     outOfStock: "Out of Stock",
     placeOrder: "Place Order",
+    placeOrderByExcel: "Place Order by Excel",
     reason: "Reason",
     shippedUninvoicedOrdersAmountToBill: "Shipped & Uninvoiced Orders Amount to Bill",
     shippedUninvoicedOrdersVolume: "Shipped & Uninvoiced Orders Volume",

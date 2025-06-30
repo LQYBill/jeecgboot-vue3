@@ -13,6 +13,8 @@ enum Api {
   getClient = '/userClient/getClient',
   getMabangUsername = '/sys/user/getMabangUsername',
   syncSkuQty = '/sku/syncSkuQty',
+  skuOrderExport = '/sku/skuOrderExport',
+  placeOrderByExcel = '/shippingInvoice/createOrderByExcel',
 }
 export const getClient = async () => {
   return await defHttp.get({url: Api.getClient});
@@ -102,3 +104,24 @@ export const downloadInventory = (invoiceMetaData: InvoiceMetaData, handleSucces
 export const syncSkuQty = (erpCodes: string[]) => {
   return defHttp.post({url: Api.syncSkuQty, params: erpCodes});
 }
+export const skuOrderExport = async (params: Record<string, any>) => {
+  return defHttp.get(
+    {
+      url: Api.skuOrderExport,
+      params,
+      responseType: 'blob',
+    },
+    {
+      isReturnNativeResponse: true,
+    }
+  );
+}
+export const placeOrderByExcel = async (formData: FormData) => {
+  return defHttp.post({
+    url: Api.placeOrderByExcel,
+    params: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
