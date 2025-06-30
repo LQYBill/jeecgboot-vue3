@@ -12,19 +12,19 @@
   </BasicDrawer>
 </template>
 <script lang="ts" setup>
-  import { defineComponent, ref, computed, unref, useAttrs } from 'vue';
-  import { BasicForm, useForm } from '/@/components/Form/index';
-  import { formSchema } from './user.data';
-  import { BasicDrawer, useDrawerInner } from '/@/components/Drawer';
-  import { saveOrUpdateUser, getUserRoles, getUserDepartList } from './user.api';
-  import { useDrawerAdaptiveWidth } from '/@/hooks/jeecg/useAdaptiveWidth';
-  // 声明Emits
+import { ref, computed, unref, useAttrs, onMounted } from 'vue';
+import { BasicForm, useForm } from '/@/components/Form/index';
+import { formSchema } from './user.data';
+import { BasicDrawer, useDrawerInner } from '/@/components/Drawer';
+import { saveOrUpdateUser, getUserRoles, getUserDepartList } from './user.api';
+import { useDrawerAdaptiveWidth } from '/@/hooks/jeecg/useAdaptiveWidth';
+// 声明Emits
   const emit = defineEmits(['success', 'register']);
   const attrs = useAttrs();
   const isUpdate = ref(true);
   const rowId = ref('');
   const departOptions = ref([]);
-  //表单配置
+//表单配置
   const [registerForm, { setProps, resetFields, setFieldsValue, validate, updateSchema }] = useForm({
     labelWidth: 90,
     schemas: formSchema,

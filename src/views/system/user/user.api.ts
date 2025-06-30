@@ -22,6 +22,7 @@ enum Api {
   allTenantList = '/sys/tenant/queryList',
   allPostList = '/sys/position/list',
   userDepartList = '/sys/user/userDepartList',
+  getDepartById = '/sys/user/getDepartById',
   changePassword = '/sys/user/changePassword',
   frozenBatch = '/sys/user/frozenBatch',
   getUserAgent = '/sys/sysUserAgent/queryByUserName',
@@ -137,6 +138,12 @@ export const getAllTenantList = (params) => defHttp.get({ url: Api.allTenantList
  * 获取指定用户负责部门
  */
 export const getUserDepartList = (params) => defHttp.get({ url: Api.userDepartList, params }, { successMessageMode: 'none' });
+/**
+ * 根据部门ID获取部门信息
+ */
+export const getDepartById = (params) => {
+  return defHttp.get({ url: Api.getDepartById, params });
+};
 /**
  * 获取全部职务
  */

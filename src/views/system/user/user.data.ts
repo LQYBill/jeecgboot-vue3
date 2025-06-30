@@ -1,6 +1,6 @@
 import { BasicColumn } from '/@/components/Table';
 import { FormSchema } from '/@/components/Table';
-import { getAllRolesListNoByTenant, getAllTenantList } from './user.api';
+import { getAllRolesListNoByTenant, getAllTenantList, getDepartById } from './user.api';
 import { rules } from '/@/utils/helper/validator';
 import { render } from '/@/utils/common/renderUtils';
 export const columns: BasicColumn[] = [
@@ -210,7 +210,7 @@ export const formSchema: FormSchema[] = [
         checkStrictly: true,
         defaultExpandLevel: 2,
 
-        onSelect: (options, values) => {
+        onSelect: async (options, values) => {
           const { updateSchema } = formActionType;
           //所属部门修改后更新负责部门下拉框数据
           updateSchema([
@@ -221,6 +221,17 @@ export const formSchema: FormSchema[] = [
           ]);
           //所属部门修改后更新负责部门数据
           formModel.departIds && (formModel.departIds = formModel.departIds.filter((item) => values.value.indexOf(item) > -1));
+          //如果是WIA客户，则显示client
+          const departInfo = await getDepartById({ departId: values.value[0] });
+          const isWIAClient =  departInfo?.departName === 'WIA客户';
+          updateSchema([
+            { field: 'client', show: isWIAClient },
+            { field: 'code', show: !isWIAClient },
+            {
+              field: 'departIds',
+              componentProps: { options },
+            },
+          ]);
         },
       };
     },
@@ -341,6 +352,15 @@ export const formSchema: FormSchema[] = [
     helpMessage: "Code used in SKU creation (2 to 5 characters)",
     rules: [{ pattern: /^[a-zA-Z0-9]{2,5}$/, message: 'Use initials, 2 to 5 characters', required: true, trigger: "blur" }],
   },
+  {
+    label: '客户',
+    field: 'client',
+    component: 'JSearchSelect',
+    componentProps: {
+      dict: 'client WHERE active = 1,internal_code,id',
+    },
+    show: false
+  }
 ];
 
 export const formPasswordSchema: FormSchema[] = [
