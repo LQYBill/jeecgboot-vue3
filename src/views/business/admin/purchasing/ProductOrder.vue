@@ -31,6 +31,17 @@
             <a-button type="primary" @click="orderMenu" preIcon="ant-design:shopping-cart-outlined" :disabled="orderDisabled">
               {{ t('data.order.placeOrder') }}
             </a-button>
+            <a-upload
+              ref="uploadRef"
+              :showUploadList="false"
+              :beforeUpload="beforeUpload"
+              :accept="'.xlsx,.xls'"
+            >
+            </a-upload>
+            <a-button type="primary" @click="handlePlaceOrderByExcel" preIcon="ant-design:shopping-cart-outlined">
+              {{ t('data.order.placeOrderByExcel') }}
+            </a-button>
+            <a-button  type="default" preIcon="ant-design:export-outlined" @click="handleSkuOrderExport"> {{ t("common.operation.export") }}</a-button>
             <a-tooltip>
               <template #title>
                 Synchronize selected skus
@@ -137,8 +148,8 @@
 </template>
 <script lang="ts" setup>
 
-import {onMounted, reactive, ref} from "vue";
-import {Form, Result} from "ant-design-vue";
+import { h, onMounted, reactive, ref } from 'vue';
+import { Form, Modal, Result } from 'ant-design-vue';
 import {PageWrapper} from "/@/components/Page";
 import {JSearchSelect} from "/@/components/Form/";
 import {useI18n} from "/@/hooks/web/useI18n";
@@ -150,8 +161,8 @@ import {
   downloadInventory,
   downloadInvoice, getAllSelectableSkus,
   getMabangUsername, getClient, listClientSkus,
-  listCustomers, syncSkuQty, downloadInvoicePdf,
-} from "./ProductOrder.api";
+  listCustomers, syncSkuQty, skuOrderExport, placeOrderByExcel, downloadInvoicePdf,
+} from './ProductOrder.api';
 import { columns, clientColumns } from "./ProductOrder.data";
 import ProductOrderModal from "./components/ProductOrder.modal.vue";
 import {ExceptionEnum} from "/@/enums/exceptionEnum";
@@ -491,6 +502,102 @@ function handleSetSelectedSkus(res) {
   allSkus.value = res;
   tableLoading.value =false;
 }
+async function handleSkuOrderExport() {
+  const params = getQueryParams();
+  try {
+    const res = await skuOrderExport(params);
+    const blob = new Blob([res.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const disposition = res.headers['content-disposition'];
+    if (!disposition) {
+      throw new Error('Content-Disposition cannot be found in response headers');
+    }
+    const match = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)["']?/i);
+    if (!match || !match[1]) {
+      throw new Error('Content-Disposition header does not contain filename');
+    }
+    let filename;
+    try {
+      filename = decodeURIComponent(match[1]);
+    } catch (err) {
+      throw new Error('failed to decode filename from Content-Disposition header');
+    }
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+
+  } catch (e) {
+    console.error('failed to export sku order', e);
+  }
+}
+async function handlePlaceOrderByExcel() {
+  if (!hasMabangUsername.value) {
+    createMessage.error(t('sys.invoice.missingMabangUsername'));
+    return;
+  }
+  if (!client.value?.id) {
+    createMessage.error(t('data.invoice.selectClientFirst'));
+    return;
+  }
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.xlsx,.xls';
+  input.click();
+  input.onchange = async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await placeOrderByExcel(formData);
+      if (!Array.isArray(response)) {
+        throw new Error('Invalid response from server');
+      }
+      // get the excel data and open the modal
+      const mappedSkuList = response.map((sku: any) => ({
+        erpCode: sku.erpCode,
+        enName: sku.enName,
+        zhName: sku.zhName,
+        stock: sku.stock ?? 0,
+        skuPrice: sku.skuPrice ?? 0,
+        salesLastWeek: sku.sales7d ?? 0,
+        salesFourWeeks: sku.sales28d ?? 0,
+        salesSixWeeks: sku.sales42d ?? 0,
+        quantity: sku.quantity ?? 0,
+      }));
+      const skusMissingPrice = mappedSkuList.filter(sku => !sku.skuPrice || sku.skuPrice <= 0);
+      const validSkus = mappedSkuList.filter(sku => sku.skuPrice > 0);
+      if (skusMissingPrice.length > 0) {
+        const missingSkuCodes = skusMissingPrice.map(sku => sku.erpCode).join(', ');
+        Modal.warning({
+          title: 'SKUs with Missing Price',
+          content: h('div', [
+            h('p', 'The following SKUs have missing or zero price and will not be included in the order:'),
+            h('p', { style: 'font-weight:bold;color:red;' }, missingSkuCodes),
+          ]),
+          centered: true,
+          zIndex: 3000,
+          width: 600,
+          okText: 'Got it',
+        });
+      }
+      openModal(true, {
+        showFooter: true,
+        selectedRows: validSkus,
+        internalUse: internalUse.value,
+      });
+    } catch (e) {
+      console.error('Failed to parse Excel', e);
+      createMessage.error('Failed to parse Excel: ' + e);
+    }
+  };
+}
+
 // for 404
 function returnHome() {
   go();

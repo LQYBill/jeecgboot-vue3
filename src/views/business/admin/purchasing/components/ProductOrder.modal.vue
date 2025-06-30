@@ -1,6 +1,6 @@
 <template>
   <BasicModal v-bind="$attrs" @register="registerModal" destroyOnClose :title="title" :width="800"
-              @ok="handleSubmit">
+              @ok="handleSubmit" >
     <slot>
       <div class="flex flex-row items-center flex-nowrap text-center min-h-8 mb-4">
         <div class="flex flex-row flex-1 border-b" v-for="n in 2" :class="n==2 ? 'border-l' : '' ">
@@ -200,21 +200,26 @@ const [registerModal, {setModalProps, closeModal}, ] = useModalInner(async (data
     okText: t('data.order.createOrder'),
     okButtonProps:{
       disabled: true,
+    },
+    afterClose: () => {
+      resetModalData();
     }
   });
   internalUse.value = data?.internalUse || false;
   selectedSku.value = data?.selectedRows;
+  console.log('selectedSku after openModal', JSON.stringify(selectedSku.value, null, 2));
   if(selectedSku.value.length > 0) {
     for(let i = 0; i < selectedSku.value.length; i++) {
       selectedSkuMap.value.set(selectedSku.value[i].erpCode, selectedSku.value[i]);
-      const displayName = internalUse.value ? selectedSku.value[i].zhName : selectedSku.value[i].enName;
       await appendSchemaByField(
         {
           field: `${selectedSku.value[i].erpCode}`,
           component: 'InputNumber',
-          label: h('span', {
-            'innerHTML': selectedSku.value[i].erpCode + '<br/><span class="text-xs text-gray-400 leading-none whitespace-break-spaces">(' + displayName + ')</span>'
-          }),
+          label: h('div', { style: 'white-space: normal; word-break: break-all;' }, [
+            h('div', selectedSku.value[i].erpCode),
+            h('div', { class: 'text-xs text-gray-400' }, selectedSku.value[i].zhName || ''),
+            h('div', { class: 'text-xs text-blue-400' }, selectedSku.value[i].enName || ''),
+          ]),
           // subLabel: `${selectedSku.value[i].erpCode}`,
           required: true,
           colProps: {
@@ -249,20 +254,33 @@ const [registerModal, {setModalProps, closeModal}, ] = useModalInner(async (data
         },
         ''
       );
+      let defaultQty = 0;
+      if (selectedSku.value[i].quantity !== undefined && selectedSku.value[i].quantity !== null) {
+        defaultQty = Number(selectedSku.value[i].quantity);
+      }
+      const existingQty = skuQtyToOrder.value[selectedSku.value[i].erpCode];
+      const useQty = (existingQty !== undefined && existingQty !== null) ? existingQty : defaultQty;
       setFieldsValue({
-        [`${selectedSku.value[i].erpCode}`]: !!skuQtyToOrder.value[selectedSku.value[i].erpCode] ? skuQtyToOrder.value[selectedSku.value[i].erpCode] : 0
-      })
+        [`${selectedSku.value[i].erpCode}`]: useQty
+      });
     }
     await calculateTotal();
   }
-
-
     // 隐藏底部时禁用整个表单
     setProps({disabled: !data?.showFooter})
 });
 //设置标题
 const title = t('data.order.placeOrder');
-
+function resetModalData() {
+  selectedSku.value = [];
+  selectedSkuMap.value = new Map();
+  orderTotal.value = 0;
+  orderQty.value = 0;
+  skuQtyToOrder.value = {};
+  skuQtyToOrderBeforeAdjust.value = {};
+  isAdjusted.value = false;
+  resetFields();
+}
 //表单提交事件
 async function handleSubmit(_v) {
   Modal.confirm({

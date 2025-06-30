@@ -8,6 +8,7 @@ export enum Api {
   getClient = "/generated/shippingInvoice/getClient",
   downloadCompleteInvoiceExcel = "/generated/shippingInvoice/downloadCompleteInvoiceExcel",
   downloadInvoiceDetail = "/shippingInvoice/downloadInvoiceDetail",
+  downloadCompleteInvoiceDetail = "/shippingInvoice/downloadCompleteInvoiceDetail",
   setPaid = "/generated/shippingInvoice/setPaid",
 }
 

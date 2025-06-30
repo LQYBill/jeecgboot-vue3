@@ -20,6 +20,7 @@
         <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('Invoice List', Api.exportXls, exportParams)"> {{ t("common.operation.export") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ic:outline-receipt-long" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="success" preIcon="ic:round-list-alt" @click="downloadExcelInvoice('detail')" :disabled = 'downloadDetailDisabled'> {{ t("data.invoice.downloadDetails") }}</a-button>
+        <a-button v-if="checkedKeys && checkedKeys.length > 0 && selectRows.some(row => row.type === 'shipping')" type="error" preIcon="ic:round-list-alt" @click="downloadExcelInvoice('completeDetail')" :disabled = 'downloadDetailDisabled'>{{ t("data.invoice.downloadDetailsComplete") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="warning" preIcon="ic:outline-inventory" @click="downloadExcelInvoice('inventory')" :disabled = 'downloadInventoryDisabled'> {{ t("data.upload.inventoryRecap") }}</a-button>
         <!-- TODO : re-adapt -->
         <!--<PopConfirmButton
@@ -255,6 +256,8 @@ function downloadExcelInvoice(type : string) {
         }
         else if (type === "detail") {
           filename = res.internalCode + "_" + invoiceNum + '_Détail_calcul_de_facture_' + date + '.xlsx';
+        } else if (type === "completeDetail") {
+          filename = res.internalCode + "_" + invoiceNum + '_Détail_calcul_de_facture_complete_' + date + '.xlsx';
         } else {
           filename = invoiceNum + "_Inventaire_SKU.xlsx";
         }
@@ -262,11 +265,13 @@ function downloadExcelInvoice(type : string) {
         }).catch((err) => {
           console.error(err);
           createMessage.error(invoiceNum + " : " + err);
-
-          if(type === "detail") {
-            createMessage.info("Generating a new detail file ...");
+          if(type === "detail" || type === "completeDetail") {
+            const isComplete = type === "completeDetail";
+            const message = isComplete ? "Generating complete invoice detail for " : "Generating invoice detail for ";
+            createMessage.info(message + invoiceNum + " ...");
+            const api = isComplete ? Api.downloadCompleteInvoiceDetail : Api.downloadInvoiceDetail;
             let params = {invoiceNumber: invoiceNum, invoiceEntity: res.invoiceEntity, internalCode: res.internalCode};
-            downloadFile(Api.downloadInvoiceDetail, filename, params).then(() => {
+            downloadFile(api, filename, params).then(() => {
               createMessage.info("Download successful.")
             }).catch((err) => {
               console.error(err);
