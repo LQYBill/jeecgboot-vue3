@@ -216,6 +216,10 @@ export default {
       noShopFoundForClient: "No relevant store information was found for the current customer.",
     },
   },
+  invoicing: {
+    default: 'Invoicing',
+    clientInvoicing: 'Client Invoicing',
+  },
   purchase: {
     groupId: "Purchase batch number",
     orderAttributionFail : "Error while attributing purchase order to orders [%{var}]",
@@ -250,6 +254,31 @@ export default {
     height: "Height",
     length: "Length",
     gram: "gram",
+  },
+  shop: {
+    default: "Shop",
+    shopID: "Shop ID",
+    useBalance: "Use Balance",
+    showBalance: "Show Balance",
+    balanceThreshold: "Balance Threshold",
+    isAutoInvoice: "Auto Invoice",
+    isChronologicalOrder: "Chronological Order",
+    isBreakdownInvoice: "Breakdown Invoice",
+    isCompleteInvoice: "Complete Invoice",
+    canSelfInvoice: "Self Invoice",
+    canSelfP: "Self Purchase Invoice",
+    canSelfL: "Self Shipping Invoice",
+    canSelfPL: "Self Complete Invoice",
+    isSelfIgnoreStock: "Ignore Stock in Complete Invoice",
+    hasStock: "Has Stock",
+    hasShippingInvoiceRemark: "Shipping Invoice Remark in Mabang",
+    help: {
+      balanceThreshold: "default: -1 no limit, 0 if balance must be positive, XX if balance debt cannot exceed -XX",
+      isChronologicalOrder1: "Requires the 'isAutoInvoice' and 'useBalance' options to be enabled. 'balanceThreshold' must be set to a value greater than 0.",
+      isChronologicalOrder2: "If enabled, orders will be invoiced in chronological order, otherwise the system will invoice the first billable order. Refer to an admin if you need further information.",
+      isCompleteInvoice: "If enabled, the system will generate a complete invoice every Friday, otherwise it will only generate a shipping invoice.",
+      isSelfIgnoreStock: "If enabled, when creating a complete invoice, for orders with stock only shipping fees will be invoiced."
+    },
   },
   sku: {
     availableAmount: 'Available Amount',

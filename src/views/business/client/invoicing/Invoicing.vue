@@ -716,6 +716,7 @@ function makeManualShippingInvoice() {
       const code = res.invoiceCode;
       downloadInvoice(code, filename);
       downloadDetailFile(code);
+      editInvoiceOrdersRemark(code, null);
     })
     .catch(e => {
       console.error(e);
@@ -828,7 +829,7 @@ function downloadDetailFile(invoiceNumber: string) {
     console.error(`Download invoice detail fail : ${e}`);
   });
 }
-function editInvoiceOrdersRemark(invoiceNumber:string, invoicingMethod: InvoicingMethod) {
+function editInvoiceOrdersRemark(invoiceNumber:string, invoicingMethod: InvoicingMethod | null) {
   editOrdersRemark({invoiceNumber, invoicingMethod}).then((res) => {
     if(Object.keys(res.failures).length > 0) {
       createMessage.error(`Error while writing invoice number in orders on Mabang: ${res.mabangResponses.failures}`);

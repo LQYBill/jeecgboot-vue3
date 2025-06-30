@@ -7,6 +7,8 @@ export default {
   default: '默认',
   Status: "状态",
 
+  other: '其他',
+
   inputText: '请输入',
   chooseText: '请选择',
 

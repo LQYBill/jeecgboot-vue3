@@ -7,6 +7,8 @@ export default {
   default: 'default',
   Status: "Status",
 
+  other: 'Other',
+
   inputText: 'Please enter',
   chooseText: 'Please choose',
 
