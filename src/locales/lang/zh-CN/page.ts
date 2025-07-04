@@ -12,6 +12,7 @@ export default {
   },
   clientManagement: {
     default: '客户管理',
+    customers: '客户',
     shopOptions: '店铺选项',
   },
   client: {

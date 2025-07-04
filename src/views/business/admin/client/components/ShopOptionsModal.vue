@@ -12,10 +12,13 @@ import {BasicForm, useForm} from '/@/components/Form/index';
 import {formSchema} from '../ShopOptions.data';
 import {saveOrUpdate} from '../ShopOptions.api';
 import {useI18n} from 'vue-i18n';
+import {ShopOptionsAddParam} from "@/views/business/dto/ShopOptionsAddParam.dto";
+import {ShopOptionsUpdateParam} from "@/views/business/dto/ShopOptionsUpdateParam.dto";
 const emit = defineEmits(['register', 'success']);
-const isUpdate = ref(true);
 const { t } = useI18n();
-const [registerForm, {setProps, resetFields, setFieldsValue, validate}] = useForm({
+
+const isUpdate = ref(true);
+const [registerForm, {setProps, resetFields, setFieldsValue, validate, removeSchemaByFiled, appendSchemaByField}] = useForm({
   labelWidth: '100%',
   schemas: formSchema,
   showActionButtonGroup: false,
@@ -31,19 +34,43 @@ const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) 
   });
   isUpdate.value = !!data?.isUpdate;
   if (unref(isUpdate)) {
+    await removeSchemaByFiled('shopIds');
+    await appendSchemaByField(
+      {
+        field: 'shopId',
+        label: t('data.shop.default'),
+        component: "JSearchSelect",
+        componentProps: {
+          dict: "shop,erp_code,id",
+          placeholder: t('data.shop.default'),
+        },
+        dynamicDisabled: true,
+      },
+      '',
+      true
+    );
     await setFieldsValue({
       ...data.record,
     });
+  } else {
+    await setFieldsValue({
+      shopIds: data.shopIds ? data.shopIds : '',
+    })
   }
   await setProps({disabled: !data?.showFooter})
 });
 const title = computed(() => (!unref(isUpdate) ? t('common.operation.add') : t('common.operation.edit')));
 
-async function handleSubmit(_v) {
+async function handleSubmit() {
   try {
-    let values = await validate();
+    const values = await validate();
+    let param: ShopOptionsAddParam | ShopOptionsUpdateParam = {
+      ...values,
+    };
+    if(isUpdate.value) Object.assign(param, {id: values.shopOptionsId})
+    else Object.assign(param, {shopIds: values.shopIds.split(',').map((shopId: string) => shopId.trim())});
     setModalProps({confirmLoading: true});
-    await saveOrUpdate(values, isUpdate.value);
+    await saveOrUpdate(param, isUpdate.value);
     closeModal();
     emit('success');
   } finally {

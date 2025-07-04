@@ -1,6 +1,11 @@
 <template>
   <PageWrapper title='Client Management Page'>
     <!--引用表格-->
+    <div v-if="clientIdWithShops.length > 0" class=" w-full rounded-md animate-fade-in-left">
+      <router-link :to="`/business/admin/client/ShopOptionsList?c=${clientIdWithShops}`" class="flex items-center justify-between p-4 bg-blue-100 hover:bg-blue-50 rounded-md mb-4">
+        {{ t('data.shopOptions.help.configure')}} <Icon icon="ant-design:arrow-right-outlined" class="mx-1" />
+      </router-link>
+    </div>
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
       <!--插槽:table标题-->
       <template #tableTitle>
@@ -28,8 +33,6 @@
       <template #action="{ record }">
         <TableAction :actions="getTableAction(record)" :dropDownActions="getDropDownAction(record)" />
       </template>
-      <!--字段回显插槽-->
-      <template v-slot:bodyCell="{ column, record, index, text }"> </template>
     </BasicTable>
     <!-- 表单区域 -->
     <ClientModal @register="registerModal" @success="handleSuccess"></ClientModal>
@@ -37,16 +40,17 @@
 </template>
 
 <script lang="ts" name="client-client" setup>
-  import { reactive, computed} from 'vue';
+  import {reactive, computed, Ref, ref} from 'vue';
   import { BasicTable,TableAction } from '/@/components/Table';
   import { useListPage } from '/@/hooks/system/useListPage';
   import { useModal } from '/@/components/Modal';
   import ClientModal from './components/ClientModal.vue';
-  import { columns, searchFormSchema, superQuerySchema } from './Client.data';
+  import { columns, superQuerySchema } from './Client.data';
   import { list, deleteOne, batchDelete, getImportUrl, getExportUrl } from './Client.api';
   import { useUserStore } from '/@/store/modules/user';
   import { useI18n } from '@/hooks/web/useI18n';
   import { PageWrapper } from '@/components/Page';
+  import {Icon} from "@/components/Icon";
   const { t } = useI18n();
 
   const queryParam = reactive<any>({});
@@ -60,17 +64,11 @@
       api: list,
       columns,
       canResize: false,
-      formConfig: {
-        //labelWidth: 120,
-        schemas: searchFormSchema,
-        autoSubmitOnEnter: true,
-        showAdvancedButton: true,
-        fieldMapToNumber: [],
-        fieldMapToTime: [],
-      },
+      useSearchForm: false,
       actionColumn: {
         width: 120,
         fixed: 'right',
+        title: t('common.operation.action'),
       },
       beforeFetch: (params) => {
         return Object.assign(params, queryParam);
@@ -89,6 +87,9 @@
 
   const [registerTable, { reload }, { rowSelection, selectedRowKeys }] = tableContext;
 
+  // after creating/editing a client, if the client has shops, we store the shops to show a link to the shop options page
+  const clientIdWithShops: Ref<string> = ref('');
+
   // 高级查询配置
   const superQueryConfig = reactive(superQuerySchema);
   const username = computed(() => userStore.getUserInfo?.username);
@@ -100,6 +101,7 @@
       queryParam[k] = params[k];
     });
     reload();
+    clientIdWithShops.value = '';
   }
 
   /**
@@ -151,7 +153,8 @@
   /**
    * 成功回调
    */
-  function handleSuccess() {
+  function handleSuccess(clientId: string) {
+    clientIdWithShops.value = clientId;
     (selectedRowKeys.value = []) && reload();
   }
 

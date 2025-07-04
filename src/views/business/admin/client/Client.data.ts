@@ -131,18 +131,6 @@ export const columns: BasicColumn[] = [
     dataIndex: 'clientCategoryId_dictText',
   },
 ];
-//查询数据
-export const searchFormSchema: FormSchema[] = [
-  {
-    label: t('data.client.salesperson'),
-    field: 'salesperson',
-    component: 'JSearchSelect',
-    componentProps: {
-      dict: 'sys_user,username,id',
-    },
-    //colProps: {span: 6},
-  },
-];
 //表单数据
 export const formSchema: FormSchema[] = [
   {

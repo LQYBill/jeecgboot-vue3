@@ -1,6 +1,7 @@
 export default {
   available: '可用',
   unavailable: '不可用',
+  all: '全部',
   yes: '是',
   no: '否',
   okText: '确认',
@@ -84,6 +85,7 @@ export default {
     save: '保存',
     search: '搜索',
     selected: "已选中",
+    showAll: '显示全部',
     submit: '提交',
     sync: '同步',
     syncPageOrders: "同步当前页面的订单",
