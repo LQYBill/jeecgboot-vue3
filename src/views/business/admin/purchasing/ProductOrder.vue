@@ -554,12 +554,25 @@ async function handlePlaceOrderByExcel() {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('clientId', client.value?.id);
       const response = await placeOrderByExcel(formData);
-      if (!Array.isArray(response)) {
-        throw new Error('Invalid response from server');
+      if (!response || response.success === false) {
+        createMessage.error(response?.message || 'Server returned an error');
+        return;
+      }
+      const { validSkuList, warnings } = response|| {};
+      if (Array.isArray(warnings) && warnings.length > 0) {
+        Modal.warning({
+          title: 'Some SKUs have issues',
+          content: warnings.map(msg => h('p', msg)),
+          centered: true,
+          zIndex: 3000,
+          width: 600,
+          okText: 'Got it',
+        });
       }
       // get the excel data and open the modal
-      const mappedSkuList = response.map((sku: any) => ({
+      const mappedSkuList = validSkuList.map((sku) => ({
         erpCode: sku.erpCode,
         enName: sku.enName,
         zhName: sku.zhName,
@@ -570,25 +583,9 @@ async function handlePlaceOrderByExcel() {
         salesSixWeeks: sku.sales42d ?? 0,
         quantity: sku.quantity ?? 0,
       }));
-      const skusMissingPrice = mappedSkuList.filter(sku => !sku.skuPrice || sku.skuPrice <= 0);
-      const validSkus = mappedSkuList.filter(sku => sku.skuPrice > 0);
-      if (skusMissingPrice.length > 0) {
-        const missingSkuCodes = skusMissingPrice.map(sku => sku.erpCode).join(', ');
-        Modal.warning({
-          title: 'SKUs with Missing Price',
-          content: h('div', [
-            h('p', 'The following SKUs have missing or zero price and will not be included in the order:'),
-            h('p', { style: 'font-weight:bold;color:red;' }, missingSkuCodes),
-          ]),
-          centered: true,
-          zIndex: 3000,
-          width: 600,
-          okText: 'Got it',
-        });
-      }
       openModal(true, {
         showFooter: true,
-        selectedRows: validSkus,
+        selectedRows: mappedSkuList,
         internalUse: internalUse.value,
       });
     } catch (e) {
