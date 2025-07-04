@@ -1,7 +1,11 @@
 import {defHttp} from '/@/utils/http/axios';
 import { useMessage } from "/@/hooks/web/useMessage";
+import {ShopOptionsAddParam} from "@/views/business/dto/ShopOptionsAddParam.dto";
+import {ShopOptionsUpdateParam} from "@/views/business/dto/ShopOptionsUpdateParam.dto";
+import {useI18n} from "@/hooks/web/useI18n";
 
 const { createConfirm } = useMessage();
+const { t } = useI18n();
 
 enum Api {
   list = '/shopOptions/list',
@@ -31,7 +35,7 @@ export const list = (params) =>
 /**
  * 删除单个
  */
-export const deleteOne = (params,handleSuccess) => {
+export const deleteOne = (params,handleSuccess: Function) => {
   return defHttp.delete({url: Api.deleteOne, params}, {joinParamsToUrl: true}).then(() => {
     handleSuccess();
   });
@@ -41,7 +45,7 @@ export const deleteOne = (params,handleSuccess) => {
  * @param params
  * @param handleSuccess
  */
-export const batchDelete = (params, handleSuccess) => {
+export const batchDelete = (params, handleSuccess: Function) => {
   createConfirm({
     iconType: 'warning',
     title: t('common.operation.delete'),
@@ -60,7 +64,7 @@ export const batchDelete = (params, handleSuccess) => {
  * @param params
  * @param isUpdate
  */
-export const saveOrUpdate = (params, isUpdate) => {
+export const saveOrUpdate = (params: ShopOptionsAddParam | ShopOptionsUpdateParam, isUpdate: boolean) => {
   let url = isUpdate ? Api.edit : Api.save;
   return defHttp.post({url: url, params});
 }

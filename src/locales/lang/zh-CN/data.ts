@@ -40,15 +40,6 @@ export default {
     clientCategoryId: "客户类型",
     useBalance: "是否使用余额",
   },
-  shop: {
-    website: "网站",
-    ownerId: "店主ID",
-    name: "店铺名称",
-    erpCode: "ERP内名称",
-    orderServiceFee: "订单服务费",
-    shopifyPrefix: "Shopify前缀",
-    packagingMaterialFee: "海外仓包材费",
-  },
   erpStatus: {
     pending: "待处理",
     preparing: "配货中",
@@ -258,6 +249,17 @@ export default {
   },
   shop: {
     default: "店铺",
+    shopList: "店铺列表",
+    website: "网站",
+    ownerId: "店主ID",
+    name: "店铺名称",
+    erpCode: "ERP内名称",
+    orderServiceFee: "订单服务费",
+    shopifyPrefix: "Shopify前缀",
+    packagingMaterialFee: "海外仓包材费",
+  },
+  shopOptions: {
+    default: "店铺选项",
     shopID: "店铺ID",
     useBalance: "是否使用余额",
     showBalance: "是否显示账户余额",
@@ -273,13 +275,19 @@ export default {
     isSelfIgnoreStock: "是否忽略库存数(7xxxx)",
     hasStock: "是否客户做库存",
     hasShippingInvoiceRemark: "是否开物流票需要打备注",
+    hasOptions: "是否有选项",
     help: {
       balanceThreshold: "默认值为-1: 不限制。0: 余额为0时不允许下单。大于0: 余额不能小于-XX",
       isChronologicalOrder1: "需要启用'是否定时自动开票'和'是否使用余额'选项, '余额阈值'值大于0时才生效。",
       isChronologicalOrder2: "如果启用，订单将按时间顺序开票，否则系统将开具第一个可开票的订单。需要进一步信息请联系管理员。",
       isCompleteInvoice: "如果启用，系统将每周五开具P+L发票，否则只开物流发票。",
       isSelfIgnoreStock: "如果启用，开7号票时，所有有库存的订单只会算物流费。",
+      configure: "别忘记配置店铺选项。店铺选项的作用是控制店铺的开票方式、是否使用余额、是否显示账户余额等。",
+      noShopWithoutOptions: "全部选上的店铺以配置。"
     },
+    isClientActive: "客户活跃状态",
+    isShopActive: "店铺活跃状态",
+    shopOptionsList: "店铺选项列表",
   },
   sku: {
     availableAmount: '库存数量',

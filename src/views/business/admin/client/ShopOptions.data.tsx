@@ -1,178 +1,119 @@
 import {BasicColumn} from '/@/components/Table';
 import {FormSchema} from '/@/components/Table';
-import {render} from '/@/utils/common/renderUtils';
 import {useI18n} from "@/hooks/web/useI18n";
 
 const {t} = useI18n();
 export const columns: BasicColumn[] = [
   {
+    title: t('data.Client'),
+    align: "center",
+    dataIndex: 'internalCode'
+  },
+  {
     title: t('data.shop.default'),
     align: "center",
-    dataIndex: 'shopId_dictText'
+    dataIndex: 'erpCode'
   },
   {
-    title: t('data.shop.useBalance'),
+    title: 'ID',
+    dataIndex: 'shopOptionsId',
+    defaultHidden: true,
+  },
+  {
+    title: t('data.shopOptions.useBalance'),
     align: "center",
     dataIndex: 'useBalance',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
   },
   {
-    title: t('data.shop.showBalance'),
+    title: t('data.shopOptions.showBalance'),
     align: "center",
     dataIndex: 'showBalance',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
   },
   {
-    title: t('data.shop.balanceThreshold'),
+    title: t('data.shopOptions.balanceThreshold'),
     align: "center",
     dataIndex: 'balanceThreshold',
-    helpMessage: t('data.shop.help.balanceThreshold'),
+    helpMessage: t('data.shopOptions.help.balanceThreshold'),
   },
   {
-    title: t('data.shop.isAutoInvoice'),
+    title: t('data.shopOptions.isAutoInvoice'),
     align: "center",
     dataIndex: 'isAutoInvoice',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
   },
   {
-    title: t('data.shop.isBreakdownInvoice'),
+    title: t('data.shopOptions.isBreakdownInvoice'),
     align: "center",
     dataIndex: 'isBreakdownInvoice',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
   },
   {
-    title: t('data.shop.isCompleteInvoice'),
+    title: t('data.shopOptions.isCompleteInvoice'),
     align: "center",
     dataIndex: 'isCompleteInvoice',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
-    helpMessage: t('data.shop.help.isCompleteInvoice'),
+    helpMessage: t('data.shopOptions.help.isCompleteInvoice'),
   },
   {
-    title: t('data.shop.isChronologicalOrder'),
+    title: t('data.shopOptions.isChronologicalOrder'),
     align: "center",
     dataIndex: 'isChronologicalOrder',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
-    helpMessage: [t('data.shop.help.isChronologicalOrder1'), t('data.shop.help.isChronologicalOrder2')],
+    helpMessage: [t('data.shopOptions.help.isChronologicalOrder1'), t('data.shopOptions.help.isChronologicalOrder2')],
   },
   {
-    title: t('data.shop.canSelfInvoice'),
+    title: t('data.shopOptions.canSelfInvoice'),
     align: "center",
     dataIndex: 'canSelfInvoice',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
   },
   {
-    title: t('data.shop.canSelfP'),
+    title: t('data.shopOptions.canSelfP'),
     align: "center",
     dataIndex: 'canSelfP',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
   },
   {
-    title: t('data.shop.canSelfL'),
+    title: t('data.shopOptions.canSelfL'),
     align: "center",
     dataIndex: 'canSelfL',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
   },
   {
-    title: t('data.shop.canSelfPL'),
+    title: t('data.shopOptions.canSelfPL'),
     align: "center",
     dataIndex: 'canSelfPL',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
   },
   {
-    title: t('data.shop.isSelfIgnoreStock'),
+    title: t('data.shopOptions.isSelfIgnoreStock'),
     align: "center",
     dataIndex: 'isSelfIgnoreStock',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
-    helpMessage: t('data.shop.help.isSelfIgnoreStock'),
+    helpMessage: t('data.shopOptions.help.isSelfIgnoreStock'),
   },
   {
-    title: t('data.shop.hasStock'),
+    title: t('data.shopOptions.hasStock'),
     align: "center",
     dataIndex: 'hasStock',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
   },
   {
-    title: t('data.shop.hasShippingInvoiceRemark'),
+    title: t('data.shopOptions.hasShippingInvoiceRemark'),
     align: "center",
     dataIndex: 'hasShippingInvoiceRemark',
-    customRender: ({text}) => {
-      return render.renderSwitch(text, [{text: t('common.yes'), value: 1}, {
-        text: t('common.no'),
-        value: 0
-      }])
-    },
   },
+  {
+    title: 'hasOptions',
+    dataIndex: 'hasOptions',
+    defaultHidden: true,
+  }
 ];
-//查询数据
-export const searchFormSchema: FormSchema[] = [];
-//表单数据
 export const formSchema: FormSchema[] = [
   {
-    label: t('data.shop.default'),
-    field: 'shopId',
-    component: 'JSearchSelect',
+    label: 'id',
+    field: 'shopOptionsId',
+    component: 'Input',
+    show: false,
+    dynamicDisabled: true
+  },
+  {
+    label: t('data.shop.shopList'),
+    field: 'shopIds',
+    component: 'JSelectMultiple',
     componentProps: {
-      dict: "shop,erp_code,id"
+      dictCode: "shop,erp_code,id",
+      placeholder: t('data.shop.shopList'),
     },
     dynamicRules: () => {
       return [
@@ -191,7 +132,7 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.shop.useBalance'),
+    label: t('data.shopOptions.useBalance'),
     field: 'useBalance',
     colProps: {span: 8},
     component: 'Switch',
@@ -207,7 +148,7 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.shop.showBalance'),
+    label: t('data.shopOptions.showBalance'),
     field: 'showBalance',
     colProps: {span: 8},
     component: 'Switch',
@@ -226,7 +167,7 @@ export const formSchema: FormSchema[] = [
     }
   },
   {
-    label: t('data.shop.balanceThreshold'),
+    label: t('data.shopOptions.balanceThreshold'),
     field: 'balanceThreshold',
     colProps: {span: 8},
     component: 'InputNumber',
@@ -254,7 +195,7 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.shop.isAutoInvoice'),
+    label: t('data.shopOptions.isAutoInvoice'),
     field: 'isAutoInvoice',
     component: 'Switch',
     componentProps: ({formModel}) => {
@@ -277,7 +218,7 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.shop.isBreakdownInvoice'),
+    label: t('data.shopOptions.isBreakdownInvoice'),
     field: 'isBreakdownInvoice',
     colProps: {span: 8},
     component: 'Switch',
@@ -286,7 +227,6 @@ export const formSchema: FormSchema[] = [
         checkedChildren: t('common.yes'),
         unCheckedChildren: t('common.no'),
         onChange: (checked: boolean, _e: Event) => {
-          console.log('formModel', formModel)
           if (!checked && !formModel.isAutoInvoice) {
             formModel.isCompleteInvoice = false;
             formModel.isChronologicalOrder = false;
@@ -302,7 +242,7 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.shop.isCompleteInvoice'),
+    label: t('data.shopOptions.isCompleteInvoice'),
     field: 'isCompleteInvoice',
     colProps: {span: 8},
     component: 'Switch',
@@ -321,7 +261,7 @@ export const formSchema: FormSchema[] = [
     }
   },
   {
-    label: t('data.shop.isChronologicalOrder'),
+    label: t('data.shopOptions.isChronologicalOrder'),
     field: 'isChronologicalOrder',
     colProps: {span: 8},
     component: 'Switch',
@@ -350,7 +290,7 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.shop.canSelfInvoice'),
+    label: t('data.shopOptions.canSelfInvoice'),
     field: 'canSelfInvoice',
     colProps: {span: 6},
     component: 'Switch',
@@ -366,7 +306,7 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.shop.canSelfP'),
+    label: t('data.shopOptions.canSelfP'),
     field: 'canSelfP',
     colProps: {span: 6},
     component: 'Switch',
@@ -385,7 +325,7 @@ export const formSchema: FormSchema[] = [
     }
   },
   {
-    label: t('data.shop.canSelfL'),
+    label: t('data.shopOptions.canSelfL'),
     field: 'canSelfL',
     colProps: {span: 6},
     component: 'Switch',
@@ -404,7 +344,7 @@ export const formSchema: FormSchema[] = [
     }
   },
   {
-    label: t('data.shop.canSelfPL'),
+    label: t('data.shopOptions.canSelfPL'),
     field: 'canSelfPL',
     colProps: {span: 6},
     component: 'Switch',
@@ -423,7 +363,7 @@ export const formSchema: FormSchema[] = [
     }
   },
   {
-    label: t('data.shop.isSelfIgnoreStock'),
+    label: t('data.shopOptions.isSelfIgnoreStock'),
     field: 'isSelfIgnoreStock',
     component: 'Switch',
     componentProps: {
@@ -451,7 +391,7 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.shop.hasStock'),
+    label: t('data.shopOptions.hasStock'),
     field: 'hasStock',
     colProps: {span: 12},
     component: 'Switch',
@@ -467,7 +407,7 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.shop.hasShippingInvoiceRemark'),
+    label: t('data.shopOptions.hasShippingInvoiceRemark'),
     field: 'hasShippingInvoiceRemark',
     colProps: {span: 12},
     component: 'Switch',
@@ -490,62 +430,6 @@ export const formSchema: FormSchema[] = [
   },
 ];
 
-// 高级查询数据
-export const superQuerySchema = {
-  shopId: {
-    title: t('data.shop.shopID'),
-    order: 0,
-    view: 'sel_search',
-    type: 'string',
-    dictTable: "shop",
-    dictCode: 'id',
-    dictText: 'erp_code',
-  },
-  useBalance: {title: t('data.shop.useBalance'), order: 1, view: 'number', type: 'number',},
-  showBalance: {title: t('data.shop.showBalance'), order: 2, view: 'number', type: 'number',},
-  balanceThreshold: {
-    title: t('data.shop.balanceThreshold'),
-    order: 3,
-    view: 'number',
-    type: 'number',
-  },
-  isAutoInvoice: {title: t('data.shop.isAutoInvoice'), order: 4, view: 'number', type: 'number',},
-  isChronologicalOrder: {
-    title: t('data.shop.isChronologicalOrder'),
-    order: 5,
-    view: 'number',
-    type: 'number',
-  },
-  isBreakdownInvoice: {
-    title: t('data.shop.isBreakdownInvoice'),
-    order: 6,
-    view: 'number',
-    type: 'number',
-  },
-  isCompleteInvoice: {
-    title: t('data.shop.isCompleteInvoice'),
-    order: 7,
-    view: 'number',
-    type: 'number',
-  },
-  canSelfInvoice: {title: t('data.shop.canSelfInvoice'), order: 8, view: 'number', type: 'number',},
-  canSelfP: {title: t('data.shop.canSelfP'), order: 9, view: 'number', type: 'number',},
-  canSelfL: {title: t('data.shop.canSelfL'), order: 10, view: 'number', type: 'number',},
-  canSelfPL: {title: t('data.shop.canSelfPL'), order: 11, view: 'number', type: 'number',},
-  isSelfIgnoreStock: {
-    title: t('data.shop.isSelfIgnoreStock'),
-    order: 12,
-    view: 'number',
-    type: 'number',
-  },
-  hasStock: {title: t('data.shop.hasStock'), order: 13, view: 'number', type: 'number',},
-  hasShippingInvoiceRemark: {
-    title: t('data.shop.hasShippingInvoiceRemark'),
-    order: 14,
-    view: 'number',
-    type: 'number',
-  },
-};
 
 /**
  * 流程表单调用这个方法获取formSchema

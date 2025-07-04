@@ -12,6 +12,7 @@ export default {
   },
   clientManagement: {
     default: 'Client Management',
+    customers: 'Customers',
     shopOptions: 'Shop Options',
   },
   client: {

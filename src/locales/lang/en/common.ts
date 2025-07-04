@@ -1,6 +1,7 @@
 export default {
   available: 'Available',
   unavailable: 'Unavailable',
+  all: 'All',
   yes: 'Yes',
   no: 'No',
   okText: 'OK',
@@ -84,6 +85,7 @@ export default {
     save: 'Save',
     search: 'Search',
     selected: "Selected",
+    showAll: 'Show All',
     submit: 'Submit',
     sync: 'Synchronize',
     syncPageOrders: "Sync current page's orders",
@@ -96,6 +98,7 @@ export default {
     yearly: 'yearly',
   },
   result: {
+
     deleteSuccessfully: "Deleted successfully",
   },
   status: {

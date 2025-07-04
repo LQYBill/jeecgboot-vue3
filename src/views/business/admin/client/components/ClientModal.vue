@@ -3,7 +3,7 @@
     <BasicForm @register="registerForm" ref="formRef" />
     <!-- 子表单区域 -->
     <a-tabs v-model:activeKey="activeKey" animated @change="handleChangeTabs">
-      <a-tab-pane tab="店铺" key="shop" :forceRender="true">
+      <a-tab-pane :tab="t('data.shop.default')" key="shop" :forceRender="true">
         <JVxeTable
           keep-source
           resizable
@@ -18,6 +18,11 @@
           :toolbar="true"
         />
       </a-tab-pane>
+      <a-tab-pane :tab="t('data.shopOptions.shopOptionsList')" key="shopOptions" :forceRender="true">
+        <router-link :to="shopOptionsUrl" class="flex items-center justify-between p-4 bg-blue-100 hover:bg-blue-50 rounded-md mb-4">
+          {{ t('data.shopOptions.default')}} <Icon icon="ic:round-arrow-outward" class="mx-1" />
+        </router-link>
+      </a-tab-pane>
     </a-tabs>
   </BasicModal>
 </template>
@@ -27,10 +32,11 @@
   import { BasicModal, useModalInner } from '/@/components/Modal';
   import { BasicForm, useForm } from '/@/components/Form/index';
   import { JVxeTable } from '/@/components/jeecg/JVxeTable';
-  import { useJvxeMethod } from '/@/hooks/system/useJvxeMethods.ts';
+  import { useJvxeMethod } from '/@/hooks/system/useJvxeMethods';
   import { formSchema, shopColumns } from '../Client.data';
   import { saveOrUpdate, shopList } from '../Client.api';
   import { useI18n } from '@/hooks/web/useI18n';
+  import { Icon } from '@/components/Icon';
   const { t } = useI18n();
   // Emits声明
   const emit = defineEmits(['register', 'success']);
@@ -40,13 +46,14 @@
   const activeKey = ref('shop');
   const shop = ref();
   const tableRefs = { shop };
+  const shopOptionsUrl = ref('/business/admin/client/ShopOptionsList');
   const shopTable = reactive({
     loading: false,
     dataSource: [],
     columns: shopColumns,
   });
   //表单配置
-  const [registerForm, { setProps, resetFields, setFieldsValue, validate }] = useForm({
+  const [registerForm, { setProps, resetFields, setFieldsValue }] = useForm({
     //labelWidth: 150,
     schemas: formSchema,
     showActionButtonGroup: false,
@@ -64,6 +71,7 @@
       await setFieldsValue({
         ...data.record,
       });
+      shopOptionsUrl.value = data?.record?.id ? `/business/admin/client/ShopOptionsList?c=${data.record.id}` : '/business/admin/client/ShopOptionsList';
       requestSubTableData(shopList, { id: data?.record?.id }, shopTable);
     }
     // 隐藏底部时禁用整个表单
@@ -104,7 +112,7 @@
       //关闭弹窗
       closeModal();
       //刷新列表
-      emit('success');
+      emit('success', values.shopList.length > 0 ? values.id : '');
     } finally {
       setModalProps({ confirmLoading: false });
     }

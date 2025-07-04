@@ -128,6 +128,16 @@
         }
       });
 
+      /* Gauthier WIA - watch for dictCode changes */
+      watch(() => props.dictCode, () => {
+        if (!props.dictCode) {
+          return;
+        } else {
+          loadDictOptions();
+        }
+      }, {immediate: true});
+      /* Gauthier WIA - watch for dictCode changes */
+
       function onChange(selectedValue, el) {
         console.log("selected values : " + selectedValue);
         if (props.triggerChange) {
