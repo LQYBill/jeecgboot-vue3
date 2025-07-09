@@ -37,6 +37,11 @@ export const columns: BasicColumn[] = [
     align:"center",
     dataIndex: 'currencyId_dictText'
    },
+  {
+    title: t("data.sku.skuPriceUnit"),
+    align:"center",
+    dataIndex: 'unit',
+  },
 ];
 //查询数据
 export const searchFormSchema: FormSchema[] = [
