@@ -153,6 +153,30 @@
                 - {{ record.purchaseFee }}
               </span>
             </template>
+            <template #img="{ record }">
+              <template v-if="record.invoiceNumber?.split('-')[2]?.startsWith('1') || record.invoiceNumber?.split('-')[2]?.startsWith('7')">
+                <template v-if="record.paymentProofString">
+                  <TableImg
+                    :imgList="[uploadUrl + record.paymentProofString]"
+                    :size="60"
+                  />
+                </template>
+                <template v-else>
+                  <a-upload
+                    name="file"
+                    :action="`${baseUploadUrl}/sys/common/upload`"
+                    :data="{ biz: 'purchase_order/payment_proof'}"
+                    :showUploadList="false"
+                    @success="(res) => handleUploadProofSuccess(record, res)"
+                  >
+                    <a-button size="small" type="warning">upload payment proof</a-button>
+                  </a-upload>
+                </template>
+              </template>
+              <template v-else>
+                <span>-</span>
+              </template>
+            </template>
             <template #action="{ record }">
               <TableAction
                 :actions="[
@@ -832,6 +856,22 @@ function handleEditModeChange(checked: boolean) {
   editMode.value = checked;
   if(checked)
     colorizeRows();
+}
+async function handleUploadProofSuccess(record, response) {
+  const imgPath = response?.message;
+  if(!imgPath) {
+    createMessage.error("Failed to upload payment proof.");
+    return;
+  }
+  await defHttp.post({
+    url: Api.uploadPaymentProofAndNotify,
+    data: {
+      invoiceNumber: record.invoiceNumber,
+      imgPath: imgPath,
+    },
+  });
+  record.paymentProofString = imgPath;
+  createMessage.success("Payment proof uploaded successfully!");
 }
 </script>
 

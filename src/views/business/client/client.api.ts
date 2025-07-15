@@ -22,4 +22,5 @@ export enum Api {
   debit= '/transaction/debit',
   purchase= '/transaction/purchase',
   cancelInvoice = '/invoice/cancelInvoice',
+  uploadPaymentProofAndNotify = '/transaction/uploadPaymentProofAndNotify',
 }
