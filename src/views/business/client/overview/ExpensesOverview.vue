@@ -387,7 +387,6 @@ import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
 import {editOrdersRemark} from "@/views/business/admin/shippingInvoice/api";
 
 import { Api } from "../client.api";
-import { saveOrUpdate } from '@/views/business/admin/purchasing/PurchaseOrder.api';
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -1018,8 +1017,5 @@ function handleUploadChange(imgPath, record) {
 }
 .main-card .ant-tabs-ink-bar {
   background: @geekBlue;
-}
-::v-deep(.ant-upload-list) {
-  display: none !important;
 }
 </style>
