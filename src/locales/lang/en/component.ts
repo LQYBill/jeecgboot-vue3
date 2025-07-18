@@ -169,6 +169,7 @@ export default {
     upload: 'Upload',
     imgUpload: 'ImageUpload',
     uploaded: 'Uploaded',
+    reUpload: 'ReUpload',
 
     operating: 'Operating',
     del: 'Delete',

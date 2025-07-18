@@ -153,24 +153,28 @@
                 - {{ record.purchaseFee }}
               </span>
             </template>
-            <template #img="{ record }">
+            <template #img="{ text, record }">
               <template v-if="record.invoiceNumber?.split('-')[2]?.startsWith('1') || record.invoiceNumber?.split('-')[2]?.startsWith('7')">
-                <template v-if="record.paymentProofString">
-                  <TableImg
-                    :imgList="[uploadUrl + record.paymentProofString]"
-                    :size="60"
-                  />
+                <template v-if="text">
+                  <div style="display: inline-flex; align-items: center;">
+                    <TableImg :imgList="[uploadUrl + text]" :size="40" />
+                    <JImageUpload
+                      :text="t('component.upload.reUpload')"
+                      :fileMax="1"
+                      listType="picture"
+                      bizPath="purchase_order/screenshots"
+                      @change="e => handleUploadChange(e, record)"
+                    />
+                  </div>
                 </template>
                 <template v-else>
-                  <a-upload
-                    name="file"
-                    :action="`${baseUploadUrl}/sys/common/upload`"
-                    :data="{ biz: 'purchase_order/payment_proof'}"
-                    :showUploadList="false"
-                    @success="(res) => handleUploadProofSuccess(record, res)"
-                  >
-                    <a-button size="small" type="warning">upload payment proof</a-button>
-                  </a-upload>
+                  <JImageUpload
+                    :text="t('component.upload.upload')"
+                    :fileMax="1"
+                    listType="picture"
+                    bizPath="purchase_order/screenshots"
+                    @change="e => handleUploadChange(e, record)"
+                  />
                 </template>
               </template>
               <template v-else>
@@ -371,6 +375,7 @@ import {defHttp} from "/@/utils/http/axios";
 import {useMessage} from "/@/hooks/web/useMessage";
 
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
+import JImageUpload from '/@/components/Form/src/jeecg/components/JImageUpload.vue';
 import dayjs from "dayjs";
 import {downloadFile} from "/@/api/common/api";
 import {useGlobSetting} from "/@/hooks/setting";
@@ -382,6 +387,7 @@ import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
 import {editOrdersRemark} from "@/views/business/admin/shippingInvoice/api";
 
 import { Api } from "../client.api";
+import { saveOrUpdate } from '@/views/business/admin/purchasing/PurchaseOrder.api';
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -857,21 +863,27 @@ function handleEditModeChange(checked: boolean) {
   if(checked)
     colorizeRows();
 }
-async function handleUploadProofSuccess(record, response) {
-  const imgPath = response?.message;
-  if(!imgPath) {
-    createMessage.error("Failed to upload payment proof.");
+function handleUploadChange(imgPath, record) {
+  if (!imgPath) {
+    createMessage.error('Upload failed, no valid path returned');
     return;
   }
-  await defHttp.post({
+  const params = {
+    invoiceNumber: record.invoiceNumber,
+    paymentProofString: imgPath,
+  };
+  defHttp.post({
     url: Api.uploadPaymentProofAndNotify,
-    data: {
-      invoiceNumber: record.invoiceNumber,
-      imgPath: imgPath,
-    },
-  });
-  record.paymentProofString = imgPath;
-  createMessage.success("Payment proof uploaded successfully!");
+    data: params,
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(() => {
+      record.paymentProofString = imgPath;
+      reloadEurTable();
+    })
+    .catch(() => {
+      createMessage.error('Save failed, please try again');
+    });
 }
 </script>
 
@@ -1006,5 +1018,8 @@ async function handleUploadProofSuccess(record, response) {
 }
 .main-card .ant-tabs-ink-bar {
   background: @geekBlue;
+}
+::v-deep(.ant-upload-list) {
+  display: none !important;
 }
 </style>

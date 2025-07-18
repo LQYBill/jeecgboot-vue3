@@ -168,6 +168,7 @@ export default {
     upload: '上传',
     imgUpload: '图片上传',
     uploaded: '已上传',
+    reUpload: '重新上传',
 
     operating: '操作',
     del: '删除',
