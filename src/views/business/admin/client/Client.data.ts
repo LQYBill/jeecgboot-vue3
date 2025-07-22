@@ -161,6 +161,12 @@ export const formSchema: FormSchema[] = [
     label: t('data.InvoiceEntity'),
     field: 'invoiceEntity',
     component: 'Input',
+    dynamicRules: () => [
+      {
+        required: true,
+        message: t('common.inputText') + " " + t('data.InvoiceEntity'),
+      },
+    ],
   },
   {
     label: t('data.client.email'),
