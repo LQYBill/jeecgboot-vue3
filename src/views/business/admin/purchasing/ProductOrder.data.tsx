@@ -228,6 +228,6 @@ export const formSchema: FormSchema[] = [
     component: 'Input',
     label: t('data.sku.erpCode'),
     show: false,
-  }
+  },
 ];
 

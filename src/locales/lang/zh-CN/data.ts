@@ -321,6 +321,7 @@ export default {
     sensitiveAttribute: '敏感属性',
     serviceFee: '服务费',
     skuPrice: 'SKU价格',
+    skuPriceUnit:'购买单位',
     skuPriceEffectiveDate: 'SKU价格生效日期',
     skuPriceThreshold: 'SKU优惠价起订量',
     skuPriceDiscounted: 'SKU优惠价',
