@@ -2,6 +2,7 @@ export enum Api {
   getClient = '/userClient/getClient',
   getBalance= '/balance/getBalanceByClientIdAndCurrency',
   getShops = '/shippingInvoice/shopsByClient',
+  getShopOptions = '/shopOptions/findByClientId',
   getOrdersByShop = '/business/platformOrder/ordersByShop',
   postOrders = '/business/platformOrder/orderManagement',
   getRecipientInfo = '/business/platformOrder/recipientInfo',

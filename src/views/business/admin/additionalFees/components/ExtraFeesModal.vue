@@ -148,7 +148,7 @@ import {
 } from "@/views/business/admin/additionalFees/data";
 import { ShopByClient } from "@/views/business/dto/shop.dto";
 import { useMessage } from "@/hooks/web/useMessage";
-import { extraFeesOption } from "@/views/business/dto/extraFeesOption.dto";
+import type { ExtraFeesOption } from "@/views/business/dto/extraFeesOption.dto";
 import { JSearchSelectOption } from "@/views/business/dto/JSearchSelectOption.dto";
 import {currencyToken} from "../../../dto/currency.dto";
 
@@ -188,7 +188,7 @@ const [registerModal, {setModalProps, closeModal}, ] = useModalInner(async (data
 
 const shopMappedByClient = inject('shopMappedByClient') as Ref<Record<string, ShopByClient>>;
 const shopOptionList = inject('shopOptionList') as Ref<SelectProps['options']>;
-const typeList = ref<extraFeesOption[]>([]);
+const typeList = ref<ExtraFeesOption[]>([]);
 const typeOptionList = ref<JSearchSelectOption[]>([]);
 const currentClient = ref<string>('');
 
@@ -221,7 +221,7 @@ const { validateInfos, resetFields,  } = useForm(formState, validatorRules, { im
 
 function handleFetchTypes(res: Record<string, any>): void {
   typeList.value = res.records;
-  typeOptionList.value = res.records.map((option: extraFeesOption) => {
+  typeOptionList.value = res.records.map((option: ExtraFeesOption) => {
     return {
       text: option.zhName + '/' + option.enName,
       value: option?.id

@@ -319,7 +319,7 @@ function handleDelete(record: Recordable) {
   }).catch(e =>{
     console.error(e);
   }).finally(() => {
-    reload();
+    loadInvoices();
     setLoading(false);
   });
 }

@@ -1,4 +1,4 @@
-export interface estimation {
+export interface Estimation {
   code: string;
   ordersToProcess: number;
   processedOrders: number;
