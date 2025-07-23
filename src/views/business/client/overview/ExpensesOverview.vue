@@ -488,9 +488,9 @@ async function checkUser() {
       if(res.internal) {
         customerList.value = res.internal;
         customerSelectList.value = res.internal.map(
-          (client: Recordable) => ({
-            text: `${client.firstName} ${client.surname} (${client.internalCode})`,
-            value: client.id,
+          (customer: Recordable) => ({
+            text: `${customer.firstName} ${customer.surname} (${customer.internalCode})`,
+            value: customer.id,
           })
         );
         internalUse.value = true;
@@ -528,10 +528,12 @@ function handleClientChange(id: any) {
   invoiceLoading.value = false;
   completeInvoiceDisabled.value = true;
   completeInvoiceLoading.value = false;
-  if(id) {
-    let index = customerList.value.map(i => i.id).indexOf(id);
-    loadClient(customerList.value[index]);
+  const customer = customerList.value.find(c => c.id === id);
+  if(!customer) {
+    createMessage.error(t('data.client.clientNotFound'));
+    return;
   }
+  loadClient(customer);
 }
 function loadClient(clientParam: Record<string, string | number>) {
   client.value = clientParam;

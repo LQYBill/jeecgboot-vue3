@@ -259,7 +259,7 @@ import PlatformOrderContentSubTable
 import JRangeDate from "/@/components/Form/src/jeecg/components/JRangeDate.vue";
 import BasicHelp from "/@/components/Basic/src/BasicHelp.vue";
 import {shippingInvoiceParam} from "@/views/business/dto/shippingInvoiceParam.dto";
-import {estimation as estimationDTO} from "@/views/business/dto/estimation.dto";
+import type { Estimation } from "@/views/business/dto/estimation.dto";
 import EstimationByShopCard from "@/views/business/components/EstimationByShopCard.vue";
 import Helper from "@/views/business/admin/shippingInvoice/modules/Helper.vue";
 import {
@@ -361,7 +361,7 @@ const searchDisabled = ref<boolean>(true);
 const findOrdersLoading = ref<boolean>(false);
 const orderListLoading = ref<boolean>(false);
 const estimatesReady = ref<boolean>(true);
-const estimation = ref<estimationDTO[]>([]);
+const estimation = ref<Estimation[]>([]);
 
 const makeManualInvoiceSpinning = ref<boolean>(false);
 const makeManualInvoiceDisabled = ref<boolean>(true);
