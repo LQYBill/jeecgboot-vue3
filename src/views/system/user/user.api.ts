@@ -31,6 +31,7 @@ enum Api {
   putCancelQuit = '/sys/user/putCancelQuit',
   updateUserTenantStatus='/sys/tenant/updateUserTenantStatus',
   getUserTenantPageList='/sys/tenant/getUserTenantPageList',
+  getWiaMabangUsername = '/sys/user/getWiaMabangUsername',
 }
 /**
  * 导出api
@@ -247,3 +248,11 @@ export const getUserTenantPageList = (params) => {
 export const updateUserTenantStatus = (params) => {
   return defHttp.put({ url: Api.updateUserTenantStatus, params }, { joinParamsToUrl: true, isTransformResponse: false });
 };
+
+/**
+ * 获取WIA员工用户马帮账户号
+ * @param params
+ */
+export const getWiaMabangUsername = () => {
+  return defHttp.get({ url: Api.getWiaMabangUsername }, { isTransformResponse: false });
+}
