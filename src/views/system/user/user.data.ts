@@ -3,6 +3,7 @@ import { FormSchema } from '/@/components/Table';
 import {getAllRolesListNoByTenant, getAllTenantList, getDepartById, getWiaMabangUsername} from './user.api';
 import { rules } from '/@/utils/helper/validator';
 import { render } from '/@/utils/common/renderUtils';
+const ORG_CODE_WIA_CLIENT = 'A02';
 export const columns: BasicColumn[] = [
   {
     title: '用户账号',
@@ -223,7 +224,7 @@ export const formSchema: FormSchema[] = [
           formModel.departIds && (formModel.departIds = formModel.departIds.filter((item) => values.value.indexOf(item) > -1));
           //如果是WIA客户，则显示client
           const departInfo = await getDepartById({ departId: values.value[0] });
-          const isWIAClient =  departInfo?.orgCode === 'A02';
+          const isWIAClient =  departInfo?.orgCode === ORG_CODE_WIA_CLIENT;
           let mabangOptions = [];
           if(isWIAClient){
             const res = await getWiaMabangUsername();
@@ -233,7 +234,7 @@ export const formSchema: FormSchema[] = [
             }));
           }
           updateSchema([
-            { field: 'client', show: isWIAClient },
+            { field: 'client', show: isWIAClient,required: isWIAClient, },
             { field: 'code', show: !isWIAClient },
             {
               field: 'departIds',
