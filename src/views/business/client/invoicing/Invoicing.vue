@@ -75,11 +75,11 @@
           <estimation-by-shop-card :estimates-ready="estimatesReady" :estimation="estimation"/>
         </a-row>
       </a-form>
-      <BasicTable @register="registerTable" id="orders-list-table" ref="tableRef">
+      <BasicTable v-if="client" @register="registerTable" id="orders-list-table" ref="tableRef">
         <template #tableTitle>
           <div class="flex item-center justify-start gap-2">
             <PopConfirmButton
-              v-if="!excludedClients.includes(client?.internalCode)"
+              v-if="client && canSelfL"
               type="primary"
               title="Confirm making shipping invoice ?"
               preIcon="ant-design:rocket-outlined"
@@ -91,7 +91,7 @@
               {{ t("data.invoice.generateShippingInvoice") }}
             </PopConfirmButton>
             <PopConfirmButton
-              v-if="!excludedClients.includes(client?.internalCode)"
+              v-if="client && canSelfP"
               type="success"
               title="Confirm making purchase invoice ?"
               preIcon="ant-design:shopping-outlined"
@@ -103,6 +103,7 @@
               {{ t("data.invoice.generatePurchaseInvoice") }}
             </PopConfirmButton>
             <PopConfirmButton
+              v-if="client && canSelfPL"
               type="default"
               title="Confirm making purchase and shipping invoice ?"
               preIcon="ant-design:calculator-outlined"
@@ -212,7 +213,7 @@ import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect
 import intro from "intro.js";
 import {useModal} from "@/components/Modal";
 import InvoicingHelpModal from "@/views/business/client/_components/InvoicingHelpModal.vue";
-import {estimation as estimationDTO} from "@/views/business/dto/estimation.dto";
+import {Estimation, ShopOptions, Client, JSelectMultipleOptions} from "@/views/business/dto";
 import EstimationByShopCard from "@/views/business/components/EstimationByShopCard.vue";
 import {toUpper} from "lodash-es";
 import {filterObj} from "@/utils/common/compUtils";
@@ -270,17 +271,18 @@ const clientCompleteBypassList = ref<string[]>([
   'KB'
 ]);
 
-const client: Ref<Record<string, string>> = ref({});
+const client: Ref<Client | null> = ref(null);
 
 const orderList = ref<Recordable[]>([]);
-const shopList = ref<any[]>([]);
+const shopList = ref<JSelectMultipleOptions[]>([]);
+const shopOptions = ref<Record<string, ShopOptions>>({});
 const selectedOrdersWithStock = ref<string[]>([]);
 
 const selectedStartDate = ref<string>();
 const selectedEndDate = ref<string>();
 const startDate = ref<Dayjs>(dayjs('2024-01-01').startOf("day"));
 const endDate = ref<Dayjs>(dayjs().endOf("day"));
-const selectedShopIds = ref<string[]>([]);
+const selectedShopIds = ref<string>('');
 const dateDisabled = ref<boolean>(true);
 
 const searchDisabled = ref<boolean>(true);
@@ -295,6 +297,11 @@ const makePurchaseDisabled = ref<boolean>(true);
 const makePurchaseLoading = ref<boolean>(false);
 const makeCompleteDisabled = ref<boolean>(true);
 const makeCompleteLoading = ref<boolean>(false);
+
+const canSelfL = ref(false);
+const canSelfP = ref(false);
+const canSelfPL = ref(false);
+const canIgnoreStock = ref(false);
 
 const estimatesReady = ref<boolean>(true);
 const estimation = ref<any[]>([]);
@@ -361,7 +368,8 @@ function checkUser() {
       }
       else {
         client.value = res.client;
-        loadShopList(client.value.id);
+        loadShopList(client.value!.id);
+        loadShopOptions(client.value!.id);
         syncSkus();
       }
       shopDisabled.value = false;
@@ -371,7 +379,7 @@ function checkUser() {
     });
 }
 async function handleClientChange(id: any) {
-  client.value = {};
+  client.value = null;
   isSkuCompareReady.value = false;
   clearField('shop');
   if (id) {
@@ -381,6 +389,7 @@ async function handleClientChange(id: any) {
       setTimeout(resolve, 100)
     });
     loadShopList(id);
+    loadShopOptions(id);
     await syncSkus();
   }
 }
@@ -404,8 +413,17 @@ function loadShopList(clientID: string) {
         startGuide();
     });
 }
-function handleShopChange(shops) {
-  // value returned is array of shop
+function loadShopOptions(clientID: string) {
+  defHttp.get({url : Api.getShopOptions, params: {clientID}})
+    .then(res => {
+      shopOptions.value = res;
+    })
+    .catch(e => {
+      createMessage.error("Error while loading shop infos, please contact a sales.");
+      console.error(e);
+    });
+}
+function handleShopChange(shops: string) {
   clearField("date");
   page.value = 1;
   // pageSize.value = 50;
@@ -420,6 +438,10 @@ function handleShopChange(shops) {
   makePurchaseLoading.value = false;
   makeCompleteDisabled.value = true;
   makeCompleteLoading.value = false;
+  canSelfL.value = checkCanSelfInvoiceShippingFees();
+  canSelfP.value = checkCanSelfInvoicePurchaseFees();
+  canSelfPL.value = checkCanSelfInvoiceCompleteFees();
+  canIgnoreStock.value = checkCanIgnoreStock();
   searchDisabled.value = selectedShopIds.value.length === 0;
   if(selectedShopIds.value.length > 0) {
     loadAvailableDate();
@@ -456,7 +478,50 @@ function handleDateChange(dateRange: string) {
   selectedStartDate.value = dateString[0];
   selectedEndDate.value = dayjs(dateString[1]).add(1, 'day').format('YYYY-MM-DD');
 }
-
+function checkCanSelfInvoiceShippingFees() {
+  for(const shop of shopList.value) {
+    if(!shopOptions.value.hasOwnProperty(shop.value)) {
+      createMessage.error('Your shops has not been properly configured, please contact a sales person.');
+      return false;
+    }
+    const options = shopOptions.value[shop.value];
+    if(!options.canSelfL) return false
+  }
+  return true;
+}
+function checkCanSelfInvoicePurchaseFees() {
+  for(const shop of shopList.value) {
+    if(!shopOptions.value.hasOwnProperty(shop.value)) {
+      createMessage.error('Your shops has not been properly configured, please contact a sales person.');
+      return false;
+    }
+    const options = shopOptions.value[shop.value];
+    if(!options.canSelfP) return false
+  }
+  return true;
+}
+function checkCanSelfInvoiceCompleteFees() {
+  for(const shop of shopList.value) {
+    if(!shopOptions.value.hasOwnProperty(shop.value)) {
+      createMessage.error('Your shops has not been properly configured, please contact a sales person.');
+      return false;
+    }
+    const options = shopOptions.value[shop.value];
+    if(!options.canSelfPL) return false
+  }
+  return true;
+}
+function checkCanIgnoreStock() {
+  for(const shop of shopList.value) {
+    if(!shopOptions.value.hasOwnProperty(shop.value)) {
+      createMessage.error('Your shops has not been properly configured, please contact a sales person.');
+      return false;
+    }
+    const options = shopOptions.value[shop.value];
+    if(!options.isSelfIgnoreStock) return false
+  }
+  return true;
+}
 function clearField(field:any) {
   let fields:any = {};
   switch (field) {
@@ -464,7 +529,7 @@ function clearField(field:any) {
       fields.shop = "";
       startDate.value = dayjs(undefined);
       endDate.value = dayjs(undefined);
-      selectedShopIds.value = [];
+      selectedShopIds.value = '';
       shopList.value = [];
       orderList.value = [];
       selectedOrdersWithStock.value = [];
@@ -544,7 +609,7 @@ async function handleSyncSkus() {
 async function syncSkus() {
   isSkuCompareReady.value = false;
   const params = {
-    clientId: client.value.id,
+    clientId: client.value!.id,
     erpStatuses: ['1'],
   }
   await compareSku(params).then(() => {
@@ -622,7 +687,7 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows: Rec
   }
   makeShippingDisabled.value = !shippingInvoiceAvailable;
   makePurchaseDisabled.value = !purchaseInvoiceAvailable;
-  makeCompleteDisabled.value = clientCompleteBypassList.value.includes(client.value.internalCode) ?
+  makeCompleteDisabled.value = canIgnoreStock.value ?
     !shippingInvoiceAvailable
     : !(shippingInvoiceAvailable && purchaseInvoiceAvailable);
 
@@ -631,13 +696,13 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows: Rec
     selectedRowKeys.splice(index, 1);
   }
   let param = {
-    clientID: client.value.id,
+    clientID: client.value!.id,
     orderIds: getSelectRowKeys(),
     type: "preshipping",
   };
   defHttp.post({url: Api.completeFeesEstimation, params: param})
     .then(
-      (res:{[key: string]: estimationDTO}) => {
+      (res:{[key: string]: Estimation}) => {
         if(selectedRowKeys.length == 0) {
           estimation.value = [];
           estimatesReady.value = true;
@@ -695,7 +760,7 @@ function getPeriod() {
 function makeManualShippingInvoice() {
   const period = getPeriod();
   const params: ManualInvoiceParam = {
-    clientID: client.value.id,
+    clientID: client.value!.id,
     orderIds: getSelectRowKeys(),
     type: InvoicingMethod.PRESHIPPING,
     start: period.start,
@@ -732,7 +797,7 @@ function makeManualShippingInvoice() {
 function makeManualPurchaseInvoice() {
   const period = getPeriod();
   const params: ManualInvoiceParam = {
-    clientID: client.value.id,
+    clientID: client.value!.id,
     orderIds: getSelectRowKeys(),
     type: InvoicingMethod.PRESHIPPING,
     start: period.start,
@@ -768,13 +833,13 @@ function makeManualPurchaseInvoice() {
 function makeCompleteManualInvoice() {
   const period = getPeriod();
   let params: ManualInvoiceParam = {
-    clientID: client.value.id,
+    clientID: client.value!.id,
     orderIds: getSelectRowKeys(),
     type: InvoicingMethod.PRESHIPPING,
     start: period.start,
     end: period.end,
   };
-  if(clientCompleteBypassList.value.includes(client.value.internalCode) && selectedOrdersWithStock.value.length > 0) {
+  if(canIgnoreStock.value && selectedOrdersWithStock.value.length > 0) {
     params.ordersWithStock = selectedOrdersWithStock.value;
   }
   shopDisabled.value = true;
@@ -818,11 +883,11 @@ function downloadDetailFile(invoiceNumber: string) {
   const param =
     {
       invoiceNumber: invoiceNumber,
-      invoiceEntity: client.value.invoiceEntity,
-      internalCode: client.value.internalCode
+      invoiceEntity: client.value!.invoiceEntity,
+      internalCode: client.value!.internalCode
     }
   let now = dayjs().format("YYYYMMDD");
-  let detailFilename = client.value?.internalCode + "_(" + client.value.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
+  let detailFilename = client.value?.internalCode + "_(" + client.value!.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
   downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {
     createMessage.info("Download successful.")
   }).catch(e => {
@@ -842,7 +907,7 @@ function startGuide() {
     steps: [
       {
         title: 'Invoicing guide',
-        intro: `Hello <b>${client.value.firstName}</b>!👋<br/> Here is a guide to help you invoice your orders.`,
+        intro: `Hello <b>${client.value!.firstName}</b>!👋<br/> Here is a guide to help you invoice your orders.`,
       },
       {
         title: 'First step',

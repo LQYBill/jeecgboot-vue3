@@ -1,6 +1,4 @@
-
-
-export interface extraFeesOption {
+export interface ExtraFeesOption {
   id: string;
   enName: string;
   zhName: string;
