@@ -310,10 +310,10 @@ export const formSchema: FormSchema[] = [
     label: t('data.client.useBalance'),
     field: 'useBalance',
     component: 'Switch',
-    defaultValue: '1',
+    defaultValue: false,
     componentProps: {
-      checkedValue: '1',
-      unCheckedValue: '0',
+      checkedChildren: t('common.yes'),
+      unCheckedChildren: t('common.no'),
     },
     colProps: { span: 20 },
     show: true,
