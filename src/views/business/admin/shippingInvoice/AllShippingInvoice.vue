@@ -895,8 +895,8 @@ async function makeManualCompleteInvoice() {
         }
         downloadInvoice(filename);
         downloadDetailFile(code);
-        // if(getInvoiceMethod() === InvoicingMethod.PRESHIPPING)
-        //   editInvoiceOrdersRemark(code, getInvoiceMethod());
+        if(getInvoiceMethod() === InvoicingMethod.PRESHIPPING)
+          editInvoiceOrdersRemark(code, getInvoiceMethod());
       }
     ).catch(e => {
       console.error(e);
