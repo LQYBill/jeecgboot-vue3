@@ -462,7 +462,6 @@ function handleInvoiceModeChange(e: Event) {
   nextTick(() => {
     customerRef.value.focus()
   })
-  console.log('customerRef', customerRef.value);
 }
 function handleClientChange(id: string) {
   isSkuCompareReady.value = false;
@@ -681,7 +680,7 @@ async function loadOrders() {
     }).catch(e => {
       console.error(`listOrders error : ${e}`);
       notification.error({
-        message: 'Order remark edit status',
+        message: 'Error while fetching orders',
         description: e,
         duration: null,
         placement: 'bottomRight',
@@ -873,28 +872,31 @@ async function makeManualCompleteInvoice() {
   manualCompleteInvoiceLoading.value = true;
   await makeManualCompleteInvoiceRequest(params)
     .then(
-      (res: Response<InvoiceMetaData, any>) => {
-        console.log("makeManualCompleteInvoice res", res);
+      (res: Response<InvoiceMetaData, Response<string, string>[]>) => {
         checkedKeys.value = [];
         const filename = res.data.filename;
         const code = res.data.invoiceCode;
-        // TODO : finish here
-        if(res.error) {
+        if(res.error !== null) {
           let errorMsg = '<p>Errors while making complete invoice:</p><ul>';
           for(const orderWithPb of res.error) {
             const errors = `<li>Order ${orderWithPb.data} : ${orderWithPb}</li>`;
+            errorMsg += errors;
           }
+          errorMsg += '</ul>';
+          const vnodeContent = h('div', {
+            innerHTML: errorMsg
+          });
           notification.error({
-            message: 'Error while fetching estimation',
-            description: res.error,
+            message: 'Error while making complete invoice',
+            description: vnodeContent,
             duration: null,
             placement: 'bottomRight',
           })
         }
         downloadInvoice(filename);
         downloadDetailFile(code);
-        if(getInvoiceMethod() === InvoicingMethod.PRESHIPPING)
-          editInvoiceOrdersRemark(code, getInvoiceMethod());
+        // if(getInvoiceMethod() === InvoicingMethod.PRESHIPPING)
+        //   editInvoiceOrdersRemark(code, getInvoiceMethod());
       }
     ).catch(e => {
       console.error(e);
@@ -1010,9 +1012,26 @@ async function makeCompleteInvoice() {
   completeInvoiceLoading.value = true;
   await makeCompleteInvoiceRequest(param)
     .then(
-      res => {
-        const filename:string = res.filename;
-        const code:string = res.invoiceCode;
+      (res: Response<InvoiceMetaData, Response<string, string>[]>) => {
+        const filename:string = res.data.filename;
+        const code:string = res.data.invoiceCode;
+        if(res.error !== null) {
+          let errorMsg = '<p>Errors while making complete invoice:</p><ul>';
+          for(const orderWithPb of res.error) {
+            const errors = `<li>Order ${orderWithPb.data} : ${orderWithPb}</li>`;
+            errorMsg += errors;
+          }
+          errorMsg += '</ul>';
+          const vnodeContent = h('div', {
+            innerHTML: errorMsg
+          });
+          notification.error({
+            message: 'Error while making complete invoice',
+            description: vnodeContent,
+            duration: null,
+            placement: 'bottomRight',
+          })
+        }
         downloadInvoice(filename);
         downloadDetailFile(code);
         if(getInvoiceMethod() === InvoicingMethod.PRESHIPPING)

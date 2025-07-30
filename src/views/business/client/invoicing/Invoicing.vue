@@ -435,7 +435,7 @@ function loadShopOptions(clientID: string) {
     })
     .finally(() => {
       clientInfoReady.value = true;
-      shopDisabled.value = true;
+      shopDisabled.value = false;
     });
 }
 function handleShopChange(shops: string) {
@@ -869,9 +869,8 @@ function makeCompleteManualInvoice() {
   setLoading(true);
   makeCompleteLoading.value = true;
   defHttp.post({url: Api.makeCompleteManualInvoice, params})
-    .then((res:Response<InvoiceMetaData, any>) => {
+    .then((res:Response<InvoiceMetaData, Response<string, string>[]>) => {
       createMessage.success("Orders have been invoiced successfully");
-      console.log("res", res);
       const filename = res.data.filename;
       const code = res.data.invoiceCode;
       downloadInvoice(code, filename);
