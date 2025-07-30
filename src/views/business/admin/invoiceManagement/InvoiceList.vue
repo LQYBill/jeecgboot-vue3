@@ -170,7 +170,7 @@ const [registerTable, { reload, clearSelectedRowKeys, setLoading }] = useTable({
   bordered: true,
   striped: true,
   useSearchForm: false,
-  showTableSetting: true,
+  showTableSetting: false,
   showSummary: true,
   clickToRowSelect: true,
   showIndexColumn: true,

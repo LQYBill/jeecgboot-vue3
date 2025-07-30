@@ -65,9 +65,8 @@ import {columns} from './ShopOptions.data';
 import {list, deleteOne, batchDelete} from './ShopOptions.api';
 import {useI18n} from "vue-i18n";
 import {Icon} from "@/components/Icon";
-import {ShopWithOptions} from "@/views/business/dto/ShopWithOptions.dto";
+import {ShopWithOptions, ShopWithOptionsListParam} from "@/views/business/dto";
 import {filterObj} from "@/utils/common/compUtils";
-import {ShopWithOptionsListParam} from "@/views/business/dto/ShopWithOptionsListParam.dto";
 import {useRoute} from "vue-router";
 import {useMessage} from "@/hooks/web/useMessage";
 

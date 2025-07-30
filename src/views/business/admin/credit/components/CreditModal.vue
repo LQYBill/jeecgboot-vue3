@@ -12,7 +12,7 @@
     import {saveOrUpdate} from '../Credit.api';
     import {useI18n} from "/@/hooks/web/useI18n";
     import {useMessage} from "@/hooks/web/useMessage";
-    import {InvoiceMetaData} from "@/views/business/dto/invoiceMetaData.dto";
+    import {InvoiceMetaData} from "@/views/business/dto";
     const { t } = useI18n();
     const { createMessage } = useMessage();
     const emit = defineEmits(['register','success']);

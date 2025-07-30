@@ -20,22 +20,6 @@ export const columns: BasicColumn[] = [
     defaultHidden: true,
   },
   {
-    title: t('data.shopOptions.useBalance'),
-    align: "center",
-    dataIndex: 'useBalance',
-  },
-  {
-    title: t('data.shopOptions.showBalance'),
-    align: "center",
-    dataIndex: 'showBalance',
-  },
-  {
-    title: t('data.shopOptions.balanceThreshold'),
-    align: "center",
-    dataIndex: 'balanceThreshold',
-    helpMessage: t('data.shopOptions.help.balanceThreshold'),
-  },
-  {
     title: t('data.shopOptions.isAutoInvoice'),
     align: "center",
     dataIndex: 'isAutoInvoice',
@@ -120,69 +104,6 @@ export const formSchema: FormSchema[] = [
         {required: true, message: t('component.form.required')},
       ];
     },
-  },
-  {
-    label: t('data.client.accountBalance'),
-    field: '',
-    required: false,
-    component: 'Divider',
-    componentProps: {
-      orientation: 'left',
-      style: {fontSize: '16px', fontWeight: 'bold'},
-    },
-  },
-  {
-    label: t('data.shopOptions.useBalance'),
-    field: 'useBalance',
-    colProps: {span: 8},
-    component: 'Switch',
-    componentProps: {
-      checkedChildren: t('common.yes'),
-      unCheckedChildren: t('common.no'),
-    },
-    defaultValue: false,
-    dynamicRules: () => {
-      return [
-        {required: true, message: t('component.form.required')},
-      ];
-    },
-  },
-  {
-    label: t('data.shopOptions.showBalance'),
-    field: 'showBalance',
-    colProps: {span: 8},
-    component: 'Switch',
-    componentProps: {
-      checkedChildren: t('common.yes'),
-      unCheckedChildren: t('common.no'),
-    },
-    defaultValue: false,
-    dynamicRules: () => {
-      return [
-        {required: true, message: t('component.form.required')},
-      ];
-    },
-    dynamicDisabled: ({model}) => {
-      return !model.useBalance;
-    }
-  },
-  {
-    label: t('data.shopOptions.balanceThreshold'),
-    field: 'balanceThreshold',
-    colProps: {span: 8},
-    component: 'InputNumber',
-    defaultValue: -1,
-    dynamicRules: () => {
-      return [
-        {
-          required: true,
-          message: t('component.form.required')
-        },
-      ];
-    },
-    dynamicDisabled: ({model}) => {
-      return !model.useBalance;
-    }
   },
   {
     label: t('data.invoicing.default'),
@@ -276,7 +197,7 @@ export const formSchema: FormSchema[] = [
       ];
     },
     dynamicDisabled: ({model}) => {
-      return !(model.isAutoInvoice || model.isBreakdownInvoice) || model.balanceThreshold < 0;
+      return !(model.isAutoInvoice || model.isBreakdownInvoice);
     }
   },
   {
