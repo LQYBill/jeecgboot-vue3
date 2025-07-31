@@ -256,6 +256,7 @@ export default {
     ownerId: "店主ID",
     name: "店铺名称",
     erpCode: "ERP内名称",
+    defaultSkuZhName: "默认SKU中文名称",
     orderServiceFee: "订单服务费",
     shopifyPrefix: "Shopify前缀",
     packagingMaterialFee: "海外仓包材费",

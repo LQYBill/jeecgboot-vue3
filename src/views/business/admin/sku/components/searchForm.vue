@@ -75,6 +75,7 @@ const emit = defineEmits(['search']);
 
 const shopMappedByClient: Ref<Record<string, ShopByClient>> = ref({});
 const shopOptionList = ref<SelectProps['options']>([]);
+const shopList: Ref<ShopResponse[]> = ref([]);
 
 onMounted(() => {
   shopListApi(handleFetchShops);
@@ -96,6 +97,7 @@ const { validateInfos } = useForm(searchState, validatorRules, { immediate: fals
 
 /** shop functions */
 function handleFetchShops(res: ShopResponse[]): void {
+  shopList.value = res;
   const shopsMappedByClientTemp: Record<string, ShopByClient> = {};
   shopMappedByClient.value = res.reduce((acc, currentShop) => {
     if (!acc[currentShop.clientCode]) {
@@ -135,6 +137,7 @@ function handleSearch() {
     shop: searchState.shop,
     client: Object.keys(shopMappedByClient.value).find(clientCode => shopMappedByClient.value[clientCode].shops.includes(searchState.shop)),
     skuNames: searchState.skuNames,
+    defaultSkuZhName: shopList.value.find(shop => shop.shopCode === searchState.shop)?.defaultSkuZhName || '',
   });
 }
 </script>

@@ -2,7 +2,9 @@ import { BasicColumn } from '/@/components/Table';
 import { FormSchema } from '/@/components/Table';
 import { JVxeTypes, JVxeColumn } from '/@/components/jeecg/JVxeTable/types';
 import { useI18n } from '@/hooks/web/useI18n';
+import {useLocaleStore} from "@/store/modules/locale";
 const { t } = useI18n();
+const localeStore = useLocaleStore();
 export const columns: BasicColumn[] = [
   {
     title: t('data.client.familyName'),
@@ -334,7 +336,7 @@ export const shopColumns: JVxeColumn[] = [
     key: 'website',
     type: JVxeTypes.input,
     width: '200px',
-    placeholder: t('common.inputText') + '${title}',
+    placeholder: t('common.inputText') + localeStore.getLocale === 'zh_CN' ?'${title}' : ' ${title}',
     defaultValue: '',
   },
   {
@@ -342,9 +344,9 @@ export const shopColumns: JVxeColumn[] = [
     key: 'shippingDiscount',
     type: JVxeTypes.inputNumber,
     width: '200px',
-    placeholder: t('common.inputText') + '${title}',
+    placeholder: t('common.inputText') + localeStore.getLocale === 'zh_CN' ?'${title}' : ' ${title}',
     defaultValue: 1,
-    validateRules: [{ required: true, message: '${title}' + t('components.form.notEmpty') }],
+    validateRules: [{ required: true, message: localeStore.getLocale === 'zh_CN' ?'${title}' : '${title} ' + t('component.form.notEmpty') }],
   },
   {
     title: t('data.shop.ownerId'),
@@ -352,24 +354,35 @@ export const shopColumns: JVxeColumn[] = [
     type: JVxeTypes.selectSearch,
     dictCode: 'client,internal_code,id',
     width: '200px',
-    placeholder: t('common.inputText') + '${title}',
+    placeholder: t('common.inputText') + localeStore.getLocale === 'zh_CN' ?'${title}' : ' ${title}',
     defaultValue: '',
-    validateRules: [{ required: false, message: '${title}' + t('components.form.notEmpty') }],
+    validateRules: [{ required: false, message: '${title} ' + t('component.form.notEmpty') }],
+    disabled: true
   },
   {
     title: t('data.shop.name'),
     key: 'name',
     type: JVxeTypes.input,
     width: '200px',
-    placeholder: t('common.inputText') + '${title}',
+    placeholder: t('common.inputText') + localeStore.getLocale === 'zh_CN' ?'${title}' : ' ${title}',
     defaultValue: '',
+    validateRules: [{ required: true, message: localeStore.getLocale === 'zh_CN' ?'${title}' : '${title} ' + t('component.form.notEmpty') }],
   },
   {
     title: t('data.shop.erpCode'),
     key: 'erpCode',
     type: JVxeTypes.input,
     width: '200px',
-    placeholder: t('common.inputText') + '${title}',
+    placeholder: t('common.inputText') + localeStore.getLocale === 'zh_CN' ?'${title}' : ' ${title}',
+    defaultValue: '',
+    validateRules: [{ required: true, message: localeStore.getLocale === 'zh_CN' ?'${title}' : '${title} ' + t('component.form.notEmpty') }],
+  },
+  {
+    title: t('data.shop.defaultSkuZhName'),
+    key: 'defaultSkuZhName',
+    type: JVxeTypes.input,
+    width: '200px',
+    placeholder: t('common.inputText') + localeStore.getLocale === 'zh_CN' ?'${title}' : ' ${title}',
     defaultValue: '',
   },
   {
@@ -377,9 +390,9 @@ export const shopColumns: JVxeColumn[] = [
     key: 'orderServiceFee',
     type: JVxeTypes.inputNumber,
     width: '200px',
-    placeholder: t('common.inputText') + '${title}',
+    placeholder: t('common.inputText') + localeStore.getLocale === 'zh_CN' ?'${title}' : ' ${title}',
     defaultValue: 0,
-    validateRules: [{ required: true, message: '${title}' + t('components.form.notEmpty') }],
+    validateRules: [{ required: true, message: localeStore.getLocale === 'zh_CN' ?'${title}' : '${title} ' + t('component.form.notEmpty') }],
   },
   {
     title: t('data.client.active'),
@@ -388,16 +401,16 @@ export const shopColumns: JVxeColumn[] = [
     options: [],
     dictCode: 'yn',
     width: '200px',
-    placeholder: t('common.inputText') + '${title}',
+    placeholder: t('common.inputText') + localeStore.getLocale === 'zh_CN' ?'${title}' : ' ${title}',
     defaultValue: '1',
-    validateRules: [{ required: true, message: '${title}' + t('components.form.notEmpty') }],
+    validateRules: [{ required: true, message: ' ${title} ' + t('component.form.notEmpty') }],
   },
   {
     title: t('data.shop.shopifyPrefix'),
     key: 'shopifyPrefix',
     type: JVxeTypes.input,
     width: '200px',
-    placeholder: t('common.inputText') + '${title}',
+    placeholder: t('common.inputText') + localeStore.getLocale === 'zh_CN' ?'${title}' : ' ${title}',
     defaultValue: '',
   },
   {
@@ -405,7 +418,7 @@ export const shopColumns: JVxeColumn[] = [
     key: 'shopifyToken',
     type: JVxeTypes.input,
     width: '200px',
-    placeholder: t('common.inputText') + '${title}',
+    placeholder: t('common.inputText') + localeStore.getLocale === 'zh_CN' ?'${title}' : ' ${title}',
     defaultValue: '',
   },
   {
@@ -413,9 +426,9 @@ export const shopColumns: JVxeColumn[] = [
     key: 'packagingMaterialFee',
     type: JVxeTypes.inputNumber,
     width: '200px',
-    placeholder: t('common.inputText') + '${title}',
+    placeholder: t('common.inputText') + localeStore.getLocale === 'zh_CN' ?'${title}' : ' ${title}',
     defaultValue: 0,
-    validateRules: [{ required: true, message: '${title}' + t('components.form.notEmpty') }],
+    validateRules: [{ required: true, message: localeStore.getLocale === 'zh_CN' ?'${title}' : '${title} ' + t('component.form.notEmpty') }],
   },
 ];
 

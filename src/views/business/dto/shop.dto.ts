@@ -5,6 +5,7 @@ export interface ShopResponse {
   clientCode: string;
   clientName: string;
   currency: Currency;
+  defaultSkuZhName?: string;
 }
 export interface ShopByClient {
   clientCode: string;
