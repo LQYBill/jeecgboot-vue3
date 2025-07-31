@@ -1,5 +1,5 @@
 <template>
-  <PageWrapper title="Invoicing Page">
+  <PageWrapper v-if="clientInfoReady" title="Invoicing Page">
     <a-card>
       <a-form v-if="internalUse" ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
         <a-row>
@@ -188,6 +188,11 @@
     <InvoicingHelpModal @register="registerModal" @success="" @guide="startGuide"/>
     <InvoicingOrderContentModal @register="registerContentModal"/>
   </PageWrapper>
+  <Result v-else :status="Number(ExceptionEnum.PAGE_NOT_FOUND)" :title="ExceptionEnum.PAGE_NOT_FOUND" :sub-title="t('sys.exception.subTitle404')">
+    <template #extra>
+      <a-button key="console" type="primary" @click="returnHome()"> {{ t('sys.exception.backHome') }} </a-button>
+    </template>
+  </Result>
 </template>
 <script lang="ts" setup>
 
@@ -205,7 +210,7 @@ import {
 } from "/@/views/business/client/invoicing/data";
 import {defHttp} from "/@/utils/http/axios";
 import JSelectMultiple from "/@/components/Form/src/jeecg/components/JSelectMultiple.vue";
-import {Badge, Form, Tag} from "ant-design-vue";
+import {Badge, Form, Result, Tag} from "ant-design-vue";
 import dayjs, {Dayjs} from "dayjs";
 import {downloadFile} from "/@/api/common/api";
 import {PopConfirmButton} from "/@/components/Button";
@@ -213,7 +218,14 @@ import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect
 import intro from "intro.js";
 import {useModal} from "@/components/Modal";
 import InvoicingHelpModal from "@/views/business/client/_components/InvoicingHelpModal.vue";
-import {Estimation, ShopOptions, Client, JSelectMultipleOptions} from "@/views/business/dto";
+import {
+  Estimation,
+  ShopOptions,
+  Client,
+  JSelectMultipleOptions,
+  InvoiceMetaData,
+  Response
+} from "@/views/business/dto";
 import EstimationByShopCard from "@/views/business/components/EstimationByShopCard.vue";
 import {toUpper} from "lodash-es";
 import {filterObj} from "@/utils/common/compUtils";
@@ -227,6 +239,7 @@ import InvoicingOrderContentModal
 import BasicHelp from "@/components/Basic/src/BasicHelp.vue";
 import {ManualInvoiceParam} from "@/views/business/types/manualInvoiceParam";
 import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
+import {ExceptionEnum} from "@/enums/exceptionEnum";
 
 const { t } = useI18n();
 const { clipboardRef, copiedRef } = useCopyToClipboard();
@@ -263,13 +276,6 @@ const internalUse = ref<boolean>(false);
 const customerList = ref<any[]>([]);
 const customerSelectList = ref<any[]>([]);
 const customerListDisabled = ref<boolean>(false);
-// clients that can only make complete invoice
-const excludedClients = ['RB', 'JBL2', 'JBL', 'LA', 'KB'];
-// clients that can invoice an order with complete invoice method even when the sku's stock is available.
-const clientCompleteBypassList = ref<string[]>([
-  'LA',
-  'KB'
-]);
 
 const client: Ref<Client | null> = ref(null);
 
@@ -277,6 +283,7 @@ const orderList = ref<Recordable[]>([]);
 const shopList = ref<JSelectMultipleOptions[]>([]);
 const shopOptions = ref<Record<string, ShopOptions>>({});
 const selectedOrdersWithStock = ref<string[]>([]);
+const clientInfoReady = ref<boolean>(false);
 
 const selectedStartDate = ref<string>();
 const selectedEndDate = ref<string>();
@@ -302,6 +309,7 @@ const canSelfL = ref(false);
 const canSelfP = ref(false);
 const canSelfPL = ref(false);
 const canIgnoreStock = ref(false);
+const shopOptionError = ref<boolean>(false);
 
 const estimatesReady = ref<boolean>(true);
 const estimation = ref<any[]>([]);
@@ -365,6 +373,7 @@ function checkUser() {
             value: client.id,
           })
         );
+        clientInfoReady.value = true;
       }
       else {
         client.value = res.client;
@@ -394,8 +403,9 @@ async function handleClientChange(id: any) {
   }
 }
 function loadShopList(clientID: string) {
-  clearSelectedRowKeys();
-  defHttp.get({url : Api.getShops, params: {clientID}})
+  if (clientInfoReady.value)
+    clearSelectedRowKeys();
+  defHttp.get({url : Api.getSelfInvoiceShops, params: {clientID}})
     .then(res => {
       shopList.value = res.map(
         shop => ({
@@ -417,10 +427,15 @@ function loadShopOptions(clientID: string) {
   defHttp.get({url : Api.getShopOptions, params: {clientID}})
     .then(res => {
       shopOptions.value = res;
+      clientInfoReady.value = true;
     })
     .catch(e => {
       createMessage.error("Error while loading shop infos, please contact a sales.");
       console.error(e);
+    })
+    .finally(() => {
+      clientInfoReady.value = true;
+      shopDisabled.value = false;
     });
 }
 function handleShopChange(shops: string) {
@@ -438,10 +453,14 @@ function handleShopChange(shops: string) {
   makePurchaseLoading.value = false;
   makeCompleteDisabled.value = true;
   makeCompleteLoading.value = false;
+  shopOptionError.value = false;
   canSelfL.value = checkCanSelfInvoiceShippingFees();
   canSelfP.value = checkCanSelfInvoicePurchaseFees();
   canSelfPL.value = checkCanSelfInvoiceCompleteFees();
   canIgnoreStock.value = checkCanIgnoreStock();
+  if(shopOptionError.value) {
+    createMessage.error('Your shops has not been properly configured, please contact a sales person.');
+  }
   searchDisabled.value = selectedShopIds.value.length === 0;
   if(selectedShopIds.value.length > 0) {
     loadAvailableDate();
@@ -481,7 +500,7 @@ function handleDateChange(dateRange: string) {
 function checkCanSelfInvoiceShippingFees() {
   for(const shop of shopList.value) {
     if(!shopOptions.value.hasOwnProperty(shop.value)) {
-      createMessage.error('Your shops has not been properly configured, please contact a sales person.');
+      shopOptionError.value = true;
       return false;
     }
     const options = shopOptions.value[shop.value];
@@ -492,7 +511,7 @@ function checkCanSelfInvoiceShippingFees() {
 function checkCanSelfInvoicePurchaseFees() {
   for(const shop of shopList.value) {
     if(!shopOptions.value.hasOwnProperty(shop.value)) {
-      createMessage.error('Your shops has not been properly configured, please contact a sales person.');
+      shopOptionError.value = true;
       return false;
     }
     const options = shopOptions.value[shop.value];
@@ -503,7 +522,7 @@ function checkCanSelfInvoicePurchaseFees() {
 function checkCanSelfInvoiceCompleteFees() {
   for(const shop of shopList.value) {
     if(!shopOptions.value.hasOwnProperty(shop.value)) {
-      createMessage.error('Your shops has not been properly configured, please contact a sales person.');
+      shopOptionError.value = true;
       return false;
     }
     const options = shopOptions.value[shop.value];
@@ -514,7 +533,7 @@ function checkCanSelfInvoiceCompleteFees() {
 function checkCanIgnoreStock() {
   for(const shop of shopList.value) {
     if(!shopOptions.value.hasOwnProperty(shop.value)) {
-      createMessage.error('Your shops has not been properly configured, please contact a sales person.');
+      shopOptionError.value = true;
       return false;
     }
     const options = shopOptions.value[shop.value];
@@ -850,11 +869,10 @@ function makeCompleteManualInvoice() {
   setLoading(true);
   makeCompleteLoading.value = true;
   defHttp.post({url: Api.makeCompleteManualInvoice, params})
-    .then(res => {
+    .then((res:Response<InvoiceMetaData, Response<string, string>[]>) => {
       createMessage.success("Orders have been invoiced successfully");
-
-      const filename = res.filename;
-      const code = res.invoiceCode;
+      const filename = res.data.filename;
+      const code = res.data.invoiceCode;
       downloadInvoice(code, filename);
       downloadDetailFile(code);
       editInvoiceOrdersRemark(code, InvoicingMethod.PRESHIPPING);

@@ -3,10 +3,7 @@ export interface ShopWithOptions {
   isClientActive: boolean;
   shopId: string;
   isShopActive: boolean;
-  useBalance: boolean;
   shopOptionsId: string;
-  showBalance: boolean;
-  balanceThreshold: number;
   isAutoInvoice: boolean;
   isChronologicalOrder: boolean;
   isBreakdownInvoice: boolean;

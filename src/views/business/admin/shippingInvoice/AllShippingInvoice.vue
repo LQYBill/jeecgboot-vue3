@@ -259,7 +259,6 @@ import PlatformOrderContentSubTable
 import JRangeDate from "/@/components/Form/src/jeecg/components/JRangeDate.vue";
 import BasicHelp from "/@/components/Basic/src/BasicHelp.vue";
 import {shippingInvoiceParam} from "@/views/business/dto/shippingInvoiceParam.dto";
-import type { Estimation } from "@/views/business/dto/estimation.dto";
 import EstimationByShopCard from "@/views/business/components/EstimationByShopCard.vue";
 import Helper from "@/views/business/admin/shippingInvoice/modules/Helper.vue";
 import {
@@ -286,6 +285,7 @@ import {offWebSocket, onWebSocket} from "@/hooks/web/useWebSocket";
 import {HttpStatusCode} from "axios";
 import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 import {Key} from "ant-design-vue/lib/table/interface";
+import {InvoiceMetaData, Response, Estimation} from "@/views/business/dto";
 
 const { t } = useI18n();
 const { createMessage, notification } = useMessage();
@@ -462,7 +462,6 @@ function handleInvoiceModeChange(e: Event) {
   nextTick(() => {
     customerRef.value.focus()
   })
-  console.log('customerRef', customerRef.value);
 }
 function handleClientChange(id: string) {
   isSkuCompareReady.value = false;
@@ -680,6 +679,12 @@ async function loadOrders() {
       }
     }).catch(e => {
       console.error(`listOrders error : ${e}`);
+      notification.error({
+        message: 'Error while fetching orders',
+        description: e,
+        duration: null,
+        placement: 'bottomRight',
+      });
     }).finally(()=> {
       findOrdersLoading.value = false;
       orderListLoading.value = false;
@@ -847,7 +852,7 @@ async function makeManualCompleteInvoice() {
   const type = getInvoiceMethod();
   const period = selectedStartDate.value.toString()+ "," + dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString();
 
-  let params = {
+  const params = {
     clientID: customerId.value,
     orderIds: checkedKeys.value,
     type: type,
@@ -867,10 +872,27 @@ async function makeManualCompleteInvoice() {
   manualCompleteInvoiceLoading.value = true;
   await makeManualCompleteInvoiceRequest(params)
     .then(
-      res => {
+      (res: Response<InvoiceMetaData, Response<string, string>[]>) => {
         checkedKeys.value = [];
-        const filename = res.filename;
-        const code = res.invoiceCode;
+        const filename = res.data.filename;
+        const code = res.data.invoiceCode;
+        if(res.error !== null) {
+          let errorMsg = '<p>Errors while making complete invoice:</p><ul>';
+          for(const orderWithPb of res.error) {
+            const errors = `<li>Order ${orderWithPb.data} : ${orderWithPb}</li>`;
+            errorMsg += errors;
+          }
+          errorMsg += '</ul>';
+          const vnodeContent = h('div', {
+            innerHTML: errorMsg
+          });
+          notification.error({
+            message: 'Error while making complete invoice',
+            description: vnodeContent,
+            duration: null,
+            placement: 'bottomRight',
+          })
+        }
         downloadInvoice(filename);
         downloadDetailFile(code);
         if(getInvoiceMethod() === InvoicingMethod.PRESHIPPING)
@@ -990,9 +1012,26 @@ async function makeCompleteInvoice() {
   completeInvoiceLoading.value = true;
   await makeCompleteInvoiceRequest(param)
     .then(
-      res => {
-        const filename:string = res.filename;
-        const code:string = res.invoiceCode;
+      (res: Response<InvoiceMetaData, Response<string, string>[]>) => {
+        const filename:string = res.data.filename;
+        const code:string = res.data.invoiceCode;
+        if(res.error !== null) {
+          let errorMsg = '<p>Errors while making complete invoice:</p><ul>';
+          for(const orderWithPb of res.error) {
+            const errors = `<li>Order ${orderWithPb.data} : ${orderWithPb}</li>`;
+            errorMsg += errors;
+          }
+          errorMsg += '</ul>';
+          const vnodeContent = h('div', {
+            innerHTML: errorMsg
+          });
+          notification.error({
+            message: 'Error while making complete invoice',
+            description: vnodeContent,
+            duration: null,
+            placement: 'bottomRight',
+          })
+        }
         downloadInvoice(filename);
         downloadDetailFile(code);
         if(getInvoiceMethod() === InvoicingMethod.PRESHIPPING)
@@ -1169,14 +1208,38 @@ async function onSelectChange(selectedRowKeys: (string | number)[], selectionRow
           estimation.value = [];
           for (let shop in res) {
             // let shopName = getShopName(shop);
-            const shopEstimation = res[shop];
+            const shopEstimation: Estimation = res[shop];
             // shopEstimation.shop = shopName;
             estimation.value.push(shopEstimation);
+            const errors = shopEstimation.errorMessages;
+            let errorMessage = `<p>Shop ${shopEstimation.shop} : </p>`;
+            if (errors && errors.length > 0) {
+              errorMessage += `<ul>`;
+              for (let error of errors) {
+                errorMessage += `<li>${error}</li>`;
+              }
+              errorMessage += `</ul>`;
+              const vnodeContent = h('div', {
+                innerHTML: errorMessage
+              });
+              notification.error({
+                message: 'Error while fetching estimation',
+                description: vnodeContent,
+                duration: null,
+                placement: 'bottomRight',
+              });
+            }
           }
           estimatesReady.value = true;
         }
       ).catch(e => {
         console.error(e);
+        notification.error({
+          message: 'Error while fetching estimation',
+          description: e,
+          duration: null,
+          placement: 'bottomRight',
+        });
       });
     await checkSkuPrices(params)
       .then(
