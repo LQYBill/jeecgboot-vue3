@@ -28,7 +28,6 @@
     <template #bodyCell="{ column, record }">
       <template v-if="column.dataIndex !== 'erpCode'
                       && column.dataIndex !== 'internalCode'
-                      && column.dataIndex !== 'balanceThreshold'
                       && column.key !== 'j-custom-selected-column'"
       >
         <Tag v-if="record[column.dataIndex] === true" color="green">
@@ -41,7 +40,7 @@
           {{ t('data.noData')}}
         </span>
       </template>
-      <template v-else-if="column.dataIndex === 'erpCode' || column.dataIndex === 'internalCode' || column.dataIndex === 'balanceThreshold'">
+      <template v-else-if="column.dataIndex === 'erpCode' || column.dataIndex === 'internalCode'">
         <span v-if="record[column.dataIndex] === null" class="text-gray-300 italic">
           {{ t('data.noData')}}
         </span>
@@ -203,7 +202,7 @@ function handleAdd(_e: PointerEvent, shopId?: string) {
     });
     return;
   }
-  const shopIdsWithoutOptions = selectedRows.value.filter((item: Recordable) => item.useBalance === null).map((item: Recordable) => item.shopId);
+  const shopIdsWithoutOptions = selectedRows.value.filter((item: Recordable) => item.canSelfInvoice === null).map((item: Recordable) => item.shopId);
   if(shopIdsWithoutOptions.length === 0) {
     createMessage.warn(t('data.shopOptions.help.noShopWithoutOptions'));
     return;
@@ -243,7 +242,7 @@ function handleSuccess() {
 }
 
 function getTableAction(record: ShopWithOptions) {
-  if(record.useBalance === null) {
+  if(record.canSelfInvoice === null) {
     return [
       {
         label: t('common.operation.add'),

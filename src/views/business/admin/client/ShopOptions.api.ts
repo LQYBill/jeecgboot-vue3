@@ -1,7 +1,6 @@
 import {defHttp} from '/@/utils/http/axios';
 import { useMessage } from "/@/hooks/web/useMessage";
-import {ShopOptionsAddParam} from "@/views/business/dto/ShopOptionsAddParam.dto";
-import {ShopOptionsUpdateParam} from "@/views/business/dto/ShopOptionsUpdateParam.dto";
+import {ShopOptionsUpdateParam, ShopOptionsAddParam} from "@/views/business/dto";
 import {useI18n} from "@/hooks/web/useI18n";
 
 const { createConfirm } = useMessage();
