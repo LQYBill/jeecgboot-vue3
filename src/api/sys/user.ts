@@ -66,6 +66,7 @@ export function getUserInfo() {
 
     }
     // update-end--author:zyf---date:20220425---for:【VUEN-76】捕获接口超时异常,跳转到登录界面
+    throw e;
   });
 }
 

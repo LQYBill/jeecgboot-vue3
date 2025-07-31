@@ -14,7 +14,7 @@
         <a-button type="primary" @click="handleAdd" preIcon="ant-design:plus-outlined">
           {{ t('common.operation.addNew') }}
         </a-button>
-        <a-button type="warning" @click="handleCreateOrder" preIcon="ant-design:shopping-cart-outlined" :disabled="createOrderDisabled">
+        <a-button v-if="hasPurchasePermission()" type="warning" @click="handleCreateOrder" preIcon="ant-design:shopping-cart-outlined" :disabled="createOrderDisabled">
         </a-button>
       </template>
       <!--操作栏-->
@@ -104,7 +104,7 @@
 </template>
 
 <script lang="ts" setup>
-import {provide, ref, unref} from 'vue';
+import {onMounted, provide, ref, unref} from 'vue';
 import {BasicTable, TableAction, TableImg} from '/@/components/Table';
 import {useModal} from '/@/components/Modal';
 import {useListPage} from '/@/hooks/system/useListPage'
@@ -126,7 +126,7 @@ import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 import {useMessage} from "@/hooks/web/useMessage";
 import PurchaseOrderResult
   from "@/views/business/admin/purchasing/components/PurchaseOrderResult.vue";
-
+import {getUserInfo} from "@/api/sys/user";
 
 const {t} = useI18n();
 const { clipboardRef, copiedRef } = useCopyToClipboard();
@@ -216,7 +216,15 @@ const {tableContext} = useListPage({
 const [registerTable, {reload}, {rowSelection, selectedRowKeys, selectedRows}] = tableContext;
 
 const createOrderDisabled = ref<boolean>(true);
-
+const roles = ref<string[]>([]);
+onMounted(async () => {
+  const res = await getUserInfo();
+  roles.value = res.roles as unknown as string[];
+  console.log('Current user role: ', [...roles.value]);
+});
+function hasPurchasePermission(): boolean {
+  return ['accountant', 'admin'].some(role => roles.value.includes(role));
+}
 /**
  * 新增事件
  */
