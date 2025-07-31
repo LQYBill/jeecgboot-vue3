@@ -242,10 +242,6 @@
       async function getClientListFromShopData() {
         loading.value = true;
         const payload = toRaw(listByShop.value);
-        console.log('payload sent to listByClient:', payload);
-        console.log('typeof payload:', typeof payload);
-        console.log('Array.isArray:', Array.isArray(payload));
-
         try {
           const res = await defHttp.post({
             url: Api.listByClient,
@@ -336,7 +332,6 @@
               }
             }
             listByShop.value = estimations;
-            console.log('[WS] listByShop updated:', estimations);
             loading.value = false;
             }
           if (parsed?.cmd === 'estimation') {
@@ -351,11 +346,8 @@
             }
             if (typeof msgTxt === 'string' && msgTxt.includes('全部完成')) {
               progress.value = 100;
-              //showProgress.value = false;
               loading.value = false;
-              console.log('listByShop before fetch clients:', listByShop.value);
               await getClientListFromShopData();
-              console.log('Client list loaded:', listByClient.value);
               const clientCount = listByClient.value.length;
               const shopCount = listByShop.value.length;
               createConfirm({
