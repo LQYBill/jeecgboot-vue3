@@ -153,6 +153,34 @@
                 - {{ record.purchaseFee }}
               </span>
             </template>
+            <template #img="{ text, record }">
+              <template v-if="record.invoiceNumber?.split('-')[2]?.startsWith('1') || record.invoiceNumber?.split('-')[2]?.startsWith('7')">
+                <template v-if="text">
+                  <div style="display: inline-flex; align-items: center;">
+                    <TableImg :imgList="[uploadUrl + text]" :size="40" />
+                    <JImageUpload
+                      :text="t('component.upload.reUpload')"
+                      :fileMax="1"
+                      listType="picture"
+                      bizPath="purchase_order/screenshots"
+                      @change="e => handleUploadChange(e, record)"
+                    />
+                  </div>
+                </template>
+                <template v-else>
+                  <JImageUpload
+                    :text="t('component.upload.upload')"
+                    :fileMax="1"
+                    listType="picture"
+                    bizPath="purchase_order/screenshots"
+                    @change="e => handleUploadChange(e, record)"
+                  />
+                </template>
+              </template>
+              <template v-else>
+                <span>-</span>
+              </template>
+            </template>
             <template #action="{ record }">
               <TableAction
                 :actions="[
@@ -347,6 +375,7 @@ import {defHttp} from "/@/utils/http/axios";
 import {useMessage} from "/@/hooks/web/useMessage";
 
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
+import JImageUpload from '/@/components/Form/src/jeecg/components/JImageUpload.vue';
 import dayjs from "dayjs";
 import {downloadFile} from "/@/api/common/api";
 import {useGlobSetting} from "/@/hooks/setting";
@@ -834,6 +863,28 @@ function handleEditModeChange(checked: boolean) {
   editMode.value = checked;
   if(checked)
     colorizeRows();
+}
+function handleUploadChange(imgPath, record) {
+  if (!imgPath) {
+    createMessage.error('Upload failed, no valid path returned');
+    return;
+  }
+  const params = {
+    invoiceNumber: record.invoiceNumber,
+    paymentProofString: imgPath,
+  };
+  defHttp.post({
+    url: Api.uploadPaymentProofAndNotify,
+    data: params,
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(() => {
+      record.paymentProofString = imgPath;
+      reloadEurTable();
+    })
+    .catch(() => {
+      createMessage.error('Save failed, please try again');
+    });
 }
 </script>
 
