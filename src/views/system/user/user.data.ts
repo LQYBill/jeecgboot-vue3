@@ -1,8 +1,9 @@
 import { BasicColumn } from '/@/components/Table';
 import { FormSchema } from '/@/components/Table';
-import { getAllRolesListNoByTenant, getAllTenantList, getDepartById } from './user.api';
+import {getAllRolesListNoByTenant, getAllTenantList, getDepartById, getWiaMabangUsername} from './user.api';
 import { rules } from '/@/utils/helper/validator';
 import { render } from '/@/utils/common/renderUtils';
+const ORG_CODE_WIA_CLIENT = 'A02';
 export const columns: BasicColumn[] = [
   {
     title: '用户账号',
@@ -223,14 +224,32 @@ export const formSchema: FormSchema[] = [
           formModel.departIds && (formModel.departIds = formModel.departIds.filter((item) => values.value.indexOf(item) > -1));
           //如果是WIA客户，则显示client
           const departInfo = await getDepartById({ departId: values.value[0] });
-          const isWIAClient =  departInfo?.departName === 'WIA客户';
+          const isWIAClient =  departInfo?.orgCode === ORG_CODE_WIA_CLIENT;
+          let mabangOptions = [];
+          if(isWIAClient){
+            const res = await getWiaMabangUsername();
+            mabangOptions = (res?.result || []).map(item => ({
+              label: item.mabang_username,
+              value: item.mabang_username
+            }));
+          }
           updateSchema([
-            { field: 'client', show: isWIAClient },
+            { field: 'client', show: isWIAClient,required: isWIAClient, },
             { field: 'code', show: !isWIAClient },
             {
               field: 'departIds',
               componentProps: { options },
             },
+            {
+              field: 'mabangUsername',
+              componentProps: {
+                options: mabangOptions,
+                placeholder: isWIAClient ? '请选择关联的马帮账户号' : '请输入马帮账户号',
+                allowInput: !isWIAClient,
+                allowClear: true,
+                immediate: true
+              }
+            }
           ]);
         },
       };
@@ -340,9 +359,13 @@ export const formSchema: FormSchema[] = [
   {
     label: '马帮账户号',
     field: 'mabangUsername',
-    component: 'Input',
+    component: 'JSelectInput',
     required: true,
-    rules: [{ required: true, message: '请输入马帮账户号', trigger: "blur" }],
+    componentProps: {
+      allowInput: true,
+      allowClear: true,
+      placeholder: '请输入或选择马帮账户号',
+    },
   },
   {
     label: '账户代码',
