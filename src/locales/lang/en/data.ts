@@ -255,6 +255,7 @@ export default {
     ownerId: "Owner ID",
     name: "Shop Name",
     erpCode: "ERP Code",
+    defaultSkuZhName: "Default SKU Chinese Name",
     orderServiceFee: "Order Service Fee",
     shopifyPrefix: "Shopify Prefix",
     packagingMaterialFee: "Packaging Material Fee(Overseas Warehouse)",

@@ -1,6 +1,6 @@
 <template>
   <searchForm @search="handleSearch"></searchForm>
-  <BasicTable @register="registerTable" ref="tableRef">
+  <BasicTable @register="registerTable" ref="tableRef" class="min-h-[500px]">
     <template #tableTitle>
       <a-button type="primary" @click="generateSkus" :disabled="checkedKeys.length == 0">Create Sku in Bulk </a-button>
     </template>
@@ -48,6 +48,7 @@ const client = ref<string>();
 const shopCode = ref<string>();
 const skuList = ref([]);
 const skuCounter = ref(1);
+const defaultSkuZhName = ref('');
 
 // table settings
 const tableRef = ref();
@@ -74,6 +75,7 @@ const [registerTable, { getSelectRows, getSelectRowKeys, clearSelectedRowKeys, s
   },
   canResize: true,
   rowKey: 'id',
+  minHeight: 1000,
 });
 
 // table functions
@@ -115,6 +117,7 @@ function handleSearch(data: Recordable) {
   shopCode.value = data.shop;
   client.value = data.client;
   skuList.value = data.skuNames.split(/\r?\n/).map((item: string) => item.trim()).filter((item: string) => item !== '');
+  defaultSkuZhName.value = data.defaultSkuZhName;
   if(data.shop === undefined) {
     unpairedSkus.value = [];
     emit('generate', []);
@@ -149,8 +152,8 @@ async function generateSkus() {
       id: row.erpCode,
       erpCode: date + userCode.value + skuCounterXLength(skuCounter.value + counter++, 3) + '-' + client.value,
       enName: row.enName,
-      zhName: row.zhName,
-      declareEname: row.declareEname,
+      zhName: `${defaultSkuZhName.value ?  defaultSkuZhName.value + ' ' + row.zhName : row.zhName}`,
+      declareEname: row.enName,
       declareName: row.declareName,
       weight: row.weight,
       status: row.status,
