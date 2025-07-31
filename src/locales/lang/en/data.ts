@@ -321,6 +321,7 @@ export default {
     serviceFee: 'Service Fee',
     shippingDiscount: 'Shipping Discount',
     skuPrice: 'Sku Price',
+    skuPriceUnit:'Unit per Price',
     skuPriceEffectiveDate: 'Sku Price Effective Date',
     skuPriceThreshold: 'Threshold',
     skuPriceDiscounted: 'Discounted Price',

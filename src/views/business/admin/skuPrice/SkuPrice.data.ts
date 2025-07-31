@@ -16,6 +16,11 @@ export const columns: BasicColumn[] = [
     align:"center",
     dataIndex: 'price'
    },
+  {
+    title: t("data.sku.skuPriceUnit"),
+    align:"center",
+    dataIndex: 'unit',
+  },
    {
     title: t("data.sku.skuPriceThreshold"),
     align:"center",
@@ -61,6 +66,19 @@ export const formSchema: FormSchema[] = [
           ];
      },
   },
+  {
+    label: t("data.sku.skuPriceUnit"),
+    field: 'unit',
+    component: 'InputNumber',
+    componentProps: {
+      min: 1,
+    },
+    defaultValue: 1,
+    dynamicRules: () => [
+      { required: true, message: '请输入单位！' },
+    ],
+  },
+
   {
     label: t("data.sku.skuPriceThreshold"),
     field: 'threshold',
@@ -115,6 +133,8 @@ export const superQuerySchema = {
   discountedPrice: {title: t("data.sku.skuPriceDiscounted"),order: 3,view: 'number', type: 'number',},
   date: {title: t("data.sku.skuPriceEffectiveDate"),order: 4,view: 'datetime', type: 'string',},
   currencyId: {title: t("data.sku.currency"),order: 5,view: 'sel_search', type: 'string',dictTable: "currency", dictCode: 'id', dictText: 'code',},
+  unit: { title: t("data.sku.skuPriceUnit"), order: 6, view: 'number', type: 'number', },
+
 };
 
 /**

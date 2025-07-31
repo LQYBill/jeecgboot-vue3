@@ -81,7 +81,9 @@
         </template>
         <template #skuPrice="{record}">
           <span v-if="record?.skuPrice === null" class="italic text-red-500">{{ t('data.sku.missingPrice') }}</span>
-          <span v-else>{{ record?.skuPrice }}</span>
+          <span :class="record?.unit > 1 ? 'text-red-500' : ''" v-else>
+            {{ record.skuPrice }}<span v-if="record?.unit > 1"> / {{ record.unit }}pcs</span>
+          </span>
         </template>
 
         <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">

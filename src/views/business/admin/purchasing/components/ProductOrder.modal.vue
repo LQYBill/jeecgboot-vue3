@@ -35,7 +35,12 @@
           <div class="flex flex-col col-span-2">
             <InputNumber class="qtyPicker" v-model:value="model[field]" :min="0" placeholder="Please enter the quantity" @change="calculateTotal">
               <template #addonAfter>
-                <span style="color: #9CA3AF;">{{ selectedSkuMap.get(field).skuPrice }}€/pcs</span>
+                <span :style="{ color: selectedSkuMap.get(field).unit > 1 ? '#EF4444' : '#9CA3AF' }">
+                  {{ selectedSkuMap.get(field).skuPrice }}€/
+                  <span>
+                    {{ selectedSkuMap.get(field).unit}}pcs
+                  </span>
+                </span>
               </template>
             </InputNumber>
           </div>
