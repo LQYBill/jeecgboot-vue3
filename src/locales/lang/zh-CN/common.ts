@@ -46,6 +46,7 @@ export default {
     salesStatistics: '销量统计',
     businessStatistics: '业务统计',
     myTasks: '我的任务',
+    loadUninvoicedOrders: "加载未开票订单数据",
   },
   operation: {
     action: "操作",

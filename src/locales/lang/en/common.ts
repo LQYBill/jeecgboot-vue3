@@ -46,6 +46,7 @@ export default {
     salesStatistics: 'Sales Statistics',
     businessStatistics: 'Business Statistics',
     myTasks: 'My Tasks',
+    loadUninvoicedOrders: "Load Uninvoiced Orders",
   },
   operation: {
     action: "Action",
