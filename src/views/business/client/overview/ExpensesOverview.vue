@@ -326,6 +326,34 @@
                 - {{ record.purchaseFee }}
               </template>
             </template>
+            <template #img="{ text, record }">
+              <template v-if="record.invoiceNumber?.split('-')[2]?.startsWith('1') || record.invoiceNumber?.split('-')[2]?.startsWith('7')">
+                <template v-if="text">
+                  <div style="display: inline-flex; align-items: center;">
+                    <TableImg :imgList="[uploadUrl + text]" :size="40" />
+                    <JImageUpload
+                      :text="t('component.upload.reUpload')"
+                      :fileMax="1"
+                      listType="picture"
+                      bizPath="purchase_order/screenshots"
+                      @change="e => handleUploadChange(e, record)"
+                    />
+                  </div>
+                </template>
+                <template v-else>
+                  <JImageUpload
+                    :text="t('component.upload.upload')"
+                    :fileMax="1"
+                    listType="picture"
+                    bizPath="purchase_order/screenshots"
+                    @change="e => handleUploadChange(e, record)"
+                  />
+                </template>
+              </template>
+              <template v-else>
+                <span>-</span>
+              </template>
+            </template>
             <template #imgs="{ text }">
               <TableImg
                 v-if="!!text"
