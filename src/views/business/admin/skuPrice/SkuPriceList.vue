@@ -1,5 +1,15 @@
 <template>
   <PageWrapper :title="t('data.sku.skuPrice')" >
+    <div v-if="showProgress" style="margin-bottom: 16px">
+      <a-progress
+        :percent="progress"
+        :steps="5"
+        :stroke-width="16"
+        :stroke-color="progressColor"
+        status="active"
+      />
+      <div style="margin-top: 8px">{{ msg }}</div>
+    </div>
     <!--引用表格-->
    <BasicTable @register="registerTable" :rowSelection="rowSelection">
      <!--插槽:table标题-->
@@ -37,7 +47,7 @@
 </template>
 
 <script lang="ts" name="skuprice-skuPrice" setup>
-  import {h, reactive} from 'vue';
+import {computed, h, onMounted, reactive, ref} from 'vue';
   import {BasicTable} from '/@/components/Table';
   import { Modal } from 'ant-design-vue'
   import {useModal} from '/@/components/Modal';
@@ -47,8 +57,18 @@
   import {list, batchDelete, getImportUrl,getExportUrl} from './SkuPrice.api';
   import { PageWrapper } from '@/components/Page';
   import { useI18n } from '@/hooks/web/useI18n';
+import {offWebSocket, onWebSocket} from "@/hooks/web/useWebSocket";
 
   const { t } = useI18n();
+  const showProgress = ref(false);
+  const progress = ref(0);
+  const msg = ref('');
+
+  const progressColor = computed(() => {
+    if (progress.value < 50) return '#faad14';
+    if (progress.value < 100) return '#1890ff';
+    return '#52c41a';
+  });
   const queryParam = reactive<any>({});
   //注册model
   const [registerModal, {openModal}] = useModal();
@@ -93,6 +113,11 @@
 
   // 高级查询配置
   const superQueryConfig = reactive(superQuerySchema);
+
+onMounted(async () => {
+  offWebSocket(handleWsMessage);
+  onWebSocket(handleWsMessage);
+});
 
   /**
    * 高级查询事件
@@ -144,9 +169,9 @@
       ...Object.entries(successes).map(([row, msg]) => {
         const message = parseMessage(msg)
         let type: RowType = 'fail'
-        if (/导入成功/.test(message)) {
+        if (/成功/.test(message)) {
           type = 'success'
-        } else if (/跳过导入/.test(message)) {
+        } else if (/跳过/.test(message)) {
           type = 'warning'
         }
         return [row, message, type] as [string, string, RowType]
@@ -184,6 +209,33 @@
       okText: 'OK',
     })
   }
+
+function handleWsMessage(data: any) {
+  try {
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+    const { cmd, type, data: msgData = {}, msgTxt } = parsed;
+    if (cmd === 'mabang-price-result') {
+      showProgress.value = true;
+      if (type === 'progress') {
+        progress.value = msgData.progress || 0;
+        msg.value = msgTxt;
+      }
+      if (type === 'complete') {
+        progress.value = 100;
+        msg.value = msgTxt;
+        handleImportResponse({
+          result: {
+            successes: msgData.successes || {},
+            failures: msgData.failures || {},
+          },
+        });
+      }
+    }
+  } catch (e) {
+    console.error('[WebSocket] failed to parse message:', e);
+  }
+}
+
 
 </script>
 
