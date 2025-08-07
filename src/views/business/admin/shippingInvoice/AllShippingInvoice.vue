@@ -286,7 +286,8 @@ import {HttpStatusCode} from "axios";
 import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 import {Key} from "ant-design-vue/lib/table/interface";
 import {InvoiceMetaData, Response, Estimation} from "@/views/business/dto";
-
+import { useInvoiceStore } from '@/store/modules/invoice'
+const invoiceStore = useInvoiceStore();
 const { t } = useI18n();
 const { createMessage, notification } = useMessage();
 const { clipboardRef, copiedRef } = useCopyToClipboard();
@@ -1076,11 +1077,15 @@ function downloadDetailFile(invoiceNumber: string) {
   });
 }
 function editInvoiceOrdersRemark(invoiceNumber:string, invoicingMethod: InvoicingMethod | null) {
+  invoiceStore.setModifyingInvoiceNumber(invoiceNumber);
   editOrdersRemark({invoiceNumber, invoicingMethod}).then((res) => {
     if(Object.keys(res.failures).length > 0) {
       createMessage.error(`Error while writing invoice number in orders on Mabang: ${res.failures}`);
     }
-  });
+  })
+    .finally(() => {
+        invoiceStore.clearModifyingInvoiceNumber();
+    });
 }
 /**
  *   Clears the formRef fields
