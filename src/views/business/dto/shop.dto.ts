@@ -13,3 +13,17 @@ export interface ShopByClient {
   currency: Currency;
   shops: string[];
 }
+export interface Shop {
+  id: string;
+  erpCode: string;
+  ownerId: string;
+  name: string;
+  website: string;
+  shippingDiscount: number;
+  orderServiceFee: number;
+  active: "0" | "1";
+  shopifyPrefix: string;
+  shopifyToken: string;
+  packagingMaterialFee: number;
+  defaultSkuZhName: string;
+}

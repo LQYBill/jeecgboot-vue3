@@ -27,14 +27,14 @@
       </a-form>
       <a-card class="card-header" v-if="client">
         <h1>{{ fullName }} <span style="font-weight: 200">( {{ invoiceEntity }} )</span></h1>
-        <p>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ currencySymbol }}</p>
+        <p>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ CurrencyToken[currency] }}</p>
       </a-card>
       <a-tabs defaultActiveKey="1" v-model:activeKey="activeTab" style="margin: 10px" v-if="client">
         <a-tab-pane tab="EUR" key="1">
           <BasicTable @register="registerTable">
             <template #tableTitle>
-              <div style="width: 100%" v-if="client.category != 'self-service'">
-                <a-row class="balance-row">
+              <div style="width: 100%" >
+                <a-row class="balance-row" v-if="client.useBalance">
                   <p>
                     {{ t('data.client.accountBalance') }} :
                   </p>
@@ -51,42 +51,14 @@
                   </p>
                 </a-row>
                 <a-row class="invoiceToolbar">
-                  <div class="flex gap-2 items-center">
-                    <PopConfirmButton
-                      type="warning"
-                      shape="round"
-                      title="Confirm making invoice ?"
-                      preIcon="ant-design:download-outlined"
-                      @confirm="makeInvoice"
-                      :disabled="invoiceDisabled"
-                      okText="ok" :loading="invoiceLoading"
-                      cancelText="Cancel"
-                    >
-                      {{ t("data.invoice.generateShippingInvoice") }}
-                    </PopConfirmButton>
-                    <PopConfirmButton
-                      type="warning"
-                      shape="round"
-                      title="Confirm making invoice ?"
-                      preIcon="ant-design:download-outlined"
-                      @confirm="makeCompleteInvoice"
-                      :disabled="completeInvoiceDisabled"
-                      okText="ok" :loading="completeInvoiceLoading"
-                      cancelText="Cancel"
-                    >
-                      {{ t("data.invoice.generateInvoice7pre") }}
-                    </PopConfirmButton>
-                  </div>
-                  <div>
-                    <a-switch :checked="editMode" @change="handleEditModeChange">
-                      <template #checkedChildren>
-                        <EditOutlined/>
-                      </template>
-                      <template #unCheckedChildren>
-                        <EditOutlined/>
-                      </template>
-                    </a-switch>
-                  </div>
+                  <a-switch :checked="editMode" @change="handleEditModeChange">
+                    <template #checkedChildren>
+                      <EditOutlined/>
+                    </template>
+                    <template #unCheckedChildren>
+                      <EditOutlined/>
+                    </template>
+                  </a-switch>
                 </a-row>
               </div>
             </template>
@@ -206,7 +178,7 @@
         <a-tab-pane tab="USD" key="2" forceRender>
           <BasicTable @register="registerUSDTable">
             <template #tableTitle>
-              <div style="width: 100%;" v-if="client.category != 'self-service'">
+              <div style="width: 100%;" v-if="client.useBalance">
                 <a-row class="balance-row">
                   <p>
                     {{ t('data.client.accountBalance') }} :
@@ -224,42 +196,14 @@
                   </p>
                 </a-row>
                 <a-row class="invoiceToolbar">
-                  <div class="flex gap-2 items-center">
-                    <PopConfirmButton
-                      type="warning"
-                      shape="round"
-                      title="Confirm making invoice ?"
-                      preIcon="ant-design:download-outlined"
-                      @confirm="makeInvoice"
-                      :disabled="invoiceDisabled"
-                      okText="ok" :loading="invoiceLoading"
-                      cancelText="Cancel"
-                    >
-                      {{ t("data.invoice.generateShippingInvoice") }}
-                    </PopConfirmButton>
-                    <PopConfirmButton
-                      type="warning"
-                      shape="round"
-                      title="Confirm making invoice ?"
-                      preIcon="ant-design:download-outlined"
-                      @confirm="makeCompleteInvoice"
-                      :disabled="completeInvoiceDisabled"
-                      okText="ok" :loading="completeInvoiceLoading"
-                      cancelText="Cancel"
-                    >
-                      {{ t("data.invoice.generateInvoice7pre") }}
-                    </PopConfirmButton>
-                  </div>
-                  <div>
-                    <a-switch :checked="editMode" @change="handleEditModeChange">
-                      <template #checkedChildren>
-                        <EditOutlined/>
-                      </template>
-                      <template #unCheckedChildren>
-                        <EditOutlined/>
-                      </template>
-                    </a-switch>
-                  </div>
+                  <a-switch :checked="editMode" @change="handleEditModeChange">
+                    <template #checkedChildren>
+                      <EditOutlined/>
+                    </template>
+                    <template #unCheckedChildren>
+                      <EditOutlined/>
+                    </template>
+                  </a-switch>
                 </a-row>
               </div>
             </template>
@@ -365,10 +309,9 @@ import {onBeforeMount, onUnmounted, reactive, ref} from "vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {TableAction, TableImg, useTable} from "/@/components/Table";
 import {PageWrapper} from '/@/components/Page';
-import {PopConfirmButton} from "/@/components/Button";
 import {Form, Tag} from "ant-design-vue";
 import {actionColumn, getColumns} from "/@/views/business/client/overview/data";
-import { EditOutlined } from '@ant-design/icons-vue';
+import {EditOutlined} from '@ant-design/icons-vue';
 
 import {useI18n} from "/@/hooks/web/useI18n";
 import {defHttp} from "/@/utils/http/axios";
@@ -377,16 +320,14 @@ import {useMessage} from "/@/hooks/web/useMessage";
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
 import JImageUpload from '/@/components/Form/src/jeecg/components/JImageUpload.vue';
 import dayjs from "dayjs";
-import {downloadFile} from "/@/api/common/api";
 import {useGlobSetting} from "/@/hooks/setting";
 import {useRouter} from 'vue-router';
-import {Currency} from "@/views/business/dto/currency.dto";
+import type {Client, Currency, ShopOptions} from "@/views/business/dto";
 import {Loading} from "@/components/Loading";
 import {SizeEnum} from "@/enums/sizeEnum";
-import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
-import {editOrdersRemark} from "@/views/business/admin/shippingInvoice/api";
+import {CurrencyEnum, CurrencyToken} from "@/views/business/enum";
 
-import { Api } from "../client.api";
+import {Api} from "../client.api";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -394,8 +335,8 @@ const globSetting = useGlobSetting();
 const baseUploadUrl = globSetting.uploadUrl;
 const uploadUrl = `${baseUploadUrl}/sys/common/static/`;
 const {resolve}=useRouter();
-const ac = new AbortController();
-const {signal} = ac;
+let ac = new AbortController();
+let {signal} = ac;
 
 const internalUse = ref<boolean>(false);
 
@@ -422,19 +363,19 @@ const formState = reactive<Record<string, any>>({
 });
 const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
-const customerList = ref<Record<string, string | number>[]>([]);
+const customerList = ref<Client[]>([]);
 const customerSelectList = ref<any[]>([]);
 const customerListDisabled = ref<boolean>(false);
 
-const client = ref<Record<string, string | number>>();
+const client = ref<Client>();
 const currency = ref<string>();
 const fullName = ref<string>();
 const invoiceEntity = ref<string>();
-const currencySymbol = ref<string>();
 const balanceEur = ref(0);
 const balanceUsd = ref(0);
 const estimatedBalanceEur = ref(0);
 const estimatedBalanceUsd = ref(0);
+const shopOptions = ref<Record<string, ShopOptions>>({});
 
 const invoiceDisabled = ref<boolean>(true);
 const invoiceLoading = ref<boolean>(false);
@@ -533,15 +474,17 @@ async function checkUser() {
     })
 }
 function handleClientChange(id: any) {
-  if(!!client.value && client.value.length > 0) {
+  if(!!client.value) {
     ac.abort(t('sys.api.abortController.userCancel'));
+    ac = new AbortController();
+    signal = ac.signal;
   }
   client.value = undefined;
+  shopOptions.value = {};
   shopIds.value = [];
   startDate.value = '';
   endDate.value = '';
   currency.value = '';
-  currencySymbol.value = '';
   fullName.value = '';
   balanceEur.value = 0;
   balanceUsd.value = 0;
@@ -559,33 +502,35 @@ function handleClientChange(id: any) {
   completeInvoiceLoading.value = false;
   const customer = customerList.value.find(c => c.id === id);
   if(!customer) {
-    createMessage.error(t('data.client.clientNotFound'));
     return;
   }
   loadClient(customer);
 }
-function loadClient(clientParam: Record<string, string | number>) {
+async function loadClient(clientParam: Client) {
   client.value = clientParam;
-  client.value["category"] = client.value.clientCategoryId;
-  delete client.value['clientCategoryId'];
+  await loadShopOptions();
   currency.value = client.value.currency as string;
   fullName.value = `${client.value.firstName} ${client.value.surname}`
   invoiceEntity.value = client.value.invoiceEntity as string;
-  if(currency.value === 'EUR') {
-    currencySymbol.value = "€";
-  }
-  if(currency.value === 'USD') {
-    currencySymbol.value = "$";
-  }
-  if(currency.value === 'RMB') {
-    currencySymbol.value = "¥";
-  }
-  if(client.value.category != 'self-service')
+  if(client.value.useBalance) {
     loadBalance();
-  loadTransactions("EUR");
+  }
+  loadTransactions(CurrencyEnum.EUR);
+}
+async function loadShopOptions() {
+  const params = {
+    clientID: client.value!.id
+  }
+  await defHttp.get({url: Api.getShopOptions, params})
+    .then( res => {
+      shopOptions.value = res;
+    })
+    .catch(e => {
+      console.error(e);
+    });
 }
 function loadBalance() {
-  defHttp.get({url: Api.getBalance, params: {clientId: client.value?.id, currency: "EUR"}, signal: signal})
+  defHttp.get({url: Api.getBalance, params: {clientId: client.value?.id, currency: CurrencyEnum.EUR}, signal: signal})
     .then(res => {
       balanceEur.value = res;
     })
@@ -599,7 +544,7 @@ function loadBalance() {
         console.error(e);
       }
     })
-  defHttp.get({url: Api.getBalance, params: {clientId: client.value?.id, currency: "USD"}, signal: signal})
+  defHttp.get({url: Api.getBalance, params: {clientId: client.value?.id, currency: CurrencyEnum.USD}, signal: signal})
     .then(res => {
       balanceUsd.value = res;
     })
@@ -621,14 +566,13 @@ function loadTransactions(currency: Currency) {
   }
   defHttp.get({ url: Api.listTransactions, params, signal: signal })
     .then(res => {
-      //TODO : add condition client type 1,2,3
-      if(currency === "EUR") {
+      if(currency === CurrencyEnum.EUR) {
         transactionsEur.value = res;
-        loadTransactions("USD");
+        loadTransactions(CurrencyEnum.USD);
       }
       else {
         transactionsUsd.value = res;
-        if(client.value?.category != 'self-service')
+        if(Object.keys(shopOptions.value).length > 0)
           loadDebit(client.value?.currency as Currency);
         else {
           colorizeRows();
@@ -660,7 +604,7 @@ function loadDebit(currency: Currency) {
     amount: 0,
     currency: currency
   }
-  if(currency === "EUR") {
+  if(currency === CurrencyEnum.EUR) {
     transactionsEur.value.unshift(debit.value);
   } else {
     transactionsUsd.value.unshift(debit.value);
@@ -681,7 +625,7 @@ function loadDebit(currency: Currency) {
         currency: currency
       };
       // ajout de la ligne de début au début du tableau
-      if(currency === "EUR") {
+      if(currency === CurrencyEnum.EUR) {
         transactionsEur.value[0] = debit.value;
         estimatedBalanceEur.value = balanceEur.value - debit.value.amount;
         estimatedBalanceUsd.value = balanceUsd.value;
@@ -715,103 +659,10 @@ function loadDebit(currency: Currency) {
       colorizeRows();
     });
 }
-function makeInvoice() {
-  invoiceDisabled.value = true;
-  invoiceLoading.value = true;
-  let start = startDate.value.slice(0, -9);
-  let end = endDate.value.slice(0, -9);
-  end = dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
-  let params = {
-    clientID: client.value?.id,
-    shopIDs: shopIds.value,
-    type: "pre-shipping",
-    start: start,
-    end : end,
-    erpStatuses : ['1', '2'],
-    warehouses: ['0', '1']
-  }
-  defHttp.post({url: Api.makeShippingInvoice, params })
-    .then(res => {
-      let invoiceFilename = res.filename;
-      let invoiceNumber = res.invoiceCode;
-      downloadInvoice(invoiceFilename);
-      downloadDetailFile(invoiceNumber);
-      invoiceLoading.value = false;
-      shopIds.value = [];
-      startDate.value = '';
-      endDate.value = '';
-      loadTransactions("EUR");
-    })
-    .catch(e => {
-      console.error(e);
-    });
+function openInvoice(record) {
+  const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
+  window.open(invoicePreviewRoute.href, '_blank');
 }
-function makeCompleteInvoice() {let start = startDate.value.slice(0, -9);
-  completeInvoiceLoading.value = true;
-  completeInvoiceDisabled.value = true;
-
-  let end = endDate.value.slice(0, -9);
-  end = dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
-  let params = {
-    clientID: client.value?.id,
-    shopIDs: shopIds.value,
-    type: InvoicingMethod.PRESHIPPING,
-    start: start,
-    end : end,
-    erpStatuses : ['1', '2'],
-    warehouses: ['0', '1']
-  }
-  defHttp.post({url: Api.makeCompleteShippingInvoice, params})
-    .then(res => {
-      let invoiceFilename = res.filename;
-      let invoiceNumber = res.invoiceCode;
-      downloadInvoice(invoiceFilename);
-      downloadDetailFile(invoiceNumber);
-      editInvoiceOrdersRemark(invoiceNumber, InvoicingMethod.PRESHIPPING);
-      completeInvoiceLoading.value = false;
-      shopIds.value = [];
-      startDate.value = '';
-      endDate.value = '';
-      loadTransactions("EUR");
-    })
-    .catch(e => {
-      console.error(e);
-    })
-  }
-  function downloadInvoice(invoiceFilename) {
-    const param = {filename: invoiceFilename};
-    downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
-      createMessage.info("Download successful.")
-    }).catch(e => {
-      console.error(`Download invoice fail : ${e}`);
-    });
-  }
-  function downloadDetailFile(invoiceNumber) {
-    const param =
-      {
-        invoiceNumber: invoiceNumber,
-        invoiceEntity: client.value?.invoiceEntity,
-        internalCode: client.value?.internalCode
-      }
-    let now = dayjs().format("YYYYMMDD");
-    let detailFilename = client.value?.internalCode + "_(" + client.value?.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
-    downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {
-      createMessage.info("Download successful.")
-    }).catch(e => {
-      console.error(`Download invoice detail fail : ${e}`);
-    });
-  }
-  function editInvoiceOrdersRemark(invoiceNumber:string, invoicingMethod: InvoicingMethod) {
-    editOrdersRemark({invoiceNumber, invoicingMethod}).then((res) => {
-      if(Object.keys(res.failures).length > 0) {
-        createMessage.error(`Error while writing invoice number in orders on Mabang: ${res.mabangResponses.failures}`);
-      }
-    });
-  }
-  function openInvoice(record) {
-    const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
-    window.open(invoicePreviewRoute.href, '_blank');
-  }
 
 /**
  * colorize debit and credit rows for better visibility
@@ -954,7 +805,7 @@ function handleUploadChange(imgPath, record) {
   }
   .invoiceToolbar {
     display: flex;
-    justify-content: space-between;
+    justify-content: end;
     align-items: center;
     padding: 1em;
   }

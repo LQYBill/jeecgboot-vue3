@@ -1,4 +1,5 @@
 export interface ShopWithOptions {
+  id: string
   clientId: string;
   isClientActive: boolean;
   shopId: string;

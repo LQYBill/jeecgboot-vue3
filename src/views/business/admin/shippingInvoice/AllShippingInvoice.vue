@@ -3,7 +3,7 @@
     <Helper @clearField="clearField" />
     <a-card>
       <a-form ref="formRef" :model="formState" :label-col="labelCol" :wrapper-col="wrapperCol" :rules="validatorRules">
-        <a-row :class="[step == 0 ? 'focus' : '']">
+        <a-row :class="[step == stepsEnum.orderStatusSelection ? 'focus' : '']">
           <a-col :span="24">
             <a-form-item
               :labelCol="{span: 2}"
@@ -28,15 +28,24 @@
                 buttonStyle="solid"
                 class="invoice-type-radio-group"
               >
-                <a-radio-button value="3">{{ t('data.invoice.shippingInvoice') }}</a-radio-button>
-                <a-radio-button value="1,2">{{ t('data.invoice.preShippingInvoice') }}</a-radio-button>
-                <a-radio-button value="1,2,3">{{ t('data.invoice.allShippingInvoice') }}</a-radio-button>
+                <a-radio-button :value="InvoicingMethodStatus.POSTSHIPPING">{{ t('data.invoice.shippingInvoice') }}</a-radio-button>
+                <a-radio-button :value="InvoicingMethodStatus.PRESHIPPING">{{ t('data.invoice.preShippingInvoice') }}</a-radio-button>
+                <a-radio-button :value="InvoicingMethodStatus.ALL">{{ t('data.invoice.allShippingInvoice') }}</a-radio-button>
               </a-radio-group>
             </a-form-item>
           </a-col>
         </a-row>
         <Divider v-if="erpStatus !== undefined && erpStatus !== ''" orientation="left"></Divider>
-        <a-row v-if="erpStatus !== undefined && erpStatus !== ''" type="flex" justify='flex-start' :class="[step == 1 || step == 2 || step == 8 ? 'focus' : '']">
+        <a-row
+          v-if="erpStatus !== undefined && erpStatus !== ''"
+          type="flex"
+          justify='flex-start'
+          :class="[
+            step == stepsEnum.clientSelection ||
+            step == stepsEnum.periodSelection ||
+            step == stepsEnum.finish ?
+           'focus' : '']"
+        >
           <a-col :span="5">
             <a-form-item
               :labelCol="labelCol"
@@ -118,8 +127,14 @@
             </a-form-item>
           </a-col>
         </a-row>
-        <Divider v-if="step >= 3 && formState.date !== ''" orientation="left"></Divider>
-        <a-row v-if="step >= 3 && formState.date !== ''" :class="[step == 3 ? 'focus' : '']">
+        <Divider
+          v-if="step >= stepsEnum.orderModeSelection && formState.date !== ''"
+          orientation="left"
+        />
+        <a-row
+          v-if="step >= stepsEnum.orderModeSelection && formState.date !== ''"
+          :class="[step == stepsEnum.orderModeSelection ? 'focus' : '']"
+        >
           <a-col :span="24">
             <a-spin :spinning="!isSkuCompareReady" :tip="t('guide.verifyingSkus')">
               <a-form-item
@@ -148,8 +163,14 @@
             </a-spin>
           </a-col>
         </a-row>
-        <Divider v-if="step >= 4" orientation="left"></Divider>
-        <a-row v-if="orderSelectMode == 0 && step >= 4" :class="[(step == 4 || step == 7) && orderSelectMode == 0 ? 'focus' : '']">
+        <Divider
+          v-if="step >= stepsEnum.ordersSearch"
+          orientation="left"
+        />
+        <a-row
+          v-if="orderSelectMode == 0 && step >= stepsEnum.ordersSearch"
+          :class="[(step == stepsEnum.ordersSearch || step == stepsEnum.invoiceTypeSelection) && orderSelectMode == 0 ? 'focus' : '']"
+        >
           <a-spin :spinning="makeManualInvoiceSpinning || !isSkuCompareReady">
             <a-button class="ml-2 mr-2" type="primary" preIcon="ant-design:search-outlined" @click="loadOrders" :loading="findOrdersLoading" :disabled="searchDisabled">
               {{ t("common.operation.search") }}
@@ -169,7 +190,10 @@
             </a-button>
           </a-spin>
         </a-row>
-        <a-row v-if="orderSelectMode == 1 && step == 7" :class="[step == 7 && orderSelectMode == 1 ? 'focus' : '']">
+        <a-row
+          v-if="orderSelectMode == 1 && step == stepsEnum.invoiceTypeSelection"
+          :class="[step == stepsEnum.invoiceTypeSelection && orderSelectMode == 1 ? 'focus' : '']"
+        >
           <a-spin :spinning="makeInvoiceSpinning || !isSkuCompareReady">
             <a-button class="ml-1 mr-2" type="primary" preIcon="ant-design:download-outlined" @click="makeInvoice" :loading="makeInvoiceLoading && !isSkuCompareReady" :disabled="makeInvoiceDisabled || !isSkuCompareReady">
               {{ t("data.invoice.generateShippingInvoice") }}
@@ -179,11 +203,14 @@
             </a-button>
           </a-spin>
         </a-row>
-        <a-row v-if="orderSelectMode == 0 && step >= 4">
+        <a-row v-if="orderSelectMode == 0 && step >= stepsEnum.ordersSearch">
           <estimation-by-shop-card :estimates-ready="estimatesReady" :estimation="estimation"/>
         </a-row>
       </a-form>
-      <div v-if="orderSelectMode == 0 && step >= 4" :class="[step == 5 && orderSelectMode == 0 ? 'focus' : '']">
+      <div
+        v-if="orderSelectMode == 0 && step >= stepsEnum.ordersSearch"
+        :class="[step == stepsEnum.orderSelection && orderSelectMode == 0 ? 'focus' : '']"
+      >
         <BasicTable
           @register="registerTable"
           :expandedRowKeys="expandedRowKeys"
@@ -215,8 +242,8 @@
             <template v-else>{{record?.logisticChannelName}}</template>
           </template>
           <template #erpStatus="{record}">
-            <Tag :color="record?.erpStatus === '1' ? 'volcano' : 'green'">
-              {{ record?.erpStatus === '1' ? t("data.erpStatus.pending") : t("data.erpStatus.preparing") }}
+            <Tag :color="record?.erpStatus === ErpStatusEnum.PENDING.value.toString() ? 'volcano' : 'green'">
+              {{ record?.erpStatus === ErpStatusEnum.PENDING.value.toString() ? t("data.erpStatus.pending") : t("data.erpStatus.preparing") }}
             </Tag>
           </template>
 
@@ -285,7 +312,9 @@ import {offWebSocket, onWebSocket} from "@/hooks/web/useWebSocket";
 import {HttpStatusCode} from "axios";
 import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 import {Key} from "ant-design-vue/lib/table/interface";
-import {InvoiceMetaData, Response, Estimation} from "@/views/business/dto";
+import {InvoiceMetaData, Response, Estimation, JSelectMultipleOptions} from "@/views/business/dto";
+import {ErpStatusEnum, InvoicingMethodStatus} from "@/views/business/enum";
+import {Shop} from "@/views/business/dto/shop.dto";
 
 const { t } = useI18n();
 const { createMessage, notification } = useMessage();
@@ -295,7 +324,7 @@ onMounted (async ()=> {
   offWebSocket(handleWsMsg);
   onWebSocket(handleWsMsg);
   await loadCustomerList();
-  step.value = 0;
+  step.value = stepsEnum.orderStatusSelection;
 });
 onUnmounted(() => {
   controller.abort();
@@ -332,7 +361,7 @@ const customerSelectList = ref<any[]>([]);
 const customerList = ref<any[]>([]);
 const customerDisabled = ref<boolean>(true);
 
-const shopList = ref<any[]>([]);
+const shopList = ref<JSelectMultipleOptions[]>([]);
 const shopIDs = ref<string>();
 const shopDisabled = ref(true);
 
@@ -431,6 +460,18 @@ const [registerTable, {getSelectRows}] = useTable({
   rowKey: 'id',
 });
 const step = ref<number>(0);
+const stepsEnum = {
+  orderStatusSelection: 0,
+  clientSelection: 1,
+  periodSelection: 2,
+  orderModeSelection: 3,
+  ordersSearch: 4,
+  orderSelection: 5,
+  noOrderError: 6,
+  invoiceTypeSelection: 7,
+  finish: 8,
+};
+
 async function loadCustomerList() {
   await fetchClientList().then(res => {
     customerSelectList.value = res.map(
@@ -458,7 +499,7 @@ function handleInvoiceModeChange(e: Event) {
   erpStatus.value = (e.target as HTMLInputElement).value;
   customerDisabled.value = false;
   clearField('client');
-  step.value = 1;
+  step.value = stepsEnum.clientSelection;
   nextTick(() => {
     customerRef.value.focus()
   })
@@ -477,12 +518,12 @@ function handleClientChange(id: string) {
     syncSkus();
   }
   else {
-    step.value = 1;
+    step.value = stepsEnum.clientSelection;
   }
 }
 async function loadShopList (clientID: string) {
  await fetchShopsByCustomerId( { clientID })
-    .then(res => {
+    .then((res:Shop[]) => {
       if (res.length === 0) {
         createMessage.warning(t("data.invoice.error.noShopFoundForClient"));
       }
@@ -493,7 +534,7 @@ async function loadShopList (clientID: string) {
             value: shop.id,
           })
         );
-        step.value = erpStatus.value === "3" ? 2 : 8;
+        step.value = erpStatus.value === InvoicingMethodStatus.POSTSHIPPING ? stepsEnum.periodSelection : stepsEnum.finish;
         shopDisabled.value = false;
         dateDisabled.value = false;
         shopIDs.value = shopList.value.map(
@@ -510,21 +551,21 @@ async function loadShopList (clientID: string) {
     });
 }
 async function loadAvailableDate() {
-  if(erpStatus.value === "3") {
+  if(erpStatus.value === InvoicingMethodStatus.POSTSHIPPING) {
     const params = shopIDs.value!.split(",");
     await fetchValidPeriod(params)
       .then(res => {
-        let start = new Date(res['start']);
-        let end = new Date(res['end']);
-        let startDateString = start.getFullYear() + '-' + (start.getMonth() + 1 < 10 ? '0' : '') + (start.getMonth() + 1) + '-' + (start.getDate() < 10 ? '0' : '') + start.getDate();
-        let endDateString = end.getFullYear() + '-' + (end.getMonth() + 1 < 10 ? '0' : '') + (end.getMonth() + 1) + '-' + (end.getDate() < 10 ? '0' : '') + end.getDate();
+        const start = new Date(res['start']);
+        const end = new Date(res['end']);
+        const startDateString = start.getFullYear() + '-' + (start.getMonth() + 1 < 10 ? '0' : '') + (start.getMonth() + 1) + '-' + (start.getDate() < 10 ? '0' : '') + start.getDate();
+        const endDateString = end.getFullYear() + '-' + (end.getMonth() + 1 < 10 ? '0' : '') + (end.getMonth() + 1) + '-' + (end.getDate() < 10 ? '0' : '') + end.getDate();
         startDate.value = dayjs(startDateString).startOf("day");
         endDate.value = dayjs(endDateString).endOf("day");
         dateDisabled.value = false;
       }).catch(error => {
         console.error("Error while loading available date : " + error);
         dateDisabled.value = true;
-        step.value = 6;
+        step.value = stepsEnum.noOrderError;
       });
   }
   else { // (1,2) & (1,2,3)
@@ -535,10 +576,10 @@ async function loadAvailableDate() {
     await fetchValidOrderTimePeriod(params)
       .then(
         res => {
-          let start = new Date(res['start']);
-          let end = new Date(res['end']);
-          let startDateString = start.getFullYear() + '-' + (start.getMonth() + 1 < 10 ? '0' : '') + (start.getMonth() + 1) + '-' + (start.getDate() < 10 ? '0' : '') + start.getDate();
-          let endDateString = end.getFullYear() + '-' + (end.getMonth() + 1 < 10 ? '0' : '') + (end.getMonth() + 1) + '-' + (end.getDate() < 10 ? '0' : '') + end.getDate();
+          const start = new Date(res['start']);
+          const end = new Date(res['end']);
+          const startDateString = start.getFullYear() + '-' + (start.getMonth() + 1 < 10 ? '0' : '') + (start.getMonth() + 1) + '-' + (start.getDate() < 10 ? '0' : '') + start.getDate();
+          const endDateString = end.getFullYear() + '-' + (end.getMonth() + 1 < 10 ? '0' : '') + (end.getMonth() + 1) + '-' + (end.getDate() < 10 ? '0' : '') + end.getDate();
           startDate.value = dayjs(startDateString).startOf("day");
           endDate.value = dayjs(endDateString).endOf("day");
           dateDisabled.value = false;
@@ -546,7 +587,7 @@ async function loadAvailableDate() {
       ).catch(e => {
         console.error("Error while loading available order date : " + e);
         dateDisabled.value = true;
-        step.value = 6;
+        step.value = stepsEnum.noOrderError;
       })
   }
 }
@@ -576,12 +617,12 @@ function handleDateChange(dateRange) {
       createMessage.warning(t('component.searchForm.warehouseSelect'))
       return;
     }
-    step.value = 3;
+    step.value = stepsEnum.orderModeSelection;
     orderSelectModeDisabled.value = false;
   }
   else {
     clearField("date");
-    step.value = erpStatus.value === "3" ? 2 : 8;
+    step.value = erpStatus.value === InvoicingMethodStatus.POSTSHIPPING ? stepsEnum.periodSelection : stepsEnum.finish;
   }
 }
 function onWarehouseChange(checkedValues) {
@@ -590,15 +631,15 @@ function onWarehouseChange(checkedValues) {
   if(warehouseInChina.value.length === 0) {
     createMessage.warning(t('component.searchForm.warehouseSelect'));
     orderSelectModeDisabled.value = false;
-    if(step.value === 3)
+    if(step.value === stepsEnum.orderModeSelection)
     {
-      step.value = erpStatus.value === "3" ? 2 : 8;
+      step.value = erpStatus.value === InvoicingMethodStatus.POSTSHIPPING ? stepsEnum.periodSelection : stepsEnum.finish;
     }
   }
   else {
     // !! returns if false empty (""), null or undefined
     if(!!selectedStartDate.value && !!selectedEndDate.value) {
-      step.value = 3;
+      step.value = stepsEnum.orderModeSelection;
       orderSelectModeDisabled.value = false;
     }
   }
@@ -610,14 +651,14 @@ function handleOrderSelectMode(e) {
   if(e.target.value === "0") {
     orderSelectMode.value = 0;
     clearField("selectAll");
-    step.value = 4;
+    step.value = stepsEnum.ordersSearch;
     searchDisabled.value = false;
     loadOrders();
   }
   else {
     orderSelectMode.value = 1;
     clearField("manualSelection");
-    step.value = 7;
+    step.value = stepsEnum.invoiceTypeSelection
     makeInvoiceSpinning.value = true;
     checkSkuBetweenDate();
   }
@@ -671,10 +712,10 @@ async function loadOrders() {
         ipagination.value.total = 0;
       }
       if (orderList.value.length > 0) {
-        step.value = 5;
+        step.value = stepsEnum.orderSelection;
         syncDisabled.value = false;
       } else {
-        step.value = 6;
+        step.value = stepsEnum.noOrderError;
         syncDisabled.value = true;
       }
     }).catch(e => {
@@ -732,7 +773,7 @@ async function checkSkuBetweenDate() {
     end: dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString(),
     warehouses: warehouseInChina.value.toString().split(','),
   };
-  if(erpStatus.value === '3') {
+  if(erpStatus.value === InvoicingMethodStatus.POSTSHIPPING) {
     await checkOrdersBetweenDate(params)
       .then(() => {
         purchasePricesAvailable.value = true;
@@ -841,7 +882,11 @@ async function makeManualCompleteInvoice() {
     createMessage.warning(t("component.searchForm.dateInputSearch"));
     return;
   }
-  if(erpStatus.value !== '3' && erpStatus.value !== '1,2' && erpStatus.value !== '1,2,3') {
+  if(
+    erpStatus.value !== InvoicingMethodStatus.POSTSHIPPING
+    && erpStatus.value !== InvoicingMethodStatus.PRESHIPPING
+    && erpStatus.value !== InvoicingMethodStatus.ALL
+  ) {
     createMessage.error("Error 400 : bad request.");
     return;
   }
@@ -900,7 +945,7 @@ async function makeManualCompleteInvoice() {
       }
     ).catch(e => {
       console.error(e);
-      step.value = 6;
+      step.value = stepsEnum.noOrderError;
     }).finally(() => {
       ipagination.value.current = 1;
       findOrdersLoading.value = true;
@@ -927,7 +972,11 @@ async function makeInvoice() {
     createMessage.warning(t("component.searchForm.dateInputSearch"));
     return;
   }
-  if(erpStatus.value !== '3' && erpStatus.value !== '1,2' && erpStatus.value !== '1,2,3') {
+  if(
+    erpStatus.value !== InvoicingMethodStatus.POSTSHIPPING
+    && erpStatus.value !== InvoicingMethodStatus.PRESHIPPING
+    && erpStatus.value !== InvoicingMethodStatus.ALL
+  ) {
     createMessage.error("Error 400 : bad request.");
     return;
   }
@@ -960,11 +1009,11 @@ async function makeInvoice() {
         downloadInvoice(invoiceFilename);
         downloadDetailFile(invoiceNumber);
         editInvoiceOrdersRemark(invoiceNumber, null);
-        step.value = erpStatus.value === "3" ? 2 : 8;
+        step.value = erpStatus.value === InvoicingMethodStatus.POSTSHIPPING ? stepsEnum.periodSelection : stepsEnum.finish;
       }
     ).catch(e => {
       console.error(e);
-      step.value = 6;
+      step.value = stepsEnum.noOrderError;
     }).finally(() => {
       clearField("date");
       loadAvailableDate();
@@ -985,7 +1034,11 @@ async function makeCompleteInvoice() {
     createMessage.warning(t("component.searchForm.dateInputSearch"));
     return;
   }
-  if(erpStatus.value !== '3' && erpStatus.value !== '1,2' && erpStatus.value !== '1,2,3') {
+  if(
+    erpStatus.value !== InvoicingMethodStatus.POSTSHIPPING
+    && erpStatus.value !== InvoicingMethodStatus.PRESHIPPING
+    && erpStatus.value !== InvoicingMethodStatus.ALL
+  ) {
     createMessage.error("Error 400 : bad request.");
     return;
   }
@@ -1036,11 +1089,11 @@ async function makeCompleteInvoice() {
         downloadDetailFile(code);
         if(getInvoiceMethod() === InvoicingMethod.PRESHIPPING)
           editInvoiceOrdersRemark(code, getInvoiceMethod());
-        step.value = erpStatus.value === "3" ? 2 : 8;
+        step.value = erpStatus.value === InvoicingMethodStatus.POSTSHIPPING ? stepsEnum.periodSelection : stepsEnum.finish;
       }
     ).catch(e => {
       console.error(e);
-      step.value = 6;
+      step.value = stepsEnum.noOrderError;
     }).finally(() => {
       clearField("date");
       completeInvoiceLoading.value = false;
@@ -1128,7 +1181,7 @@ function clearField(field:any) {
       makeInvoiceSpinning.value = false;
       break;
     case "all" :
-      step.value = 0;
+      step.value = stepsEnum.orderStatusSelection;
     case "erpStatus":
       fields.invoiceMode = "";
       erpStatus.value = undefined;
@@ -1194,7 +1247,7 @@ async function onSelectChange(selectedRowKeys: (string | number)[], selectionRow
 
     checkedKeys.value = selectedRowKeys;
     copyDisabled.value = false;
-    step.value = 7;
+    step.value = stepsEnum.invoiceTypeSelection;
     const params = {
       clientID: customerId.value,
       orderIds: checkedKeys.value,
@@ -1288,7 +1341,11 @@ function handleExpand(expanded, record) {
   }
 }
 function getInvoiceMethod(): InvoicingMethod {
-  return erpStatus.value === "3" ? InvoicingMethod.POSTSHIPPING : erpStatus.value === "1,2" ? InvoicingMethod.PRESHIPPING : InvoicingMethod.ALL
+  return erpStatus.value === InvoicingMethodStatus.POSTSHIPPING ?
+    InvoicingMethod.POSTSHIPPING :
+    erpStatus.value === InvoicingMethodStatus.PRESHIPPING ?
+      InvoicingMethod.PRESHIPPING :
+      InvoicingMethod.ALL
 }
 function handleWsMsg(data: any) {
   try {
