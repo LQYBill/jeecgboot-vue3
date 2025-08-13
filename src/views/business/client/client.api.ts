@@ -7,7 +7,6 @@ export enum Api {
   getOrdersByShop = '/business/platformOrder/ordersByShop',
   postOrders = '/business/platformOrder/orderManagement',
   getRecipientInfo = '/business/platformOrder/recipientInfo',
-  getSelfServiceClients = "/userClient/getSelfServiceClients",
   getOrderStatusByShop = "/shippingInvoice/preShipping/ordersStatusByShops",
   completeFeesEstimation = '/shippingInvoice/completeFeesEstimation',
   makeManualShippingInvoice = "/shippingInvoice/makeManualInvoice",
@@ -23,4 +22,5 @@ export enum Api {
   purchase= '/transaction/purchase',
   cancelInvoice = '/invoice/cancelInvoice',
   uploadPaymentProofAndNotify = '/transaction/uploadPaymentProofAndNotify',
+  findEarliestInvoiceYear = '/invoice/findEarliestInvoiceYear',
 }

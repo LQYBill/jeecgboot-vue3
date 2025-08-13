@@ -51,14 +51,23 @@
                   </p>
                 </a-row>
                 <a-row class="invoiceToolbar">
-                  <a-switch :checked="editMode" @change="handleEditModeChange">
-                    <template #checkedChildren>
-                      <EditOutlined/>
-                    </template>
-                    <template #unCheckedChildren>
-                      <EditOutlined/>
-                    </template>
-                  </a-switch>
+                  <div>
+                    <a-select
+                      v-model:value="selectedYearEur"
+                      @change="handleYearChange"
+                      :options="yearOptionsEur"
+                    ></a-select>
+                  </div>
+                  <div>
+                    <a-switch :checked="editMode" @change="handleEditModeChange">
+                      <template #checkedChildren>
+                        <EditOutlined/>
+                      </template>
+                      <template #unCheckedChildren>
+                        <EditOutlined/>
+                      </template>
+                    </a-switch>
+                  </div>
                 </a-row>
               </div>
             </template>
@@ -69,19 +78,14 @@
             </template>
             <template #transactionType="{ record }">
               <Tag
-                :color="record.type === 'Credit' ? 'green' : 'purple'"
+                :color="record.type === TransactionType.CREDIT ? 'green' : 'purple'"
                 :class="record.status === 0 ? 'line-through' : ''"
               >
                 {{ record.type }}
               </Tag>
             </template>
-            <template #attachments="{ record }">
-              <TableImg
-                v-if="record.type=='Credit' && !!record.paymentProofString"
-                :size="60"
-                :imgList="[uploadUrl+record.paymentProofString]"
-              />
-              <template v-else-if="record.type=='Debit' && !!record.invoiceNumber">
+            <template #invoiceNumber="{ record }">
+              <template v-if="(record.type == TransactionType.DEBIT || record.type == TransactionType.CREDIT) && !!record.invoiceNumber">
                 <a-button
                   v-if="record.status !== 0"
                   type="primary"
@@ -97,7 +101,7 @@
               </template>
             </template>
             <template #amount="{ record }">
-              <span v-if="record.type == 'Credit'" class="positive-balance">
+              <span v-if="record.type == TransactionType.CREDIT" class="positive-balance">
                 +{{ record.amount }}
               </span>
               <template v-else>
@@ -126,7 +130,12 @@
               </span>
             </template>
             <template #img="{ text, record }">
-              <template v-if="record.invoiceNumber?.split('-')[2]?.startsWith('1') || record.invoiceNumber?.split('-')[2]?.startsWith('7')">
+              <TableImg
+                v-if="record.type == TransactionType.CREDIT && !!record.paymentProofString"
+                :size="60"
+                :imgList="[uploadUrl+record.paymentProofString]"
+              />
+              <template v-else-if="record.type == TransactionType.DEBIT && !!record.invoiceNumber">
                 <template v-if="text">
                   <div style="display: inline-flex; align-items: center;">
                     <TableImg :imgList="[uploadUrl + text]" :size="40" />
@@ -164,7 +173,7 @@
                       confirm: handleDelete.bind(null, record),
                     },
                     disabled: record.createTime === 'Estimation'
-                        || record.type === 'Credit'
+                        || record.type === TransactionType.CREDIT
                         || (record.createBy !== client?.internalCode && record.createBy !== fullName)
                         || record.createTime < dayjs().subtract(2, 'week').format('YYYY-MM-DD')
                         || record.status === 0
@@ -196,14 +205,23 @@
                   </p>
                 </a-row>
                 <a-row class="invoiceToolbar">
-                  <a-switch :checked="editMode" @change="handleEditModeChange">
-                    <template #checkedChildren>
-                      <EditOutlined/>
-                    </template>
-                    <template #unCheckedChildren>
-                      <EditOutlined/>
-                    </template>
-                  </a-switch>
+                  <div>
+                    <a-select
+                      v-model:value="selectedYearUsd"
+                      @change="handleYearChange"
+                      :options="yearOptionsUsd"
+                    ></a-select>
+                  </div>
+                  <div>
+                    <a-switch :checked="editMode" @change="handleEditModeChange">
+                      <template #checkedChildren>
+                        <EditOutlined/>
+                      </template>
+                      <template #unCheckedChildren>
+                        <EditOutlined/>
+                      </template>
+                    </a-switch>
+                  </div>
                 </a-row>
               </div>
             </template>
@@ -214,19 +232,14 @@
             </template>
             <template #transactionType="{ record }">
               <Tag
-                :color="record.type === 'Credit' ? 'green' : 'purple'"
+                :color="record.type === TransactionType.CREDIT ? 'green' : 'purple'"
                 :class="record.status === 0 ? 'line-through' : ''"
               >
                 {{ record.type }}
               </Tag>
             </template>
-            <template #attachments="{ record }">
-              <TableImg
-                v-if="record.type=='Credit' && !!record.paymentProofString"
-                :size="60"
-                :imgList="[uploadUrl+record.paymentProofString]"
-              />
-              <template v-else-if="record.type=='Debit' && !!record.invoiceNumber">
+            <template #invoiceNumber="{ record }">
+              <template v-if="(record.type == TransactionType.DEBIT || record.type == TransactionType.CREDIT) && !!record.invoiceNumber">
                 <a-button
                   v-if="record.status !== 0"
                   type="primary"
@@ -242,7 +255,7 @@
               </template>
             </template>
             <template #amount="{ record }">
-              <span v-if="record.type == 'Credit'" class="positive-balance">
+              <span v-if="record.type == TransactionType.CREDIT" class="positive-balance">
                 +{{ record.amount }}
               </span>
               <template v-else>
@@ -270,6 +283,39 @@
                 - {{ record.purchaseFee }}
               </template>
             </template>
+            <template #img="{ text, record }">
+              <TableImg
+                v-if="record.type==TransactionType.CREDIT && !!record.paymentProofString"
+                :size="60"
+                :imgList="[uploadUrl+record.paymentProofString]"
+              />
+              <template v-else-if="record.type == TransactionType.DEBIT && !!record.invoiceNumber">
+                <template v-if="text">
+                  <div style="display: inline-flex; align-items: center;">
+                    <TableImg :imgList="[uploadUrl + text]" :size="40" />
+                    <JImageUpload
+                      :text="t('component.upload.reUpload')"
+                      :fileMax="1"
+                      listType="picture"
+                      bizPath="purchase_order/screenshots"
+                      @change="e => handleUploadChange(e, record)"
+                    />
+                  </div>
+                </template>
+                <template v-else>
+                  <JImageUpload
+                    :text="t('component.upload.upload')"
+                    :fileMax="1"
+                    listType="picture"
+                    bizPath="purchase_order/screenshots"
+                    @change="e => handleUploadChange(e, record)"
+                  />
+                </template>
+              </template>
+              <template v-else>
+                <span>-</span>
+              </template>
+            </template>
             <template #imgs="{ text }">
               <TableImg
                 v-if="!!text"
@@ -288,7 +334,7 @@
                       confirm: handleDelete.bind(null, record),
                     },
                     disabled: record.createTime === 'Estimation'
-                        || record.type === 'Credit'
+                        || record.type === TransactionType.CREDIT
                         || (record.createBy !== client?.internalCode && record.createBy !== fullName)
                         || record.createTime < dayjs().subtract(2, 'week').format('YYYY-MM-DD')
                         || record.status === 0
@@ -323,6 +369,7 @@ import dayjs from "dayjs";
 import {useGlobSetting} from "/@/hooks/setting";
 import {useRouter} from 'vue-router';
 import type {Client, Currency, ShopOptions} from "@/views/business/dto";
+import {JSelectMultipleOptions} from "@/views/business/dto";
 import {Loading} from "@/components/Loading";
 import {SizeEnum} from "@/enums/sizeEnum";
 import {CurrencyEnum, CurrencyToken} from "@/views/business/enum";
@@ -350,6 +397,10 @@ onBeforeMount(()=> {
 onUnmounted(() => {
   ac.abort(t('sys.api.abortController.onUnmount'));
 })
+const TransactionType = {
+  CREDIT: 'Credit',
+  DEBIT: 'Debit',
+};
 // Form config
 const useForm = Form.useForm;
 const formRef = ref();
@@ -368,6 +419,11 @@ const customerSelectList = ref<any[]>([]);
 const customerListDisabled = ref<boolean>(false);
 
 const client = ref<Client>();
+const selectedYearEur = ref<string>(dayjs().year().toString());
+const selectedYearUsd = ref<string>(dayjs().year().toString());
+const yearOptionsEur = ref<JSelectMultipleOptions[]>([]);
+const yearOptionsUsd = ref<JSelectMultipleOptions[]>([]);
+
 const currency = ref<string>();
 const fullName = ref<string>();
 const invoiceEntity = ref<string>();
@@ -418,7 +474,7 @@ const usdIpagination = reactive({
     return range[0] + '-' + range[1] + ' of ' + total + ' items';
   },
 });
-const [registerTable, { reload: reloadEurTable}] = useTable({
+const [registerTable] = useTable({
   dataSource: transactionsEur,
   columns: getColumns(),
   pagination: ipagination,
@@ -435,7 +491,7 @@ const [registerTable, { reload: reloadEurTable}] = useTable({
   actionColumn,
   showActionColumn: editMode,
 });
-const [registerUSDTable, {reload: reloadUsdTable}] = useTable({
+const [registerUSDTable] = useTable({
   dataSource: transactionsUsd,
   columns: getColumns(),
   pagination: usdIpagination,
@@ -561,9 +617,16 @@ function loadBalance() {
 }
 function loadTransactions(currency: Currency) {
   const params = {
-    clientId: client.value?.id,
-    currency: currency
+    clientId: client.value?.id as string,
+    currency: currency,
+    year: currency === "EUR" ? selectedYearEur.value : selectedYearUsd.value,
   }
+  if(currency === "EUR") {
+    eurTableLoading.value = true;
+  } else {
+    usdTableLoading.value = true;
+  }
+  loadAvailableYears(params);
   defHttp.get({ url: Api.listTransactions, params, signal: signal })
     .then(res => {
       if(currency === CurrencyEnum.EUR) {
@@ -588,6 +651,33 @@ function loadTransactions(currency: Currency) {
       else {
         console.error(e);
       }
+    })
+    .finally(() => {
+      if(currency === "EUR") {
+        eurTableLoading.value = false;
+      } else {
+        usdTableLoading.value = false;
+      }
+    });
+}
+function loadAvailableYears(params: {clientId: string, currency: Currency}) {
+  defHttp.get({url: Api.findEarliestInvoiceYear, params: params, signal: signal})
+    .then((res: number) => {
+      if(params.currency === "EUR") {
+        yearOptionsEur.value = [];
+        for(let year = dayjs().year(); year >= res; year--) {
+            yearOptionsEur.value.push({label: year.toString(), value: year.toString()});
+        }
+      }
+      else {
+        yearOptionsUsd.value = [];
+        for(let year = dayjs().year(); year >= res ; year--) {
+            yearOptionsUsd.value.push({label: year.toString(), value: year.toString()});
+        }
+      }
+    })
+    .catch(e => {
+      console.error(e);
     });
 }
 function loadDebit(currency: Currency) {
@@ -595,7 +685,7 @@ function loadDebit(currency: Currency) {
   debit.value = {
     id: '0',
     createTime: 'Estimation',
-    type: 'Debit',
+    type: TransactionType.DEBIT,
     clientId: `${client.value?.id}`,
     paymentProofString: '',
     invoiceNumber: '',
@@ -615,7 +705,7 @@ function loadDebit(currency: Currency) {
       debit.value = {
         id: '0',
         createTime: 'Estimation',
-        type: 'Debit',
+        type: TransactionType.DEBIT,
         clientId: `${client.value?.id}`,
         paymentProofString: '',
         invoiceNumber: '',
@@ -659,6 +749,16 @@ function loadDebit(currency: Currency) {
       colorizeRows();
     });
 }
+
+function handleYearChange(year: string) {
+  if(activeTab.value === '1') {
+    selectedYearEur.value = year;
+    loadTransactions(CurrencyEnum.EUR);
+  } else {
+    selectedYearUsd.value = year;
+    loadTransactions(CurrencyEnum.USD);
+  }
+}
 function openInvoice(record) {
   const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
   window.open(invoicePreviewRoute.href, '_blank');
@@ -676,12 +776,12 @@ function colorizeRows() {
         cell.style.backgroundColor = estimationColor;
       }
     }
-    if(children[1].textContent == 'Debit') {
+    if(children[1].textContent == TransactionType.DEBIT) {
       children[0].style.borderLeftStyle = "solid";
       children[0].style.borderLeftColor = debitColor;
       children[0].style.borderLeftWidth = "5px";
     }
-    if(children[1].textContent == 'Credit') {
+    if(children[1].textContent == TransactionType.CREDIT) {
       children[0].style.borderLeftStyle = "solid";
       children[0].style.borderLeftColor = creditColor;
       children[0].style.borderLeftWidth = "5px";
@@ -701,11 +801,11 @@ function handleDelete(record: Recordable) {
     console.error(e);
   }).finally(() => {
     if(activeTab.value === '1') {
-      reloadEurTable();
+      loadTransactions(CurrencyEnum.EUR)
       eurTableLoading.value = false;
     }
     else {
-      reloadUsdTable();
+      loadTransactions(CurrencyEnum.USD);
       usdTableLoading.value = false;
     }
   });
@@ -731,7 +831,7 @@ function handleUploadChange(imgPath, record) {
   })
     .then(() => {
       record.paymentProofString = imgPath;
-      reloadEurTable();
+      loadTransactions(CurrencyEnum.EUR);
     })
     .catch(() => {
       createMessage.error('Save failed, please try again');
@@ -805,7 +905,7 @@ function handleUploadChange(imgPath, record) {
   }
   .invoiceToolbar {
     display: flex;
-    justify-content: end;
+    justify-content: space-between;
     align-items: center;
     padding: 1em;
   }

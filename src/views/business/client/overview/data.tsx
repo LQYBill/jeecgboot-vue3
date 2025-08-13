@@ -37,10 +37,10 @@ export function getColumns(): BasicColumn[] {
       defaultHidden: true,
     },
     {
-      title: 'Attachments',
+      title: t('data.invoice.invoiceNumber'),
       align: 'center',
-      dataIndex: 'attachments',
-      slots: {customRender: 'attachments'},
+      dataIndex: 'invoiceNumber',
+      slots: {customRender: 'invoiceNumber'},
     },
     {
       title: t('data.invoice.shippingFee'),
