@@ -51,31 +51,12 @@
                   </p>
                 </a-row>
                 <a-row class="invoiceToolbar">
-                  <div class="flex gap-2 items-center">
-                    <PopConfirmButton
-                      type="warning"
-                      shape="round"
-                      title="Confirm making invoice ?"
-                      preIcon="ant-design:download-outlined"
-                      @confirm="makeInvoice"
-                      :disabled="invoiceDisabled"
-                      okText="ok" :loading="invoiceLoading"
-                      cancelText="Cancel"
-                    >
-                      {{ t("data.invoice.generateShippingInvoice") }}
-                    </PopConfirmButton>
-                    <PopConfirmButton
-                      type="warning"
-                      shape="round"
-                      title="Confirm making invoice ?"
-                      preIcon="ant-design:download-outlined"
-                      @confirm="makeCompleteInvoice"
-                      :disabled="completeInvoiceDisabled"
-                      okText="ok" :loading="completeInvoiceLoading"
-                      cancelText="Cancel"
-                    >
-                      {{ t("data.invoice.generateInvoice7pre") }}
-                    </PopConfirmButton>
+                  <div>
+                    <a-select
+                      v-model:value="selectedYearEur"
+                      @change="handleYearChange"
+                      :options="yearOptionsEur"
+                    ></a-select>
                   </div>
                   <div>
                     <a-switch :checked="editMode" @change="handleEditModeChange">
@@ -97,19 +78,14 @@
             </template>
             <template #transactionType="{ record }">
               <Tag
-                :color="record.type === 'Credit' ? 'green' : 'purple'"
+                :color="record.type === TransactionType.CREDIT ? 'green' : 'purple'"
                 :class="record.status === 0 ? 'line-through' : ''"
               >
                 {{ record.type }}
               </Tag>
             </template>
-            <template #attachments="{ record }">
-              <TableImg
-                v-if="record.type=='Credit' && !!record.paymentProofString"
-                :size="60"
-                :imgList="[uploadUrl+record.paymentProofString]"
-              />
-              <template v-else-if="record.type=='Debit' && !!record.invoiceNumber">
+            <template #invoiceNumber="{ record }">
+              <template v-if="(record.type == TransactionType.DEBIT || record.type == TransactionType.CREDIT) && !!record.invoiceNumber">
                 <a-button
                   v-if="record.status !== 0"
                   type="primary"
@@ -125,7 +101,7 @@
               </template>
             </template>
             <template #amount="{ record }">
-              <span v-if="record.type == 'Credit'" class="positive-balance">
+              <span v-if="record.type == TransactionType.CREDIT" class="positive-balance">
                 +{{ record.amount }}
               </span>
               <template v-else>
@@ -154,7 +130,12 @@
               </span>
             </template>
             <template #img="{ text, record }">
-              <template v-if="record.invoiceNumber?.split('-')[2]?.startsWith('1') || record.invoiceNumber?.split('-')[2]?.startsWith('7')">
+              <TableImg
+                v-if="record.type == TransactionType.CREDIT && !!record.paymentProofString"
+                :size="60"
+                :imgList="[uploadUrl+record.paymentProofString]"
+              />
+              <template v-else-if="record.type == TransactionType.DEBIT && !!record.invoiceNumber">
                 <template v-if="text">
                   <div style="display: inline-flex; align-items: center;">
                     <TableImg :imgList="[uploadUrl + text]" :size="40" />
@@ -192,7 +173,7 @@
                       confirm: handleDelete.bind(null, record),
                     },
                     disabled: record.createTime === 'Estimation'
-                        || record.type === 'Credit'
+                        || record.type === TransactionType.CREDIT
                         || (record.createBy !== client?.internalCode && record.createBy !== fullName)
                         || record.createTime < dayjs().subtract(2, 'week').format('YYYY-MM-DD')
                         || record.status === 0
@@ -224,31 +205,12 @@
                   </p>
                 </a-row>
                 <a-row class="invoiceToolbar">
-                  <div class="flex gap-2 items-center">
-                    <PopConfirmButton
-                      type="warning"
-                      shape="round"
-                      title="Confirm making invoice ?"
-                      preIcon="ant-design:download-outlined"
-                      @confirm="makeInvoice"
-                      :disabled="invoiceDisabled"
-                      okText="ok" :loading="invoiceLoading"
-                      cancelText="Cancel"
-                    >
-                      {{ t("data.invoice.generateShippingInvoice") }}
-                    </PopConfirmButton>
-                    <PopConfirmButton
-                      type="warning"
-                      shape="round"
-                      title="Confirm making invoice ?"
-                      preIcon="ant-design:download-outlined"
-                      @confirm="makeCompleteInvoice"
-                      :disabled="completeInvoiceDisabled"
-                      okText="ok" :loading="completeInvoiceLoading"
-                      cancelText="Cancel"
-                    >
-                      {{ t("data.invoice.generateInvoice7pre") }}
-                    </PopConfirmButton>
+                  <div>
+                    <a-select
+                      v-model:value="selectedYearUsd"
+                      @change="handleYearChange"
+                      :options="yearOptionsUsd"
+                    ></a-select>
                   </div>
                   <div>
                     <a-switch :checked="editMode" @change="handleEditModeChange">
@@ -270,19 +232,14 @@
             </template>
             <template #transactionType="{ record }">
               <Tag
-                :color="record.type === 'Credit' ? 'green' : 'purple'"
+                :color="record.type === TransactionType.CREDIT ? 'green' : 'purple'"
                 :class="record.status === 0 ? 'line-through' : ''"
               >
                 {{ record.type }}
               </Tag>
             </template>
-            <template #attachments="{ record }">
-              <TableImg
-                v-if="record.type=='Credit' && !!record.paymentProofString"
-                :size="60"
-                :imgList="[uploadUrl+record.paymentProofString]"
-              />
-              <template v-else-if="record.type=='Debit' && !!record.invoiceNumber">
+            <template #invoiceNumber="{ record }">
+              <template v-if="(record.type == TransactionType.DEBIT || record.type == TransactionType.CREDIT) && !!record.invoiceNumber">
                 <a-button
                   v-if="record.status !== 0"
                   type="primary"
@@ -298,7 +255,7 @@
               </template>
             </template>
             <template #amount="{ record }">
-              <span v-if="record.type == 'Credit'" class="positive-balance">
+              <span v-if="record.type == TransactionType.CREDIT" class="positive-balance">
                 +{{ record.amount }}
               </span>
               <template v-else>
@@ -327,7 +284,12 @@
               </template>
             </template>
             <template #img="{ text, record }">
-              <template v-if="record.invoiceNumber?.split('-')[2]?.startsWith('1') || record.invoiceNumber?.split('-')[2]?.startsWith('7')">
+              <TableImg
+                v-if="record.type==TransactionType.CREDIT && !!record.paymentProofString"
+                :size="60"
+                :imgList="[uploadUrl+record.paymentProofString]"
+              />
+              <template v-else-if="record.type == TransactionType.DEBIT && !!record.invoiceNumber">
                 <template v-if="text">
                   <div style="display: inline-flex; align-items: center;">
                     <TableImg :imgList="[uploadUrl + text]" :size="40" />
@@ -372,7 +334,7 @@
                       confirm: handleDelete.bind(null, record),
                     },
                     disabled: record.createTime === 'Estimation'
-                        || record.type === 'Credit'
+                        || record.type === TransactionType.CREDIT
                         || (record.createBy !== client?.internalCode && record.createBy !== fullName)
                         || record.createTime < dayjs().subtract(2, 'week').format('YYYY-MM-DD')
                         || record.status === 0
@@ -393,7 +355,6 @@ import {onBeforeMount, onUnmounted, reactive, ref} from "vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {TableAction, TableImg, useTable} from "/@/components/Table";
 import {PageWrapper} from '/@/components/Page';
-import {PopConfirmButton} from "/@/components/Button";
 import {Form, Tag} from "ant-design-vue";
 import {actionColumn, getColumns} from "/@/views/business/client/overview/data";
 import { EditOutlined } from '@ant-design/icons-vue';
@@ -405,16 +366,14 @@ import {useMessage} from "/@/hooks/web/useMessage";
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
 import JImageUpload from '/@/components/Form/src/jeecg/components/JImageUpload.vue';
 import dayjs from "dayjs";
-import {downloadFile} from "/@/api/common/api";
 import {useGlobSetting} from "/@/hooks/setting";
 import {useRouter} from 'vue-router';
 import {Currency} from "@/views/business/dto/currency.dto";
 import {Loading} from "@/components/Loading";
 import {SizeEnum} from "@/enums/sizeEnum";
-import {InvoicingMethod} from "@/views/business/enum/InvoicingMethodEnum";
-import {editOrdersRemark} from "@/views/business/admin/shippingInvoice/api";
 
 import { Api } from "../client.api";
+import {JSelectMultipleOptions} from "@/views/business/dto";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();
@@ -437,6 +396,10 @@ onBeforeMount(()=> {
 onUnmounted(() => {
   ac.abort(t('sys.api.abortController.onUnmount'));
 })
+const TransactionType = {
+  CREDIT: 'Credit',
+  DEBIT: 'Debit',
+};
 // Form config
 const useForm = Form.useForm;
 const formRef = ref();
@@ -453,6 +416,11 @@ const { validateInfos } = useForm(formState, validatorRules, { immediate: false 
 const customerList = ref<Record<string, string | number>[]>([]);
 const customerSelectList = ref<any[]>([]);
 const customerListDisabled = ref<boolean>(false);
+
+const selectedYearEur = ref<string>(dayjs().year().toString());
+const selectedYearUsd = ref<string>(dayjs().year().toString());
+const yearOptionsEur = ref<JSelectMultipleOptions[]>([]);
+const yearOptionsUsd = ref<JSelectMultipleOptions[]>([]);
 
 const client = ref<Record<string, string | number>>();
 const currency = ref<string>();
@@ -505,7 +473,7 @@ const usdIpagination = reactive({
     return range[0] + '-' + range[1] + ' of ' + total + ' items';
   },
 });
-const [registerTable, { reload: reloadEurTable}] = useTable({
+const [registerTable, ] = useTable({
   dataSource: transactionsEur,
   columns: getColumns(),
   pagination: ipagination,
@@ -522,7 +490,7 @@ const [registerTable, { reload: reloadEurTable}] = useTable({
   actionColumn,
   showActionColumn: editMode,
 });
-const [registerUSDTable, {reload: reloadUsdTable}] = useTable({
+const [registerUSDTable] = useTable({
   dataSource: transactionsUsd,
   columns: getColumns(),
   pagination: usdIpagination,
@@ -644,12 +612,18 @@ function loadBalance() {
 }
 function loadTransactions(currency: Currency) {
   const params = {
-    clientId: client.value?.id,
-    currency: currency
+    clientId: client.value?.id as string,
+    currency: currency,
+    year: currency === "EUR" ? selectedYearEur.value : selectedYearUsd.value,
   }
+  if(currency === "EUR") {
+    eurTableLoading.value = true;
+  } else {
+    usdTableLoading.value = true;
+  }
+  loadAvailableYears(params);
   defHttp.get({ url: Api.listTransactions, params, signal: signal })
     .then(res => {
-      //TODO : add condition client type 1,2,3
       if(currency === "EUR") {
         transactionsEur.value = res;
         loadTransactions("USD");
@@ -672,14 +646,42 @@ function loadTransactions(currency: Currency) {
       else {
         console.error(e);
       }
+    })
+    .finally(() => {
+      if(currency === "EUR") {
+        eurTableLoading.value = false;
+      } else {
+        usdTableLoading.value = false;
+      }
     });
+}
+function loadAvailableYears(params: {clientId: string, currency: Currency}) {
+  defHttp.get({url: Api.findEarliestInvoiceYear, params: params, signal: signal})
+    .then((res: number) => {
+      if(params.currency === "EUR") {
+        yearOptionsEur.value = [];
+        for(let year = dayjs().year(); year >= res; year--) {
+            yearOptionsEur.value.push({label: year.toString(), value: year.toString()});
+        }
+      }
+      else {
+        yearOptionsUsd.value = [];
+        for(let year = dayjs().year(); year >= res ; year--) {
+            yearOptionsUsd.value.push({label: year.toString(), value: year.toString()});
+        }
+      }
+    })
+    .catch(e => {
+      console.error(e);
+    });
+
 }
 function loadDebit(currency: Currency) {
   estimationLoading.value = true;
   debit.value = {
     id: '0',
     createTime: 'Estimation',
-    type: 'Debit',
+    type: TransactionType.DEBIT,
     clientId: `${client.value?.id}`,
     paymentProofString: '',
     invoiceNumber: '',
@@ -699,7 +701,7 @@ function loadDebit(currency: Currency) {
       debit.value = {
         id: '0',
         createTime: 'Estimation',
-        type: 'Debit',
+        type: TransactionType.DEBIT,
         clientId: `${client.value?.id}`,
         paymentProofString: '',
         invoiceNumber: '',
@@ -743,103 +745,20 @@ function loadDebit(currency: Currency) {
       colorizeRows();
     });
 }
-function makeInvoice() {
-  invoiceDisabled.value = true;
-  invoiceLoading.value = true;
-  let start = startDate.value.slice(0, -9);
-  let end = endDate.value.slice(0, -9);
-  end = dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
-  let params = {
-    clientID: client.value?.id,
-    shopIDs: shopIds.value,
-    type: "pre-shipping",
-    start: start,
-    end : end,
-    erpStatuses : ['1', '2'],
-    warehouses: ['0', '1']
-  }
-  defHttp.post({url: Api.makeShippingInvoice, params })
-    .then(res => {
-      let invoiceFilename = res.filename;
-      let invoiceNumber = res.invoiceCode;
-      downloadInvoice(invoiceFilename);
-      downloadDetailFile(invoiceNumber);
-      invoiceLoading.value = false;
-      shopIds.value = [];
-      startDate.value = '';
-      endDate.value = '';
-      loadTransactions("EUR");
-    })
-    .catch(e => {
-      console.error(e);
-    });
-}
-function makeCompleteInvoice() {let start = startDate.value.slice(0, -9);
-  completeInvoiceLoading.value = true;
-  completeInvoiceDisabled.value = true;
 
-  let end = endDate.value.slice(0, -9);
-  end = dayjs(end).add(1, 'days').format('YYYY-MM-DD').toString();
-  let params = {
-    clientID: client.value?.id,
-    shopIDs: shopIds.value,
-    type: InvoicingMethod.PRESHIPPING,
-    start: start,
-    end : end,
-    erpStatuses : ['1', '2'],
-    warehouses: ['0', '1']
+function handleYearChange(year: string) {
+  if(activeTab.value === '1') {
+    selectedYearEur.value = year;
+    loadTransactions('EUR');
+  } else {
+    selectedYearUsd.value = year;
+    loadTransactions('USD');
   }
-  defHttp.post({url: Api.makeCompleteShippingInvoice, params})
-    .then(res => {
-      let invoiceFilename = res.filename;
-      let invoiceNumber = res.invoiceCode;
-      downloadInvoice(invoiceFilename);
-      downloadDetailFile(invoiceNumber);
-      editInvoiceOrdersRemark(invoiceNumber, InvoicingMethod.PRESHIPPING);
-      completeInvoiceLoading.value = false;
-      shopIds.value = [];
-      startDate.value = '';
-      endDate.value = '';
-      loadTransactions("EUR");
-    })
-    .catch(e => {
-      console.error(e);
-    })
-  }
-  function downloadInvoice(invoiceFilename) {
-    const param = {filename: invoiceFilename};
-    downloadFile(Api.downloadInvoice, invoiceFilename, param).then(() => {
-      createMessage.info("Download successful.")
-    }).catch(e => {
-      console.error(`Download invoice fail : ${e}`);
-    });
-  }
-  function downloadDetailFile(invoiceNumber) {
-    const param =
-      {
-        invoiceNumber: invoiceNumber,
-        invoiceEntity: client.value?.invoiceEntity,
-        internalCode: client.value?.internalCode
-      }
-    let now = dayjs().format("YYYYMMDD");
-    let detailFilename = client.value?.internalCode + "_(" + client.value?.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
-    downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {
-      createMessage.info("Download successful.")
-    }).catch(e => {
-      console.error(`Download invoice detail fail : ${e}`);
-    });
-  }
-  function editInvoiceOrdersRemark(invoiceNumber:string, invoicingMethod: InvoicingMethod) {
-    editOrdersRemark({invoiceNumber, invoicingMethod}).then((res) => {
-      if(Object.keys(res.failures).length > 0) {
-        createMessage.error(`Error while writing invoice number in orders on Mabang: ${res.mabangResponses.failures}`);
-      }
-    });
-  }
-  function openInvoice(record) {
-    const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
-    window.open(invoicePreviewRoute.href, '_blank');
-  }
+}
+function openInvoice(record) {
+  const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
+  window.open(invoicePreviewRoute.href, '_blank');
+}
 
 /**
  * colorize debit and credit rows for better visibility
@@ -853,12 +772,12 @@ function colorizeRows() {
         cell.style.backgroundColor = estimationColor;
       }
     }
-    if(children[1].textContent == 'Debit') {
+    if(children[1].textContent == TransactionType.DEBIT) {
       children[0].style.borderLeftStyle = "solid";
       children[0].style.borderLeftColor = debitColor;
       children[0].style.borderLeftWidth = "5px";
     }
-    if(children[1].textContent == 'Credit') {
+    if(children[1].textContent == TransactionType.CREDIT) {
       children[0].style.borderLeftStyle = "solid";
       children[0].style.borderLeftColor = creditColor;
       children[0].style.borderLeftWidth = "5px";
@@ -878,11 +797,11 @@ function handleDelete(record: Recordable) {
     console.error(e);
   }).finally(() => {
     if(activeTab.value === '1') {
-      reloadEurTable();
+      loadTransactions('EUR')
       eurTableLoading.value = false;
     }
     else {
-      reloadUsdTable();
+      loadTransactions('USD');
       usdTableLoading.value = false;
     }
   });
@@ -908,7 +827,7 @@ function handleUploadChange(imgPath, record) {
   })
     .then(() => {
       record.paymentProofString = imgPath;
-      reloadEurTable();
+      loadTransactions('EUR');
     })
     .catch(() => {
       createMessage.error('Save failed, please try again');
