@@ -147,6 +147,7 @@ export default {
     accountSecurity: 'Account Security',
     contactInformation: 'Contact Information',
     myInformation: 'My Information',
+    preferences: 'Preferences',
     detailedInformation: 'Detailed Information',
     jobTitle: 'Job Title',
     name: 'Name',
