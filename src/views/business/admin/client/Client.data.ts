@@ -127,11 +127,6 @@ export const columns: BasicColumn[] = [
     align: 'center',
     dataIndex: 'isChronologicalOrder_dictText',
   },
-  {
-    title: t('data.client.clientCategoryId'),
-    align: 'center',
-    dataIndex: 'clientCategoryId_dictText',
-  },
 ];
 //表单数据
 export const formSchema: FormSchema[] = [
@@ -301,17 +296,6 @@ export const formSchema: FormSchema[] = [
     component: 'JDictSelectTag',
     componentProps: {
       dictCode: 'yn',
-    },
-  },
-  {
-    label: t('data.client.clientCategoryId'),
-    field: 'clientCategoryId',
-    component: 'JDictSelectTag',
-    componentProps: {
-      dictCode: 'client_category,name,id',
-    },
-    dynamicRules: () => {
-      return [{ required: true, message: t('common.inputText') + t('data.client.clientCategoryId') + '!' }];
     },
   },
   {
@@ -487,13 +471,4 @@ export const superQuerySchema = {
   isCompleteInvoice: { title: t('data.client.isCompleteInvoice'), order: 20, view: 'radio', type: 'string' },
   balanceThreshold: { title: t('data.client.balanceThreshold'), order: 21, view: 'number', type: 'number' },
   isChronologicalOrder: { title: t('data.client.isChronologicalOrder'), order: 22, view: 'radio', type: 'string' },
-  clientCategoryId: {
-    title: t('data.client.clientCategoryId'),
-    order: 23,
-    view: 'list',
-    type: 'string',
-    dictTable: 'client_category',
-    dictCode: 'id',
-    dictText: 'name',
-  },
 };

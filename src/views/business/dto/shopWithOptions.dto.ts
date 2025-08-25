@@ -6,7 +6,6 @@ export interface ShopWithOptions {
   isShopActive: boolean;
   shopOptionsId: string;
   isAutoInvoice: boolean;
-  isChronologicalOrder: boolean;
   isBreakdownInvoice: boolean;
   isCompleteInvoice: boolean;
   canSelfInvoice: boolean;

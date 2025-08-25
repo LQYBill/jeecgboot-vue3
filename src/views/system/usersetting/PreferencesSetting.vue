@@ -41,7 +41,7 @@ async function fetchUserPreferences() {
   await getUserPreferences()
     .then((res: UserPreferences) => {
       userPreferences.value = res;
-      invoiceEmailPreference.value = res.invoice_mail || false;
+      invoiceEmailPreference.value = res.invoiceMail || false;
     })
     .catch((error) => {
       console.error('Error fetching user preferences:', error);
@@ -53,7 +53,7 @@ async function fetchUserPreferences() {
 async function handleInvoiceEmailChange(checked: boolean) {
   invoiceEmailPreference.value = checked;
   invoiceEmailLoading.value = true;
-  await setUserPreferences({invoice_mail: checked})
+  await setUserPreferences({invoiceMail: checked})
     .catch((error) => {
       console.error('Error updating user preferences:', error);
     })

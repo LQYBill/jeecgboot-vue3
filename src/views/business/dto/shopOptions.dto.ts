@@ -9,7 +9,6 @@ export interface ShopOptions {
   showBalance: boolean;
   balanceThreshold: number;
   isAutoInvoice: boolean;
-  isChronologicalOrder: boolean;
   isBreakdownInvoice: boolean;
   isCompleteInvoice: boolean;
   canSelfInvoice: boolean;

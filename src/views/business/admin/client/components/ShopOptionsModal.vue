@@ -12,8 +12,7 @@ import {BasicForm, useForm} from '/@/components/Form/index';
 import {formSchema} from '../ShopOptions.data';
 import {saveOrUpdate} from '../ShopOptions.api';
 import {useI18n} from 'vue-i18n';
-import {ShopOptionsAddParam} from "@/views/business/dto/ShopOptionsAddParam.dto";
-import {ShopOptionsUpdateParam} from "@/views/business/dto/ShopOptionsUpdateParam.dto";
+import {ShopOptionsUpdateParam, ShopOptionsAddParam} from "@/views/business/dto";
 const emit = defineEmits(['register', 'success']);
 const { t } = useI18n();
 
