@@ -32,6 +32,11 @@ export default {
     line2: "You can create an entry for manually created purchase orders, using the following button : ",
     line3: "You can also create an order on Mabang if the selected orders have already been paid with proofs deposited with the following button : ",
   },
+  paymentReview: {
+    line1: 'This page lists purchase and shipping orders that require payment review.',
+    line2: "You can create an entry for manually created purchase  or shipping orders, using the following button : ",
+    line3: 'If an order is fully paid and the payment proof has been uploaded, setting Payment Review to "Approved" will automatically set all platform orders linked to 2/7 invoices to "Preparing" in Mabang. You can also select orders (multi-select supported) and click this button to create purchase orders in Mabang.',
+  },
   verifyingSkus: "Verifying SKUs consistency"
 }
 

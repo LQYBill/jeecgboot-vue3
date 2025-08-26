@@ -136,6 +136,7 @@
                 :imgList="[uploadUrl+record.paymentProofString]"
               />
               <template v-else-if="record.type == TransactionType.DEBIT && !!record.invoiceNumber">
+                <template v-if="['1', '2', '7'].includes(record.invoiceNumber?.split('-')[2]?.charAt(0))">
                 <template v-if="text">
                   <div style="display: inline-flex; align-items: center;">
                     <TableImg :imgList="[uploadUrl + text]" :size="40" />
@@ -161,6 +162,7 @@
               <template v-else>
                 <span>-</span>
               </template>
+            </template>
             </template>
             <template #action="{ record }">
               <TableAction
@@ -290,6 +292,7 @@
                 :imgList="[uploadUrl+record.paymentProofString]"
               />
               <template v-else-if="record.type == TransactionType.DEBIT && !!record.invoiceNumber">
+              <template v-if="['1', '2', '7'].includes(record.invoiceNumber?.split('-')[2]?.charAt(0))">
                 <template v-if="text">
                   <div style="display: inline-flex; align-items: center;">
                     <TableImg :imgList="[uploadUrl + text]" :size="40" />
@@ -315,6 +318,7 @@
               <template v-else>
                 <span>-</span>
               </template>
+            </template>
             </template>
             <template #imgs="{ text }">
               <TableImg
@@ -624,6 +628,7 @@ function loadTransactions(currency: Currency) {
   loadAvailableYears(params);
   defHttp.get({ url: Api.listTransactions, params, signal: signal })
     .then(res => {
+      //TODO : add condition client type 1,2,3
       if(currency === "EUR") {
         transactionsEur.value = res;
         loadTransactions("USD");

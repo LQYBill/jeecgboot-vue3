@@ -4,6 +4,7 @@ export default {
     invoicingPage: '开票页面',
     skuOrderPage: 'SKU采购',
     purchaseOrderManagementPage: '采购订单管理',
+    paymentProofReviewPage: '付款凭证审核',
     invoiceManagementPage: '发票下载',
     invoicePreviewPage: '发票预览',
     detailsExportPage: '发票明细导出',

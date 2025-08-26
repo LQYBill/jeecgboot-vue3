@@ -10,6 +10,7 @@ export default {
     credit: "Credit",
     debit: "Debit",
     paymentProof: "付款证明",
+    paymentProofReview:"付款审核",
     showBalance: "显示余额",
     type: "交易类型",
   },

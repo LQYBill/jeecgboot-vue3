@@ -2,9 +2,9 @@
   <PageWrapper :title="t('')"
   >
     <template #headerContent>
-      {{t('guide.purchaseInvoice.line1')}}<br/>
-      {{t('guide.purchaseInvoice.line2')}}<a-button type="primary" @click="" preIcon="ant-design:plus-outlined">{{ t('common.operation.addNew') }}</a-button><br/>
-      {{t('guide.purchaseInvoice.line3')}}<a-button type="warning" @click="" preIcon="ant-design:shopping-cart-outlined"></a-button>
+      {{t('guide.paymentReview.line1')}}<br/>
+      {{t('guide.paymentReview.line2')}}<a-button type="primary" @click="" preIcon="ant-design:plus-outlined">{{ t('common.operation.addNew') }}</a-button><br/>
+      {{t('guide.paymentReview.line3')}}<a-button type="warning" @click="" preIcon="ant-design:shopping-cart-outlined"></a-button>
     </template>
     <PurchaseOrderResult/>
     <!--引用表格-->
@@ -44,9 +44,47 @@
           {{ record.invoiceNumber }}
         </span>
       </template>
-      <template #finalAmount="{record}">
-        <span :class="`font-bold ${record.status === 0 ? 'line-through' : ''}`">{{record?.finalAmount}}</span>
+      <template #totalAmount="{ record }">
+  <span :class="record.status === 0 ? 'line-through text-gray-400' : ''">
+    {{ ((+record.totalAmount || 0).toFixed(2)) }}
+    <template v-if="(+record.poTotalAmount || 0) > 0 || (+record.siTotalAmount || 0) > 0">
+      <span class="text-gray-500">
+        (
+        <template v-if="(+record.poTotalAmount || 0) > 0">
+          P: {{ ((+record.poTotalAmount || 0).toFixed(2)) }}
+        </template>
+        <template v-if="(+record.poTotalAmount || 0) > 0 && (+record.siTotalAmount || 0) > 0">
+          &nbsp;+&nbsp;
+        </template>
+        <template v-if="(+record.siTotalAmount || 0) > 0">
+          S: {{ ((+record.siTotalAmount || 0).toFixed(2)) }}
+        </template>
+        )
+      </span>
+    </template>
+  </span>
       </template>
+      <template #finalAmount="{ record }">
+  <span :class="['font-bold', record.status === 0 ? 'line-through text-gray-400' : '']">
+    {{ ((+record.finalAmount || 0).toFixed(2)) }}
+    <template v-if="(+record.poFinalAmount || 0) > 0 || (+record.siFinalAmount || 0) > 0">
+      <span class="text-gray-500">
+        (
+        <template v-if="(+record.poFinalAmount || 0) > 0">
+          P: {{ ((+record.poFinalAmount || 0).toFixed(2)) }}
+        </template>
+        <template v-if="(+record.poFinalAmount || 0) > 0 && (+record.siFinalAmount || 0) > 0">
+          &nbsp;+&nbsp;
+        </template>
+        <template v-if="(+record.siFinalAmount || 0) > 0">
+          S: {{ ((+record.siFinalAmount || 0).toFixed(2)) }}
+        </template>
+        )
+      </span>
+    </template>
+  </span>
+      </template>
+
       <template #paidAmount="{record}">
         <span :class="`${record?.paidAmount <= 0 ? 'number--error' : (record?.paidAmount) < (record?.finalAmount) ? 'number--warning' : 'number--ok'} ${record.status === 0 ? 'line-through' : ''}`" class="number">
           {{ record?.paidAmount }}
@@ -119,11 +157,11 @@ import {useListPage} from '/@/hooks/system/useListPage'
 import PurchaseOrderModal from './components/PurchaseOrder.modal.vue'
 import {columns, searchFormSchema} from './PurchaseOrder.data';
 import {
-  list,
+  paymentProofReviewList,
   cancelInvoice,
   batchCancel,
   getImportUrl,
-  getExportUrl,
+  getExportUrl
 } from './PurchaseOrder.api';
 import {downloadFile} from '/@/utils/common/renderUtils';
 import {useI18n} from "/@/hooks/web/useI18n";
@@ -169,7 +207,7 @@ const [registerModal, {openModal}] = useModal();
 const {tableContext} = useListPage({
   tableProps: {
     title: 'Register Purchase Order',
-    api: list,
+    api: paymentProofReviewList,
     columns,
     canResize: true,
     defSort: iSorter.value,

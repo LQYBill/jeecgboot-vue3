@@ -107,5 +107,7 @@ export default {
     loadingText: '加载中...',
     cancelled: '已取消',
     cancellation: '取消',
+    approved: '已通过',
+    notApproved: '未通过',
   }
 };
