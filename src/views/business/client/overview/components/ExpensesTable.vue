@@ -330,7 +330,6 @@ function loadAvailableYears(params: { clientId: string, currency: CurrencyEnum }
       console.error(e);
     });
 }
-// TODO:  cannot read field scale error
 function loadDebit() {
   estimationLoading.value = true;
   debit.value = {
@@ -363,7 +362,7 @@ function loadDebit() {
       } as Transaction;
       // ajout de la ligne de début au début du tableau
       transactions.value[0] = debit.value;
-      const debitEstimation: number = Object.hasOwnProperty("totalEstimation") ? res.totalEstimation : 0;
+      const debitEstimation: number = res.hasOwnProperty("totalEstimation") ? res.totalEstimation : 0;
       estimatedBalance.value = balance.value - debitEstimation;
       estimatedBalance.value = Number(estimatedBalance.value.toFixed(2));
     })
