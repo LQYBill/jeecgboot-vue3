@@ -65,11 +65,11 @@ import {ShopByClient, ShopResponse} from "@/views/business/dto/shop.dto";
 import {Modal, SelectProps} from "ant-design-vue";
 import SearchForm from "@/views/business/admin/additionalFees/components/SearchForm.vue";
 import {useI18n} from "vue-i18n";
-import {currencyToken} from "@/views/business/dto/currency.dto";
 import {useRouter} from "vue-router";
 import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 import {useMessage} from "@/hooks/web/useMessage";
 import {Icon} from "@/components/Icon";
+import {CurrencyToken} from "@/views/business/enum";
 
 const {resolve}=useRouter();
 const { t } = useI18n();
@@ -291,7 +291,7 @@ function getShopCurrency(shop: string) {
       return;
     }
   })
-  return currencyToken[currency];
+  return CurrencyToken[currency];
 }
 /** search */
 async function handleSearch(state: Record<string, string>) {

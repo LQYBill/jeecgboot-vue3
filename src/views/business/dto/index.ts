@@ -17,3 +17,4 @@ export { ShopWithOptions } from './shopWithOptions.dto';
 export { ShopWithOptionsListParam } from './shopWithOptionsListParam.dto';
 export { Sku, SkuStatus, getStatusNameByCode } from './sku.dto';
 export { Response } from './response.dto'
+export { Transaction } from './transaction.dto';

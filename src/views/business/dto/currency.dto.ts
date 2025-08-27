@@ -1,7 +1,6 @@
-import { CurrencyEnum } from '@/views/business/enum';
-export type Currency = CurrencyEnum;
-export const currencyToken = {
-  EUR: '€',
-  USD: '$',
-  RMB: '¥',
+export interface Currency {
+  id: string;
+  code: string;
+  zhName: string;
+  enName: string;
 }

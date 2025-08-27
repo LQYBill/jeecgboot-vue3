@@ -1,16 +1,16 @@
-import {Currency} from "@/views/business/dto/currency.dto";
+import {CurrencyEnum} from "@/views/business/enum";
 
 export interface ShopResponse {
   shopCode: string;
   clientCode: string;
   clientName: string;
-  currency: Currency;
+  currency: CurrencyEnum;
   defaultSkuZhName?: string;
 }
 export interface ShopByClient {
   clientCode: string;
   clientName: string;
-  currency: Currency;
+  currency: CurrencyEnum;
   shops: string[];
 }
 export interface Shop {
