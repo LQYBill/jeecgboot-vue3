@@ -11,4 +11,6 @@ export interface Client {
   currency: CurrencyEnum
   isCompleteInvoice: "0" | "1";
   isChronologicalOrder: "0" | "1";
+  displayBalance: boolean;
+  receiveInvoiceByEmail: boolean;
 }

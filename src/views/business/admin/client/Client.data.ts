@@ -127,6 +127,30 @@ export const columns: BasicColumn[] = [
     align: 'center',
     dataIndex: 'isChronologicalOrder_dictText',
   },
+  {
+    title: t('data.client.useBalance'),
+    align: 'center',
+    dataIndex: 'useBalance',
+    customRender: ({ value }: {value: boolean}) => {
+      return value ? t('common.yes') : t('common.no');
+    },
+  },
+  {
+    title: t('data.client.displayBalance'),
+    align: 'center',
+    dataIndex: 'displayBalance',
+    customRender: ({ value }: {value: boolean}) => {
+      return value ? t('common.yes') : t('common.no');
+    },
+  },
+  {
+    title: t('data.client.receiveInvoiceByEmail'),
+    align: 'center',
+    dataIndex: 'receiveInvoiceByEmail',
+    customRender: ({ value }: {value: boolean}) => {
+      return value ? t('common.yes') : t('common.no');
+    },
+  }
 ];
 //表单数据
 export const formSchema: FormSchema[] = [
@@ -307,8 +331,30 @@ export const formSchema: FormSchema[] = [
       checkedChildren: t('common.yes'),
       unCheckedChildren: t('common.no'),
     },
-    colProps: { span: 20 },
+    colProps: { span: 12 },
     show: true,
+  },
+  {
+    label: t('data.client.displayBalance'),
+    field: 'displayBalance',
+    component: 'Switch',
+    defaultValue: true,
+    componentProps: {
+      checkedChildren: t('common.yes'),
+      unCheckedChildren: t('common.no'),
+    },
+    colProps: { span: 12 },
+  },
+  {
+    label: t('data.client.receiveInvoiceByEmail'),
+    field: 'receiveInvoiceByEmail',
+    component: 'Switch',
+    defaultValue: true,
+    componentProps: {
+      checkedChildren: t('common.yes'),
+      unCheckedChildren: t('common.no'),
+    },
+    colProps: { span: 12 },
   },
   // TODO 主键隐藏字段，目前写死为ID
   {

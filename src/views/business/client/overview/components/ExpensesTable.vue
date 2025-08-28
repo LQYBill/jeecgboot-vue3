@@ -2,7 +2,7 @@
   <BasicTable v-if="props.client && props.currency" @register="registerTable">
     <template #tableTitle>
       <div style="width: 100%">
-        <a-row class="balance-row" v-if="props.client.useBalance">
+        <a-row class="balance-row" v-if="props.client.displayBalance">
           <p>
             {{ t('data.client.accountBalance') }} :
           </p>

@@ -39,6 +39,8 @@ export default {
     isChronologicalOrder: "Is Chronological Order",
     clientCategoryId: "Client Category ID",
     useBalance: "Use Balance",
+    displayBalance: "Display Balance",
+    receiveInvoiceByEmail: "Receive Invoice By Email",
   },
   erpStatus: {
     completed: "Completed",

@@ -39,6 +39,8 @@ export default {
     isChronologicalOrder: "是否按订单时间顺序自动开票",
     clientCategoryId: "客户类型",
     useBalance: "是否使用余额",
+    displayBalance: "是否显示余额",
+    receiveInvoiceByEmail: "是否通过邮件接收发票",
   },
   erpStatus: {
     pending: "待处理",
