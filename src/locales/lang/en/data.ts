@@ -10,6 +10,7 @@ export default {
     credit: "Credit",
     debit: "Debit",
     paymentProof: "Payment Proof",
+    paymentProofReview: "Payment Proof Review",
     showBalance: "Show Balance",
     type: "Type",
   },

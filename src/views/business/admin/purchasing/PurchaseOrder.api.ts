@@ -7,6 +7,8 @@ const {t} = useI18n();
 
 enum Api {
   list = '/purchaseOrder/list',
+  paymentProofReviewList = '/purchaseOrder/paymentProofReview/list',
+  setPaymentApproved = '/purchaseOrder/paymentProofReview/setPaymentApproved',
   // save='/purchaseOrder/add',
   save='/purchaseOrder/addPurchaseAndOrder',
   // edit='/purchaseOrder/edit',
@@ -33,6 +35,21 @@ export const getImportUrl = Api.importExcel;
  */
 export const list = (params) =>
   defHttp.get({url: Api.list, params});
+
+/**
+ * 获取支付凭证审核列表
+ * @param params
+ */
+export const paymentProofReviewList = (params) =>
+  defHttp.get({url: Api.paymentProofReviewList, params});
+/**
+ * 设置支付审核通过
+ */
+export const setPaymentApproved = (params: any, handleSuccess?: () => void) => {
+  return defHttp.post({ url: Api.setPaymentApproved, data: params }).then(() => {
+    handleSuccess?.();
+  });
+};
 
 /**
  * 删除单个
