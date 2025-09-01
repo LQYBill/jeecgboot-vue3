@@ -254,6 +254,8 @@ import {Divider, Form, Tag} from "ant-design-vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {TableRowSelection, useTable} from "/@/components/Table";
 import dayjs, {Dayjs} from "dayjs";
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import PlatformOrderContentSubTable
   from "/@/views/business/admin/platformOrder/subTables/PlatformOrderContentSubTable.vue";
 import JRangeDate from "/@/components/Form/src/jeecg/components/JRangeDate.vue";
@@ -291,6 +293,10 @@ const invoiceStore = useInvoiceStore();
 const { t } = useI18n();
 const { createMessage, notification } = useMessage();
 const { clipboardRef, copiedRef } = useCopyToClipboard();
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.tz.setDefault('Asia/Shanghai')
 
 onMounted (async ()=> {
   offWebSocket(handleWsMsg);
@@ -605,7 +611,11 @@ function onWarehouseChange(checkedValues) {
   }
 }
 function disabledDate(current: Dayjs) {
-  return current < dayjs(startDate.value) || current > dayjs(endDate.value);
+  if (!current) return false;
+  const curCST   = dayjs(current).tz('Asia/Shanghai').startOf('day');
+  const startCST = dayjs(startDate.value).tz('Asia/Shanghai').startOf('day');
+  const endCST   = dayjs(endDate.value).tz('Asia/Shanghai').endOf('day');
+  return curCST.isBefore(startCST, 'day') || curCST.isAfter(endCST, 'day');
 }
 function handleOrderSelectMode(e) {
   if(e.target.value === "0") {
