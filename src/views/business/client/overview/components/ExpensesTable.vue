@@ -348,6 +348,11 @@ function loadDebit() {
   emits("colorize");
   defHttp.get({url: Api.debit, params: { clientId: props.client?.id, currency: CurrencyEnum[props.currency!] }, signal: signal})
     .then(res => {
+      //it means the user can't self invoice, so there is no estimation to show
+      if(res == null) {
+        delete transactions.value[0];
+        return;
+      }
       debit.value = {
         id: '0',
         createTime: 'Estimation',
