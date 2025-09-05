@@ -203,7 +203,7 @@ onMounted(async () => {
     })
 
     Modal.info({
-      title: 'Import Results',
+      title: 'Update Results',
       width: 600,
       content: () => h('div', nodes),
       okText: 'OK',
@@ -223,6 +223,7 @@ function handleWsMessage(data: any) {
       if (type === 'complete') {
         progress.value = 100;
         msg.value = msgTxt;
+        console.log('handleImportResponse data:', msgData);
         handleImportResponse({
           result: {
             successes: msgData.successes || {},
@@ -235,8 +236,6 @@ function handleWsMessage(data: any) {
     console.error('[WebSocket] failed to parse message:', e);
   }
 }
-
-
 </script>
 
 <style scoped>

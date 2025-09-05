@@ -108,5 +108,7 @@ export default {
     loadingText: 'Loading...',
     cancelled: 'Cancelled',
     cancellation: 'Cancellation',
+    approved: 'Approved',
+    notApproved: 'Not Approved',
   }
 };

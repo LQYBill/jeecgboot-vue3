@@ -39,17 +39,7 @@
       </template>
       <template v-slot:action="{ record }">
         <TableAction
-          :actions="[
-            {
-              label: t('common.operation.cancel'),
-              icon: 'ic:outline-delete-outline',
-              popConfirm: {
-                title: t('common.operation.cancelConfirmation'),
-                confirm: handleDelete.bind(null, record),
-              },
-              disabled: record.status !== 1,
-            },
-          ]"
+          :actions="getActions(record)"
         />
       </template>
       <template #type="{record}">
@@ -97,6 +87,11 @@ import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 import {toUpper} from "lodash-es";
 import InvoiceListSearchForm
   from "@/views/business/admin/invoiceManagement/components/InvoiceListSearchForm.vue";
+import { useInvoiceStore } from '@/store/modules/invoice'
+import { storeToRefs } from 'pinia';
+import {getModifyingInvoice} from "@/utils/cache/modifyingInvoice";
+const invoiceStore = useInvoiceStore()
+const { modifyingInvoiceNumber } = storeToRefs(invoiceStore);
 
 const userStore = useUserStore();
 const { createMessage } = useMessage();
@@ -109,6 +104,8 @@ const tableRef = ref();
 
 onMounted(async () => {
   username.value = userStore.getUserInfo.username;
+  const invoiceCached = getModifyingInvoice();
+  invoiceStore.setModifyingInvoiceNumber(invoiceCached);
   loadInvoices();
 })
 const dataSource = ref<Array<Recordable>>([]);
@@ -203,6 +200,19 @@ const exportParams = computed(()=>{
   paramsForm['selections'] = list;
   return filterObj(paramsForm)
 });
+const getActions = (record) => [
+  {
+    label: t('common.operation.cancel'),
+    icon: 'ic:outline-delete-outline',
+    popConfirm: {
+      title: t('common.operation.cancelConfirmation'),
+      confirm: handleDelete.bind(null, record),
+    },
+    disabled: computed(() => {
+      return record.status !== 1 || modifyingInvoiceNumber.value === record.invoiceNumber;
+    }),
+  }
+];
 
 function loadInvoices(page?:number) {
   if (page) {

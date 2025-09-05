@@ -24,7 +24,7 @@ import {ref, computed, unref} from 'vue';
 import {BasicModal, useModalInner} from '/@/components/Modal';
 import {BasicForm, useForm} from '/@/components/Form/index';
 import {formSchema, listFormatting} from '../PurchaseOrder.data';
-import {createMabangPurchaseOrder, saveOrUpdate} from '../PurchaseOrder.api';
+import {createMabangPurchaseOrder, saveOrUpdate, setPaymentApproved} from '../PurchaseOrder.api';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {Modal} from "ant-design-vue";
 
@@ -35,8 +35,9 @@ const isUpdate = ref(true);
 const showFooter = ref(false);
 const isOrder = ref(false);
 const selectedRows = ref<any[]>([]);
+const props = defineProps<{ canApprove: boolean }>();
 //表单配置
-const [registerForm, {setProps, resetFields, setFieldsValue, validate}] = useForm({
+const [registerForm, {setProps, resetFields, setFieldsValue, validate, updateSchema}] = useForm({
   //labelWidth: 150,
   schemas: formSchema,
   showActionButtonGroup: false,
@@ -68,6 +69,14 @@ const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) 
   }
   // 隐藏底部时禁用整个表单
   await setProps({disabled: !data?.showFooter})
+  // 更新表单schema
+  await updateSchema([
+    {
+      field: 'paymentApproved',
+      ifShow: props.canApprove,
+      dynamicDisabled: () => !props.canApprove,
+    },
+    ]);
 });
 //设置标题
 const title = computed(() => (unref(isOrder) ? 'Order' : !unref(isUpdate) ? t('common.operation.addNew') : t('common.operation.edit')));
@@ -96,6 +105,17 @@ async function submitPurchaseOrder() {
   try {
     let values = await validate();
     setModalProps({confirmLoading: true});
+    delete values.paidAmount;
+    const { invoiceNumber, clientId, paymentApproved } = values;
+    if (!props.canApprove) {
+      delete values.paymentApproved;
+    } else if (typeof paymentApproved !== 'undefined') {
+      await setPaymentApproved({
+          invoiceNumber,
+          clientId,
+          approved: !!paymentApproved,
+      });
+    }
     if(!!values.platformOrderId)
       values.platformOrderId = listFormatting(values.platformOrderId);
     //提交表单

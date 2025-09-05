@@ -240,6 +240,10 @@ import BasicHelp from "@/components/Basic/src/BasicHelp.vue";
 import {ManualInvoiceParam} from "@/views/business/types/manualInvoiceParam";
 import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 import {ExceptionEnum} from "@/enums/exceptionEnum";
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const { t } = useI18n();
 const { clipboardRef, copiedRef } = useCopyToClipboard();
@@ -489,7 +493,11 @@ async function loadAvailableDate() {
 }
 
 function disabledDate(current: Dayjs) {
-  return current < dayjs(startDate.value) || current > dayjs(endDate.value);
+  if (!current) return false;
+  const curCST   = dayjs(current).tz('Asia/Shanghai').startOf('day');
+  const startCST = dayjs(startDate.value).tz('Asia/Shanghai').startOf('day');
+  const endCST   = dayjs(endDate.value).tz('Asia/Shanghai').endOf('day');
+  return curCST.isBefore(startCST, 'day') || curCST.isAfter(endCST, 'day');
 }
 
 function handleDateChange(dateRange: string) {

@@ -4,6 +4,7 @@ export default {
     invoicingPage: 'Invoicing',
     skuOrderPage: 'Sku Order',
     purchaseOrderManagementPage: 'Purchase Order Management',
+    paymentProofReviewPage: 'Payment Proof Review',
     invoiceManagementPage: 'Invoice Management',
     invoicePreviewPage: 'Invoice Preview',
     detailsExportPage: 'Details Export',

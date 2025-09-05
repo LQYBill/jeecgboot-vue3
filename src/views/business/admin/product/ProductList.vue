@@ -219,10 +219,6 @@ function handleWsMessage(data: any) {
         progress.value = progressNum;
         if (progressNum >= 100 || type === 'complete') {
           msg.value = '马帮重量全部更新完成！';
-          const { success, failure } = msgData;
-          if (type === 'complete') {
-            console.log(`马帮更新完成，成功 ${success} 条，失败 ${failure} 条`);
-          }
         } else {
           msg.value = msgTxt || '马帮重量更新中...';
         }

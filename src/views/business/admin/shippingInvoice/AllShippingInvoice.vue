@@ -281,6 +281,8 @@ import {Divider, Form, Tag} from "ant-design-vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {TableRowSelection, useTable} from "/@/components/Table";
 import dayjs, {Dayjs} from "dayjs";
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import PlatformOrderContentSubTable
   from "/@/views/business/admin/platformOrder/subTables/PlatformOrderContentSubTable.vue";
 import JRangeDate from "/@/components/Form/src/jeecg/components/JRangeDate.vue";
@@ -315,10 +317,16 @@ import {Key} from "ant-design-vue/lib/table/interface";
 import {InvoiceMetaData, Response, Estimation, JSelectMultipleOptions} from "@/views/business/dto";
 import {ErpStatusEnum, InvoicingMethodStatus} from "@/views/business/enum";
 import {Shop} from "@/views/business/dto/shop.dto";
+import { useInvoiceStore } from '@/store/modules/invoice'
 
+const invoiceStore = useInvoiceStore();
 const { t } = useI18n();
 const { createMessage, notification } = useMessage();
 const { clipboardRef, copiedRef } = useCopyToClipboard();
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.tz.setDefault('Asia/Shanghai')
 
 onMounted (async ()=> {
   offWebSocket(handleWsMsg);
@@ -645,7 +653,11 @@ function onWarehouseChange(checkedValues) {
   }
 }
 function disabledDate(current: Dayjs) {
-  return current < dayjs(startDate.value) || current > dayjs(endDate.value);
+  if (!current) return false;
+  const curCST   = dayjs(current).tz('Asia/Shanghai').startOf('day');
+  const startCST = dayjs(startDate.value).tz('Asia/Shanghai').startOf('day');
+  const endCST   = dayjs(endDate.value).tz('Asia/Shanghai').endOf('day');
+  return curCST.isBefore(startCST, 'day') || curCST.isAfter(endCST, 'day');
 }
 function handleOrderSelectMode(e) {
   if(e.target.value === "0") {
@@ -1129,11 +1141,15 @@ function downloadDetailFile(invoiceNumber: string) {
   });
 }
 function editInvoiceOrdersRemark(invoiceNumber:string, invoicingMethod: InvoicingMethod | null) {
+  invoiceStore.setModifyingInvoiceNumber(invoiceNumber);
   editOrdersRemark({invoiceNumber, invoicingMethod}).then((res) => {
     if(Object.keys(res.failures).length > 0) {
       createMessage.error(`Error while writing invoice number in orders on Mabang: ${res.failures}`);
     }
-  });
+  })
+    .finally(() => {
+        invoiceStore.clearModifyingInvoiceNumber();
+    });
 }
 /**
  *   Clears the formRef fields

@@ -2,7 +2,9 @@ import {BasicColumn} from '/@/components/Table';
 import {FormSchema} from '/@/components/Table';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
-import {duplicateInvoiceNumberCheck} from "/@/views/business/admin/purchasing/PurchaseOrder.api";
+import {
+  duplicateInvoiceNumberCheck,
+} from "/@/views/business/admin/purchasing/PurchaseOrder.api";
 
 const {t} = useI18n();
 const {createMessage} = useMessage();
@@ -37,6 +39,7 @@ export const columns: BasicColumn[] = [
     dataIndex: 'totalAmount',
     width: 100,
     ellipsis: false,
+    slots: { customRender: 'totalAmount' },
   },
   {
     title: t('data.invoice.discountAmount'),
@@ -57,13 +60,23 @@ export const columns: BasicColumn[] = [
     align: "center",
     dataIndex: 'paidAmount',
     slots: {customRender: 'paidAmount'},
-    sorter: (a:any, b:any) => a.paidAmount - b.paidAmount,
+    defaultHidden: true,
+    //sorter: (a:any, b:any) => a.paidAmount - b.paidAmount,
   },
   {
     title: t('data.transaction.paymentProof'),
     align: "center",
     dataIndex: 'paymentDocumentString',
     slots: {customRender: 'img'},
+  },
+  {
+    title:  t('data.transaction.paymentProofReview'),
+    align: 'center',
+    dataIndex: 'paymentApproved',
+    width: 100,
+    slots: { customRender: 'paymentApproved' },
+    sorter: (a:any, b:any) =>
+      Number(a?.paymentApproved ? 1 : 0) - Number(b?.paymentApproved ? 1 : 0),
   },
   {
     title: t('data.upload.inventoryRecap'),
@@ -210,6 +223,7 @@ export const formSchema: FormSchema[] = [
     field: 'paidAmount',
     slot: 'paidAmount',
     component: 'InputNumber',
+    show: false,
     componentProps :{
       min: 0,
       precision: 2
@@ -240,6 +254,15 @@ export const formSchema: FormSchema[] = [
       listType : 'picture',
       text: t('component.upload.upload'),
       bizPath: 'purchase_order/screenshots'
+    },
+  },
+  {
+    label: t('data.transaction.paymentProofReview'),
+    field: 'paymentApproved',
+    component: 'Switch',
+    componentProps: {
+      checkedChildren: t('common.status.approved'),
+      unCheckedChildren: t('common.status.notApproved'),
     },
   },
   {
