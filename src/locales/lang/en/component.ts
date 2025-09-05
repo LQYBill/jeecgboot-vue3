@@ -97,7 +97,6 @@ export default {
     moqInput: 'Please enter the MOQ',
     orderSelectModeInputSearch: "Choose an order selection mode",
     ordersSelectSearch: "Select orders",
-    paidAmountInput: "Please enter the paid amount",
     phoneInput: 'Please enter a phone number',
     platformOrderID: 'Select a Platform Order ID',
     platformOrderIDFilter: 'Filter Platform Order ID',

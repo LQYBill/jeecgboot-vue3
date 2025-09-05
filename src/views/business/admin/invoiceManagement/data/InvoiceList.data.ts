@@ -56,11 +56,6 @@ export const columns: BasicColumn[] = [
     dataIndex: 'finalAmount'
   },
   {
-    title: t("data.invoice.paidAmount"),
-    align:"center",
-    dataIndex: 'paidAmount'
-  },
-  {
     title: t('data.client.currency'),
     align: "center",
     dataIndex: 'currencyId_dictText',

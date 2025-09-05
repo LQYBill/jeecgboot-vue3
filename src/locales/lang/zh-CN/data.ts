@@ -166,7 +166,6 @@ export default {
     orderList: "订单列表",
     orderTime: "订单交易时间",
     paid: "已付费",
-    paidAmount: "已付金额",
     platformOrderID: "平台订单号码",
     platformOrderIDMabang: "平台订单ID(马帮订单号)",
     platformOrderContentList: "平台订单内容内嵌列表",
