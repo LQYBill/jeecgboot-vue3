@@ -56,14 +56,6 @@ export const columns: BasicColumn[] = [
 
   },
   {
-    title: t('data.invoice.paidAmount'),
-    align: "center",
-    dataIndex: 'paidAmount',
-    slots: {customRender: 'paidAmount'},
-    defaultHidden: true,
-    //sorter: (a:any, b:any) => a.paidAmount - b.paidAmount,
-  },
-  {
     title: t('data.transaction.paymentProof'),
     align: "center",
     dataIndex: 'paymentDocumentString',
@@ -217,33 +209,6 @@ export const formSchema: FormSchema[] = [
         },
       ];
     }
-  },
-  {
-    label: t('data.invoice.paidAmount'),
-    field: 'paidAmount',
-    slot: 'paidAmount',
-    component: 'InputNumber',
-    show: false,
-    componentProps :{
-      min: 0,
-      precision: 2
-    },
-    dynamicRules: ({model}) => {
-      return [
-        {
-          required: true,
-          validator: (_, value) => {
-            console.log(value, 'value')
-            console.log(model, 'model')
-            if(value >= 0 && value <= model.finalAmount) {
-              return Promise.resolve();
-            }
-            return Promise.reject(t('component.searchForm.paidAmountInput'))
-          }
-        },
-        // message: t('component.searchForm.paidAmountInput')
-      ];
-    },
   },
   {
     label: t('data.transaction.paymentProof'),

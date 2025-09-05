@@ -100,7 +100,6 @@ export default {
     moqInput: '请输入最小起订量',
     orderSelectModeInputSearch: "请选择订单选择模式",
     ordersSelectSearch: "请选择订单",
-    paidAmountInput: "请输入已付金额",
     phoneInput: '请输入电话号码',
     platformOrderID: '请选择平台订ID',
     platformOrderIDFilter: '按平台订ID查看',

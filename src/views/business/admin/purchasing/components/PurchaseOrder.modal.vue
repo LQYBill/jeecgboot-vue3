@@ -2,12 +2,6 @@
   <BasicModal v-bind="$attrs" @register="registerModal" destroyOnClose :title="title" :width="800"
               @ok="handleSubmit">
     <BasicForm v-if="!isOrder" @register="registerForm">
-      <template #paidAmount="{model, field}">
-        <div class="flex flex-row ">
-          <a-input-number v-model:value="model[field]" :placeholder="t('data.invoice.paidAmount')" :min="0" :precision="2" class="w-10/12"/>
-          <a-button  v-if="isUpdate && showFooter" type="primary" @click="autofill(model)">Auto-fill</a-button>
-        </div>
-      </template>
     </BasicForm>
     <div v-else class="">
       <ul class="flex flex-col rounded-md overflow-hidden">
@@ -105,7 +99,6 @@ async function submitPurchaseOrder() {
   try {
     let values = await validate();
     setModalProps({confirmLoading: true});
-    delete values.paidAmount;
     const { invoiceNumber, clientId, paymentApproved } = values;
     if (!props.canApprove) {
       delete values.paymentApproved;
@@ -151,11 +144,6 @@ function handleCreateMabangPurchaseOrder(data:any) {
   results.value = data;
   closeModal();
   emit('success', results.value);
-}
-function autofill(model) {
-  setFieldsValue({
-    paidAmount: model.finalAmount,
-  });
 }
 </script>
 

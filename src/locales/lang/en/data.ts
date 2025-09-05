@@ -165,7 +165,6 @@ export default {
     orderList: "Order List",
     orderTime:"Order Time",
     paid: "Paid",
-    paidAmount: "Paid Amount",
     platformOrderID: "Platform Order ID",
     platformOrderIDMabang: "Platform Order ID (Mabang Order Number)",
     platformOrderContentList: "List of platform order content",

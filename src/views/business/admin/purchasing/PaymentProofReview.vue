@@ -84,12 +84,6 @@
     </template>
   </span>
       </template>
-
-      <template #paidAmount="{record}">
-        <span :class="`${record?.paidAmount <= 0 ? 'number--error' : (record?.paidAmount) < (record?.finalAmount) ? 'number--warning' : 'number--ok'} ${record.status === 0 ? 'line-through' : ''}`" class="number">
-          {{ record?.paidAmount }}
-        </span>
-      </template>
       <template #paymentApproved="{ record }">
         <a-tag v-if="record?.paymentApproved === true || record?.paymentApproved === 1" class="ant-tag-success">
           {{ t('common.status.approved') }}
@@ -223,7 +217,7 @@ const {tableContext} = useListPage({
         }
         for(let i = 0; i < selectedRows.length; i++) {
           let row = selectedRows[i];
-          if(row.paidAmount !== row.finalAmount || !row.paymentDocumentString || row.ordered) {
+          if(!row.paymentApproved || !row.paymentDocumentString || row.ordered) {
             createOrderDisabled.value = true;
             return;
           }
