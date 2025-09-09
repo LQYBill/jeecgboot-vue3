@@ -117,6 +117,7 @@ export default {
     zhNameInput: '请输入中文名',
   },
   table: {
+    legend: '表格图例',
     settingDens: '密度',
     settingDensDefault: '默认',
     settingDensMiddle: '中等',
