@@ -1,3 +1,5 @@
+import {CurrencyEnum} from "@/views/business/enum";
+
 export interface Client {
   id: string;
   surname: string;
@@ -5,4 +7,10 @@ export interface Client {
   internalCode: string;
   invoiceEntity: string;
   email: string;
+  useBalance: boolean;
+  currency: CurrencyEnum
+  isCompleteInvoice: "0" | "1";
+  isChronologicalOrder: "0" | "1";
+  displayBalance: boolean;
+  receiveInvoiceByEmail: boolean;
 }

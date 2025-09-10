@@ -128,10 +128,29 @@ export const columns: BasicColumn[] = [
     dataIndex: 'isChronologicalOrder_dictText',
   },
   {
-    title: t('data.client.clientCategoryId'),
+    title: t('data.client.useBalance'),
     align: 'center',
-    dataIndex: 'clientCategoryId_dictText',
+    dataIndex: 'useBalance',
+    customRender: ({ value }: {value: boolean}) => {
+      return value ? t('common.yes') : t('common.no');
+    },
   },
+  {
+    title: t('data.client.displayBalance'),
+    align: 'center',
+    dataIndex: 'displayBalance',
+    customRender: ({ value }: {value: boolean}) => {
+      return value ? t('common.yes') : t('common.no');
+    },
+  },
+  {
+    title: t('data.client.receiveInvoiceByEmail'),
+    align: 'center',
+    dataIndex: 'receiveInvoiceByEmail',
+    customRender: ({ value }: {value: boolean}) => {
+      return value ? t('common.yes') : t('common.no');
+    },
+  }
 ];
 //表单数据
 export const formSchema: FormSchema[] = [
@@ -304,17 +323,6 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.client.clientCategoryId'),
-    field: 'clientCategoryId',
-    component: 'JDictSelectTag',
-    componentProps: {
-      dictCode: 'client_category,name,id',
-    },
-    dynamicRules: () => {
-      return [{ required: true, message: t('common.inputText') + t('data.client.clientCategoryId') + '!' }];
-    },
-  },
-  {
     label: t('data.client.useBalance'),
     field: 'useBalance',
     component: 'Switch',
@@ -323,8 +331,30 @@ export const formSchema: FormSchema[] = [
       checkedChildren: t('common.yes'),
       unCheckedChildren: t('common.no'),
     },
-    colProps: { span: 20 },
+    colProps: { span: 12 },
     show: true,
+  },
+  {
+    label: t('data.client.displayBalance'),
+    field: 'displayBalance',
+    component: 'Switch',
+    defaultValue: true,
+    componentProps: {
+      checkedChildren: t('common.yes'),
+      unCheckedChildren: t('common.no'),
+    },
+    colProps: { span: 12 },
+  },
+  {
+    label: t('data.client.receiveInvoiceByEmail'),
+    field: 'receiveInvoiceByEmail',
+    component: 'Switch',
+    defaultValue: true,
+    componentProps: {
+      checkedChildren: t('common.yes'),
+      unCheckedChildren: t('common.no'),
+    },
+    colProps: { span: 12 },
   },
   // TODO 主键隐藏字段，目前写死为ID
   {
@@ -487,13 +517,4 @@ export const superQuerySchema = {
   isCompleteInvoice: { title: t('data.client.isCompleteInvoice'), order: 20, view: 'radio', type: 'string' },
   balanceThreshold: { title: t('data.client.balanceThreshold'), order: 21, view: 'number', type: 'number' },
   isChronologicalOrder: { title: t('data.client.isChronologicalOrder'), order: 22, view: 'radio', type: 'string' },
-  clientCategoryId: {
-    title: t('data.client.clientCategoryId'),
-    order: 23,
-    view: 'list',
-    type: 'string',
-    dictTable: 'client_category',
-    dictCode: 'id',
-    dictText: 'name',
-  },
 };

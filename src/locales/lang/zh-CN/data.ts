@@ -40,6 +40,8 @@ export default {
     isChronologicalOrder: "是否按订单时间顺序自动开票",
     clientCategoryId: "客户类型",
     useBalance: "是否使用余额",
+    displayBalance: "是否显示余额",
+    receiveInvoiceByEmail: "是否通过邮件接收发票",
   },
   erpStatus: {
     pending: "待处理",
@@ -268,7 +270,6 @@ export default {
     showBalance: "是否显示账户余额",
     balanceThreshold: "余额阈值",
     isAutoInvoice: "是否定时自动开票",
-    isChronologicalOrder: "是否按订单时间顺序开票",
     isBreakdownInvoice: "是否每周五系统统一开票",
     isCompleteInvoice: "是否每周五开P+L发票",
     canSelfInvoice: "是否客户可以自己开票",
@@ -281,8 +282,6 @@ export default {
     hasOptions: "是否有选项",
     help: {
       balanceThreshold: "默认值为-1: 不限制。0: 余额为0时不允许下单。大于0: 余额不能小于-XX",
-      isChronologicalOrder1: "需要启用'是否定时自动开票'和'是否使用余额'选项, '余额阈值'值大于0时才生效。",
-      isChronologicalOrder2: "如果启用，订单将按时间顺序开票，否则系统将开具第一个可开票的订单。需要进一步信息请联系管理员。",
       isCompleteInvoice: "如果启用，系统将每周五开具P+L发票，否则只开物流发票。",
       isSelfIgnoreStock: "如果启用，开7号票时，所有有库存的订单只会算物流费。",
       configure: "别忘记配置店铺选项。店铺选项的作用是控制店铺的开票方式、是否使用余额、是否显示账户余额等。",

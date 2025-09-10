@@ -1,6 +1,6 @@
-export type Currency = 'EUR' | 'USD' | 'RMB';
-export const currencyToken = {
-  EUR: '€',
-  USD: '$',
-  RMB: '¥',
+export interface Currency {
+  id: string;
+  code: string;
+  zhName: string;
+  enName: string;
 }

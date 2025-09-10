@@ -107,7 +107,7 @@
           :precision="2"
         >
           <template #addonAfter v-if="currentClient">
-            {{ currencyToken.EUR }}
+            {{ CurrencyToken.EUR }}
           </template>
         </a-input-number>
       </a-form-item>
@@ -131,7 +131,7 @@
     </a-form>
     <a-divider></a-divider>
     <div>
-      <span class="font-semibold text-lg">Total</span> : {{ (formState.quantity * formState.unitPrice).toFixed(2) }}{{ !!currentClient ? currencyToken[shopMappedByClient[currentClient].currency] : '' }}
+      <span class="font-semibold text-lg">Total</span> : {{ (formState.quantity * formState.unitPrice).toFixed(2) }}{{ !!currentClient ? CurrencyToken[shopMappedByClient[currentClient].currency] : '' }}
     </div>
   </BasicModal>
 </template>
@@ -148,9 +148,8 @@ import {
 } from "@/views/business/admin/additionalFees/data";
 import { ShopByClient } from "@/views/business/dto/shop.dto";
 import { useMessage } from "@/hooks/web/useMessage";
-import type { ExtraFeesOption } from "@/views/business/dto/extraFeesOption.dto";
-import { JSearchSelectOption } from "@/views/business/dto/JSearchSelectOption.dto";
-import {currencyToken} from "../../../dto/currency.dto";
+import { ExtraFeesOption, JSearchSelectOption } from "@/views/business/dto";
+import {CurrencyToken} from "@/views/business/enum";
 
 const { t } = useI18n();
 const { createMessage } = useMessage();

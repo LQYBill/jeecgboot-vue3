@@ -36,12 +36,6 @@ export const columns: BasicColumn[] = [
     helpMessage: t('data.shopOptions.help.isCompleteInvoice'),
   },
   {
-    title: t('data.shopOptions.isChronologicalOrder'),
-    align: "center",
-    dataIndex: 'isChronologicalOrder',
-    helpMessage: [t('data.shopOptions.help.isChronologicalOrder1'), t('data.shopOptions.help.isChronologicalOrder2')],
-  },
-  {
     title: t('data.shopOptions.canSelfInvoice'),
     align: "center",
     dataIndex: 'canSelfInvoice',
@@ -126,7 +120,6 @@ export const formSchema: FormSchema[] = [
         onChange: (checked: boolean, _e: Event) => {
           if (!checked && !formModel.isBreakdownInvoice) {
             formModel.isCompleteInvoice = false;
-            formModel.isChronologicalOrder = false;
           }
         }
       }
@@ -150,7 +143,6 @@ export const formSchema: FormSchema[] = [
         onChange: (checked: boolean, _e: Event) => {
           if (!checked && !formModel.isAutoInvoice) {
             formModel.isCompleteInvoice = false;
-            formModel.isChronologicalOrder = false;
           }
         }
       }
@@ -179,25 +171,6 @@ export const formSchema: FormSchema[] = [
     },
     dynamicDisabled: ({model}) => {
       return !(model.isBreakdownInvoice || model.isAutoInvoice);
-    }
-  },
-  {
-    label: t('data.shopOptions.isChronologicalOrder'),
-    field: 'isChronologicalOrder',
-    colProps: {span: 8},
-    component: 'Switch',
-    componentProps: {
-      checkedChildren: t('common.yes'),
-      unCheckedChildren: t('common.no'),
-    },
-    defaultValue: false,
-    dynamicRules: () => {
-      return [
-        {required: true, message: t('component.form.required')},
-      ];
-    },
-    dynamicDisabled: ({model}) => {
-      return !(model.isAutoInvoice || model.isBreakdownInvoice);
     }
   },
   {

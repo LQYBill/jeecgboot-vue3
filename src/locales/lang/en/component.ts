@@ -116,6 +116,7 @@ export default {
     zhNameInput: 'Please enter a Chinese name',
   },
   table: {
+    legend: 'Table legend',
     settingDens: 'Density',
     settingDensDefault: 'Default',
     settingDensMiddle: 'Middle',

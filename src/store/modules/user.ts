@@ -85,6 +85,9 @@ export const useUserStore = defineStore({
     getTenant(): string | number {
       return this.tenantid || getAuthCache<string | number>(TENANT_ID);
     },
+    getIsEmployee(): boolean {
+      return this.getUserInfo.orgCode === useGlobSetting().orgCode;
+    }
   },
   actions: {
     setToken(info: string | undefined) {

@@ -145,6 +145,7 @@ export default {
     accountSecurity: '账号安全',
     contactInformation: '联系信息',
     myInformation: '个人信息',
+    preferences: '偏好设置',
     detailedInformation: '详细资料',
     jobTitle: '职位',
     name: '姓名',

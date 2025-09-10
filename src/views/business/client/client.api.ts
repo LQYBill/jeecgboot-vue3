@@ -1,5 +1,6 @@
 export enum Api {
   getClient = '/userClient/getClient',
+  getClientTransactionCurrencies = '/transaction/getAllCurrenciesByClient',
   getBalance= '/balance/getBalanceByClientIdAndCurrency',
   getShops = '/shippingInvoice/shopsByClient',
   getSelfInvoiceShops = '/shippingInvoice/selfInvoiceShopsByClient',

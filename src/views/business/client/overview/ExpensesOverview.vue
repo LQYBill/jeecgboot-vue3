@@ -27,366 +27,57 @@
       </a-form>
       <a-card class="card-header" v-if="client">
         <h1>{{ fullName }} <span style="font-weight: 200">( {{ invoiceEntity }} )</span></h1>
-        <p>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ currencySymbol }}</p>
+        <p>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ CurrencyToken[currency] }}</p>
       </a-card>
-      <a-tabs defaultActiveKey="1" v-model:activeKey="activeTab" style="margin: 10px" v-if="client">
-        <a-tab-pane tab="EUR" key="1">
-          <BasicTable @register="registerTable">
-            <template #tableTitle>
-              <div style="width: 100%" v-if="client.category != 'self-service'">
-                <a-row class="balance-row">
-                  <p>
-                    {{ t('data.client.accountBalance') }} :
-                  </p>
-                  <h1>
-                    {{ balanceEur }} €
-                  </h1>
-                  <p>
-                    {{ t('data.client.estimatedBalance') }} :
-                    <Tag
-                      :color="estimatedBalanceEur >= 0 ? 'geekblue' : 'volcano'" class="num-tag balance-estimated"
-                    >
-                      {{ estimatedBalanceEur }} €
-                    </Tag>
-                  </p>
-                </a-row>
-                <a-row class="invoiceToolbar">
-                  <div>
-                    <a-select
-                      v-model:value="selectedYearEur"
-                      @change="handleYearChange"
-                      :options="yearOptionsEur"
-                    ></a-select>
-                  </div>
-                  <div>
-                    <a-switch :checked="editMode" @change="handleEditModeChange">
-                      <template #checkedChildren>
-                        <EditOutlined/>
-                      </template>
-                      <template #unCheckedChildren>
-                        <EditOutlined/>
-                      </template>
-                    </a-switch>
-                  </div>
-                </a-row>
-              </div>
-            </template>
-            <template #date="{ record }">
-              <span :class="record.status === 0 ? 'line-through' : ''">
-                {{ dayjs(record.createTime).isValid() ? dayjs(record.createTime).format('DD/MM').toString() : record.createTime }}
-              </span>
-            </template>
-            <template #transactionType="{ record }">
-              <Tag
-                :color="record.type === TransactionType.CREDIT ? 'green' : 'purple'"
-                :class="record.status === 0 ? 'line-through' : ''"
-              >
-                {{ record.type }}
-              </Tag>
-            </template>
-            <template #invoiceNumber="{ record }">
-              <template v-if="(record.type == TransactionType.DEBIT || record.type == TransactionType.CREDIT) && !!record.invoiceNumber">
-                <a-button
-                  v-if="record.status !== 0"
-                  type="primary"
-                  preIcon="ant-design:eye-outlined"
-                  @click="openInvoice(record)"
-                  shape="round"
-                >
-                  {{ record.invoiceNumber }}
-                </a-button>
-                <span v-else class="line-through text-error">
-                  {{ record.invoiceNumber }}
-                </span>
+      <a-tabs v-if="client && currencyList.length > 0"
+              :defaultActiveKey="1"
+              v-model:activeKey="activeTab"
+              style="margin: 10px"
+              @change="handleTabChange"
+      >
+        <template #rightExtra>
+          <div class="mr-2">
+            <a-switch :checked="editMode" @change="handleEditModeChange">
+              <template #checkedChildren>
+                <EditOutlined/>
               </template>
-            </template>
-            <template #amount="{ record }">
-              <span v-if="record.type == TransactionType.CREDIT" class="positive-balance">
-                +{{ record.amount }}
-              </span>
-              <template v-else>
-                <span v-if="record.createTime == 'Estimation' && estimationLoading">
-                  <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
-                </span>
-                <span v-else :class="record.status === 0 ? 'line-through' : ''">
-                  - {{ record.amount }}
-                </span>
+              <template #unCheckedChildren>
+                <EditOutlined/>
               </template>
-            </template>
-            <template #shippingFee="{ record }">
-              <template v-if="record.createTime == 'Estimation' && estimationLoading">
-                <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
-              </template>
-              <span v-else-if="!!record.shippingFee" :class="record.status === 0 ? 'line-through' : ''">
-                - {{ record.shippingFee }}
-              </span>
-            </template>
-            <template #purchaseFee="{ record }">
-              <template v-if="record.createTime == 'Estimation' && estimationLoading">
-                <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
-              </template>
-              <span v-else-if="!!record.purchaseFee" :class="record.status === 0 ? 'line-through' : ''">
-                - {{ record.purchaseFee }}
-              </span>
-            </template>
-            <template #img="{ text, record }">
-              <TableImg
-                v-if="record.type == TransactionType.CREDIT && !!record.paymentProofString"
-                :size="60"
-                :imgList="[uploadUrl+record.paymentProofString]"
-              />
-              <template v-else-if="record.type == TransactionType.DEBIT && !!record.invoiceNumber">
-                <template v-if="['1', '2', '7'].includes(record.invoiceNumber?.split('-')[2]?.charAt(0))">
-                <template v-if="text">
-                  <div style="display: inline-flex; align-items: center;">
-                    <TableImg :imgList="[uploadUrl + text]" :size="40" />
-                    <JImageUpload
-                      :text="t('component.upload.reUpload')"
-                      :fileMax="1"
-                      listType="picture"
-                      bizPath="purchase_order/screenshots"
-                      @change="e => handleUploadChange(e, record)"
-                    />
-                  </div>
-                </template>
-                <template v-else>
-                  <JImageUpload
-                    :text="t('component.upload.upload')"
-                    :fileMax="1"
-                    listType="picture"
-                    bizPath="purchase_order/screenshots"
-                    @change="e => handleUploadChange(e, record)"
-                  />
-                </template>
-              </template>
-              <template v-else>
-                <span>-</span>
-              </template>
-            </template>
-            </template>
-            <template #action="{ record }">
-              <TableAction
-                :actions="[
-                  {
-                    label: t('common.operation.cancel'),
-                    icon: 'ic:outline-delete-outline',
-                    popConfirm: {
-                      title: t('common.operation.cancelConfirmation'),
-                      confirm: handleDelete.bind(null, record),
-                    },
-                    disabled: record.createTime === 'Estimation'
-                        || record.type === TransactionType.CREDIT
-                        || (record.createBy !== client?.internalCode && record.createBy !== fullName)
-                        || record.createTime < dayjs().subtract(2, 'week').format('YYYY-MM-DD')
-                        || record.status === 0
-                        || record.ordered === 1,
-                  },
-                ]"
-              />
-            </template>
-          </BasicTable>
-        </a-tab-pane>
-        <a-tab-pane tab="USD" key="2" forceRender>
-          <BasicTable @register="registerUSDTable">
-            <template #tableTitle>
-              <div style="width: 100%;" v-if="client.category != 'self-service'">
-                <a-row class="balance-row">
-                  <p>
-                    {{ t('data.client.accountBalance') }} :
-                  </p>
-                  <h1>
-                    {{ balanceUsd }} $
-                  </h1>
-                  <p>
-                    {{ t('data.client.estimatedBalance') }} :
-                    <Tag
-                      :color="estimatedBalanceUsd >= 0 ? 'geekblue' : 'volcano'" class="num-tag balance-estimated"
-                    >
-                      {{ estimatedBalanceUsd }} $
-                    </Tag>
-                  </p>
-                </a-row>
-                <a-row class="invoiceToolbar">
-                  <div>
-                    <a-select
-                      v-model:value="selectedYearUsd"
-                      @change="handleYearChange"
-                      :options="yearOptionsUsd"
-                    ></a-select>
-                  </div>
-                  <div>
-                    <a-switch :checked="editMode" @change="handleEditModeChange">
-                      <template #checkedChildren>
-                        <EditOutlined/>
-                      </template>
-                      <template #unCheckedChildren>
-                        <EditOutlined/>
-                      </template>
-                    </a-switch>
-                  </div>
-                </a-row>
-              </div>
-            </template>
-            <template #date="{ record }">
-              <span :class="record.status === 0 ? 'line-through' : ''">
-                {{ dayjs(record.createTime).isValid() ? dayjs(record.createTime).format('DD/MM').toString() : record.createTime }}
-              </span>
-            </template>
-            <template #transactionType="{ record }">
-              <Tag
-                :color="record.type === TransactionType.CREDIT ? 'green' : 'purple'"
-                :class="record.status === 0 ? 'line-through' : ''"
-              >
-                {{ record.type }}
-              </Tag>
-            </template>
-            <template #invoiceNumber="{ record }">
-              <template v-if="(record.type == TransactionType.DEBIT || record.type == TransactionType.CREDIT) && !!record.invoiceNumber">
-                <a-button
-                  v-if="record.status !== 0"
-                  type="primary"
-                  preIcon="ant-design:eye-outlined"
-                  @click="openInvoice(record)"
-                  shape="round"
-                >
-                  {{ record.invoiceNumber }}
-                </a-button>
-                <span v-else class="line-through text-error">
-                  {{ record.invoiceNumber }}
-                </span>
-              </template>
-            </template>
-            <template #amount="{ record }">
-              <span v-if="record.type == TransactionType.CREDIT" class="positive-balance">
-                +{{ record.amount }}
-              </span>
-              <template v-else>
-                <span v-if="record.createTime == 'Estimation' && estimationLoading">
-                  <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
-                </span>
-                <span v-else :class="record.status === 0 ? 'line-through' : ''">
-                  - {{ record.amount }}
-                </span>
-              </template>
-            </template>
-            <template #shippingFee="{ record }">
-              <template v-if="record.createTime == 'Estimation' && estimationLoading">
-                <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
-              </template>
-              <template v-else-if="!!record.shippingFee" :class="record.status === 0 ? 'line-through' : ''">
-                - {{ record.shippingFee }}
-              </template>
-            </template>
-            <template #purchaseFee="{ record }">
-              <template v-if="record.createTime == 'Estimation' && estimationLoading">
-                <loading :loading="estimationLoading" :absolute="true" :size="SizeEnum.SMALL"></loading>
-              </template>
-              <template v-else-if="!!record.purchaseFee" :class="record.status === 0 ? 'line-through' : ''">
-                - {{ record.purchaseFee }}
-              </template>
-            </template>
-            <template #img="{ text, record }">
-              <TableImg
-                v-if="record.type==TransactionType.CREDIT && !!record.paymentProofString"
-                :size="60"
-                :imgList="[uploadUrl+record.paymentProofString]"
-              />
-              <template v-else-if="record.type == TransactionType.DEBIT && !!record.invoiceNumber">
-              <template v-if="['1', '2', '7'].includes(record.invoiceNumber?.split('-')[2]?.charAt(0))">
-                <template v-if="text">
-                  <div style="display: inline-flex; align-items: center;">
-                    <TableImg :imgList="[uploadUrl + text]" :size="40" />
-                    <JImageUpload
-                      :text="t('component.upload.reUpload')"
-                      :fileMax="1"
-                      listType="picture"
-                      bizPath="purchase_order/screenshots"
-                      @change="e => handleUploadChange(e, record)"
-                    />
-                  </div>
-                </template>
-                <template v-else>
-                  <JImageUpload
-                    :text="t('component.upload.upload')"
-                    :fileMax="1"
-                    listType="picture"
-                    bizPath="purchase_order/screenshots"
-                    @change="e => handleUploadChange(e, record)"
-                  />
-                </template>
-              </template>
-              <template v-else>
-                <span>-</span>
-              </template>
-            </template>
-            </template>
-            <template #imgs="{ text }">
-              <TableImg
-                v-if="!!text"
-                :size="60"
-                :imgList="[uploadUrl+text]"
-              />
-            </template>
-            <template #action="{ record }">
-              <TableAction
-                :actions="[
-                  {
-                    label: t('common.operation.cancel'),
-                    icon: 'ic:outline-delete-outline',
-                    popConfirm: {
-                      title: t('common.operation.cancelConfirmation'),
-                      confirm: handleDelete.bind(null, record),
-                    },
-                    disabled: record.createTime === 'Estimation'
-                        || record.type === TransactionType.CREDIT
-                        || (record.createBy !== client?.internalCode && record.createBy !== fullName)
-                        || record.createTime < dayjs().subtract(2, 'week').format('YYYY-MM-DD')
-                        || record.status === 0
-                        || record.ordered === 1,
-                  },
-                ]"
-              />
-            </template>
-          </BasicTable>
+            </a-switch>
+          </div>
+        </template>
+        <a-tab-pane v-for="(curr, index) in currencyList" :tab="curr" :key="index+1" forceRender>
+          <ExpensesTable
+            :client="client"
+            :currency="curr"
+            @colorize="colorizeEmit"
+            :isEdit="editMode"
+          />
         </a-tab-pane>
       </a-tabs>
+      <a-skeleton v-else active/>
     </a-card>
   </PageWrapper>
 </template>
 <script lang="ts" setup>
 
-import {onBeforeMount, onUnmounted, reactive, ref} from "vue";
-import BasicTable from "/@/components/Table/src/BasicTable.vue";
-import {TableAction, TableImg, useTable} from "/@/components/Table";
+import {onBeforeMount, reactive, ref} from "vue";
 import {PageWrapper} from '/@/components/Page';
-import {Form, Tag} from "ant-design-vue";
-import {actionColumn, getColumns} from "/@/views/business/client/overview/data";
-import { EditOutlined } from '@ant-design/icons-vue';
+import {Form} from "ant-design-vue";
 
 import {useI18n} from "/@/hooks/web/useI18n";
 import {defHttp} from "/@/utils/http/axios";
-import {useMessage} from "/@/hooks/web/useMessage";
 
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
-import JImageUpload from '/@/components/Form/src/jeecg/components/JImageUpload.vue';
-import dayjs from "dayjs";
-import {useGlobSetting} from "/@/hooks/setting";
-import {useRouter} from 'vue-router';
-import {Currency} from "@/views/business/dto/currency.dto";
-import {Loading} from "@/components/Loading";
-import {SizeEnum} from "@/enums/sizeEnum";
+import type {Client, Currency, ShopOptions} from "@/views/business/dto";
+import {CurrencyEnum, CurrencyToken, TransactionType} from "@/views/business/enum";
 
-import { Api } from "../client.api";
-import {JSelectMultipleOptions} from "@/views/business/dto";
+import {Api} from "../client.api";
+import ExpensesTable from "@/views/business/client/overview/components/ExpensesTable.vue";
+import {EditOutlined} from "@ant-design/icons-vue";
 
 const { t } = useI18n();
-const { createMessage } = useMessage();
-const globSetting = useGlobSetting();
-const baseUploadUrl = globSetting.uploadUrl;
-const uploadUrl = `${baseUploadUrl}/sys/common/static/`;
-const {resolve}=useRouter();
-const ac = new AbortController();
-const {signal} = ac;
 
 const internalUse = ref<boolean>(false);
 
@@ -397,13 +88,6 @@ const estimationColor = "#F0F5FF";
 onBeforeMount(()=> {
   checkUser();
 });
-onUnmounted(() => {
-  ac.abort(t('sys.api.abortController.onUnmount'));
-})
-const TransactionType = {
-  CREDIT: 'Credit',
-  DEBIT: 'Debit',
-};
 // Form config
 const useForm = Form.useForm;
 const formRef = ref();
@@ -417,100 +101,20 @@ const formState = reactive<Record<string, any>>({
 });
 const { validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
-const customerList = ref<Record<string, string | number>[]>([]);
+const customerList = ref<Client[]>([]);
 const customerSelectList = ref<any[]>([]);
 const customerListDisabled = ref<boolean>(false);
 
-const selectedYearEur = ref<string>(dayjs().year().toString());
-const selectedYearUsd = ref<string>(dayjs().year().toString());
-const yearOptionsEur = ref<JSelectMultipleOptions[]>([]);
-const yearOptionsUsd = ref<JSelectMultipleOptions[]>([]);
+const client = ref<Client>();
 
-const client = ref<Record<string, string | number>>();
 const currency = ref<string>();
 const fullName = ref<string>();
 const invoiceEntity = ref<string>();
-const currencySymbol = ref<string>();
-const balanceEur = ref(0);
-const balanceUsd = ref(0);
-const estimatedBalanceEur = ref(0);
-const estimatedBalanceUsd = ref(0);
+const shopOptions = ref<Record<string, ShopOptions>>({});
+const currencyList = ref<CurrencyEnum[]>([]);
 
-const invoiceDisabled = ref<boolean>(true);
-const invoiceLoading = ref<boolean>(false);
-const completeInvoiceDisabled = ref<boolean>(true);
-const completeInvoiceLoading = ref<boolean>(false);
-
-const activeTab = ref('1');
-const eurTableLoading = ref<boolean>(true);
-const usdTableLoading = ref<boolean>(true);
-const estimationLoading = ref<boolean>(true);
-
+const activeTab = ref(1);
 const editMode = ref(false);
-
-const transactionsEur = ref<any[]>([]);
-const transactionsUsd = ref<any[]>([]);
-const debit = ref();
-const shopIds = ref<any[]>([]);
-const startDate = ref();
-const endDate = ref();
-
-const ipagination = reactive({
-  current: 1,
-  pageSize: 100,
-  pageSizeOptions: ['50', '100'],
-  showQuickJumper: true,
-  showSizeChanger: true,
-  total: 0,
-  showTotal: (total:number, range: number[]) => {
-    return range[0] + '-' + range[1] + ' of ' + total + ' items';
-  },
-});
-const usdIpagination = reactive({
-  current: 1,
-  pageSize: 100,
-  pageSizeOptions: ['50', '100'],
-  showQuickJumper: true,
-  showSizeChanger: true,
-  total: 0,
-  showTotal: (total: number, range: number[]) => {
-    return range[0] + '-' + range[1] + ' of ' + total + ' items';
-  },
-});
-const [registerTable, ] = useTable({
-  dataSource: transactionsEur,
-  columns: getColumns(),
-  pagination: ipagination,
-  bordered: false,
-  striped: true,
-  showIndexColumn: false,
-  indexColumnProps: {
-    width: 60,
-    title: "#"
-  },
-  rowKey: 'id',
-  loading: eurTableLoading,
-  scroll: {y: false},
-  actionColumn,
-  showActionColumn: editMode,
-});
-const [registerUSDTable] = useTable({
-  dataSource: transactionsUsd,
-  columns: getColumns(),
-  pagination: usdIpagination,
-  bordered: false,
-  striped: true,
-  showIndexColumn: false,
-  indexColumnProps: {
-    width: 60,
-    title: "#"
-  },
-  rowKey: 'id',
-  loading: usdTableLoading,
-  scroll: {y: false},
-  actionColumn,
-  showActionColumn: editMode,
-});
 async function checkUser() {
   defHttp.get({url: Api.getClient})
     .then(res => {
@@ -532,242 +136,60 @@ async function checkUser() {
       console.error(e);
     })
 }
-function handleClientChange(id: any) {
-  if(!!client.value && client.value.length > 0) {
-    ac.abort(t('sys.api.abortController.userCancel'));
-  }
+function handleClientChange(id?: string) {
   client.value = undefined;
-  shopIds.value = [];
-  startDate.value = '';
-  endDate.value = '';
+  shopOptions.value = {};
+  currencyList.value = [];
   currency.value = '';
-  currencySymbol.value = '';
   fullName.value = '';
-  balanceEur.value = 0;
-  balanceUsd.value = 0;
-  estimatedBalanceEur.value = 0;
-  estimatedBalanceUsd.value = 0;
   invoiceEntity.value = '';
-  transactionsEur.value = [];
-  transactionsUsd.value = [];
-  debit.value = [];
-  eurTableLoading.value = true;
-  usdTableLoading.value = true;
-  invoiceDisabled.value = true;
-  invoiceLoading.value = false;
-  completeInvoiceDisabled.value = true;
-  completeInvoiceLoading.value = false;
+  activeTab.value = 1;
   const customer = customerList.value.find(c => c.id === id);
   if(!customer) {
-    createMessage.error(t('data.client.clientNotFound'));
     return;
   }
   loadClient(customer);
 }
-function loadClient(clientParam: Record<string, string | number>) {
+async function loadClient(clientParam: Client) {
   client.value = clientParam;
-  client.value["category"] = client.value.clientCategoryId;
-  delete client.value['clientCategoryId'];
   currency.value = client.value.currency as string;
   fullName.value = `${client.value.firstName} ${client.value.surname}`
   invoiceEntity.value = client.value.invoiceEntity as string;
-  if(currency.value === 'EUR') {
-    currencySymbol.value = "€";
-  }
-  if(currency.value === 'USD') {
-    currencySymbol.value = "$";
-  }
-  if(currency.value === 'RMB') {
-    currencySymbol.value = "¥";
-  }
-  if(client.value.category != 'self-service')
-    loadBalance();
-  loadTransactions("EUR");
+  await loadAllTransactionCurrencies();
+  await loadShopOptions();
 }
-function loadBalance() {
-  defHttp.get({url: Api.getBalance, params: {clientId: client.value?.id, currency: "EUR"}, signal: signal})
-    .then(res => {
-      balanceEur.value = res;
-    })
-    .catch(e => {
-      if(signal.aborted) {
-        const {reason} = signal;
-        console.warn(`Http request aborted : ${reason}`);
-        createMessage.warn(reason);
-      }
-      else {
-        console.error(e);
-      }
-    })
-  defHttp.get({url: Api.getBalance, params: {clientId: client.value?.id, currency: "USD"}, signal: signal})
-    .then(res => {
-      balanceUsd.value = res;
-    })
-    .catch(e => {
-      if(signal.aborted) {
-        const {reason} = signal;
-        console.warn(`Http request aborted : ${reason}`);
-        createMessage.warn(reason);
-      }
-      else {
-        console.error(e);
-      }
-    })
-}
-function loadTransactions(currency: Currency) {
+async function loadAllTransactionCurrencies() {
   const params = {
     clientId: client.value?.id as string,
-    currency: currency,
-    year: currency === "EUR" ? selectedYearEur.value : selectedYearUsd.value,
-  }
-  if(currency === "EUR") {
-    eurTableLoading.value = true;
-  } else {
-    usdTableLoading.value = true;
-  }
-  loadAvailableYears(params);
-  defHttp.get({ url: Api.listTransactions, params, signal: signal })
-    .then(res => {
-      //TODO : add condition client type 1,2,3
-      if(currency === "EUR") {
-        transactionsEur.value = res;
-        loadTransactions("USD");
-      }
-      else {
-        transactionsUsd.value = res;
-        if(client.value?.category != 'self-service')
-          loadDebit(client.value?.currency as Currency);
-        else {
-          colorizeRows();
-        }
-      }
-    })
-    .catch(e => {
-      if(signal.aborted) {
-        const {reason} = signal;
-        console.warn(`Http request aborted : ${reason}`);
-        createMessage.warn(reason);
-      }
-      else {
-        console.error(e);
-      }
-    })
-    .finally(() => {
-      if(currency === "EUR") {
-        eurTableLoading.value = false;
-      } else {
-        usdTableLoading.value = false;
-      }
+  };
+  await defHttp.get({url: Api.getClientTransactionCurrencies, params: params})
+    .then( (res: Currency[]) => {
+      const currencies = res.map(c => c.code as CurrencyEnum);
+      const sortedCurrencies = [currencies.find(c => c === currency.value as CurrencyEnum) as CurrencyEnum].concat(
+        currencies.filter(c => c !== currency.value)
+      );
+      currencyList.value = sortedCurrencies;
     });
 }
-function loadAvailableYears(params: {clientId: string, currency: Currency}) {
-  defHttp.get({url: Api.findEarliestInvoiceYear, params: params, signal: signal})
-    .then((res: number) => {
-      if(params.currency === "EUR") {
-        yearOptionsEur.value = [];
-        for(let year = dayjs().year(); year >= res; year--) {
-            yearOptionsEur.value.push({label: year.toString(), value: year.toString()});
-        }
-      }
-      else {
-        yearOptionsUsd.value = [];
-        for(let year = dayjs().year(); year >= res ; year--) {
-            yearOptionsUsd.value.push({label: year.toString(), value: year.toString()});
-        }
-      }
+async function loadShopOptions() {
+  const params = {
+    clientID: client.value!.id
+  };
+  await defHttp.get({url: Api.getShopOptions, params})
+    .then( res => {
+      shopOptions.value = res;
     })
     .catch(e => {
       console.error(e);
     });
-
-}
-function loadDebit(currency: Currency) {
-  estimationLoading.value = true;
-  debit.value = {
-    id: '0',
-    createTime: 'Estimation',
-    type: TransactionType.DEBIT,
-    clientId: `${client.value?.id}`,
-    paymentProofString: '',
-    invoiceNumber: '',
-    shippingFee: 0,
-    purchaseFee: 0,
-    amount: 0,
-    currency: currency
-  }
-  if(currency === "EUR") {
-    transactionsEur.value.unshift(debit.value);
-  } else {
-    transactionsUsd.value.unshift(debit.value);
-  }
-  colorizeRows();
-  defHttp.get({url: Api.debit, params: { clientId: client.value?.id, currency: currency }, signal: signal})
-    .then(res => {
-      debit.value = {
-        id: '0',
-        createTime: 'Estimation',
-        type: TransactionType.DEBIT,
-        clientId: `${client.value?.id}`,
-        paymentProofString: '',
-        invoiceNumber: '',
-        shippingFee: res.shippingFeesEstimation,
-        purchaseFee: res.purchaseEstimation,
-        amount: res.totalEstimation,
-        currency: currency
-      };
-      // ajout de la ligne de début au début du tableau
-      if(currency === "EUR") {
-        transactionsEur.value[0] = debit.value;
-        estimatedBalanceEur.value = balanceEur.value - debit.value.amount;
-        estimatedBalanceUsd.value = balanceUsd.value;
-      }
-      else {
-        transactionsUsd.value[0] = debit.value;
-        estimatedBalanceUsd.value = balanceUsd.value - debit.value.amount;
-        estimatedBalanceEur.value = balanceUsd.value;
-      }
-      estimatedBalanceEur.value = Number(estimatedBalanceEur.value.toFixed(2));
-      estimatedBalanceUsd.value = Number(estimatedBalanceUsd.value.toFixed(2));
-
-      shopIds.value = res.shopIds;
-      startDate.value = res.startDate;
-      endDate.value = res.endDate;
-      invoiceDisabled.value = false;
-      completeInvoiceDisabled.value = !res.isCompleteInvoiceReady;
-    })
-    .catch(e=> {
-      if(signal.aborted) {
-        const {reason} = signal;
-        console.warn(`Http request aborted : ${reason}`);
-        createMessage.warn(reason);
-      }
-      else {
-        console.error(e);
-      }
-    })
-    .finally(() => {
-      estimationLoading.value = false;
-      colorizeRows();
-    });
-}
-
-function handleYearChange(year: string) {
-  if(activeTab.value === '1') {
-    selectedYearEur.value = year;
-    loadTransactions('EUR');
-  } else {
-    selectedYearUsd.value = year;
-    loadTransactions('USD');
-  }
-}
-function openInvoice(record) {
-  const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
-  window.open(invoicePreviewRoute.href, '_blank');
 }
 
 /**
  * colorize debit and credit rows for better visibility
  */
+function colorizeEmit() {
+  colorizeRows();
+}
 function colorizeRows() {
   let rows = Array.from(document.getElementsByClassName('ant-table-row-level-0') as HTMLCollectionOf<HTMLElement>);
   [].forEach.call(rows, function(row: HTMLElement) {
@@ -788,55 +210,11 @@ function colorizeRows() {
       children[0].style.borderLeftWidth = "5px";
     }
   });
-  eurTableLoading.value = false;
-  usdTableLoading.value = false;
-}
-function handleDelete(record: Recordable) {
-  if(activeTab.value === '1')
-    eurTableLoading.value = true;
-  else
-    usdTableLoading.value = true;
-  defHttp.delete({ url: Api.cancelInvoice, data: { id: record.id, invoiceNumber: record.invoiceNumber, clientId: record.clientId } }, { joinParamsToUrl: true }).then(()=> {
-
-  }).catch(e =>{
-    console.error(e);
-  }).finally(() => {
-    if(activeTab.value === '1') {
-      loadTransactions('EUR')
-      eurTableLoading.value = false;
-    }
-    else {
-      loadTransactions('USD');
-      usdTableLoading.value = false;
-    }
-  });
 }
 function handleEditModeChange(checked: boolean) {
   editMode.value = checked;
   if(checked)
     colorizeRows();
-}
-function handleUploadChange(imgPath, record) {
-  if (!imgPath) {
-    createMessage.error('Upload failed, no valid path returned');
-    return;
-  }
-  const params = {
-    invoiceNumber: record.invoiceNumber,
-    paymentProofString: imgPath,
-  };
-  defHttp.post({
-    url: Api.uploadPaymentProofAndNotify,
-    data: params,
-    headers: { 'Content-Type': 'application/json' },
-  })
-    .then(() => {
-      record.paymentProofString = imgPath;
-      loadTransactions('EUR');
-    })
-    .catch(() => {
-      createMessage.error('Save failed, please try again');
-    });
 }
 </script>
 

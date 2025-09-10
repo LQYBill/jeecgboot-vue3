@@ -153,6 +153,7 @@ export interface GlobConfig {
   urlPrefix?: string;
   // Project abbreviation
   shortName: string;
+  orgCode: string;
 }
 export interface GlobEnvConfig {
   // Site title
@@ -175,4 +176,6 @@ export interface GlobEnvConfig {
   VITE_GLOB_UPLOAD_URL?: string;
   // view url
   VITE_GLOB_ONLINE_VIEW_URL?: string;
+  // wia org code
+  VITE_GLOB_ORG_CODE: string;
 }
