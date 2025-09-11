@@ -1,6 +1,6 @@
 import {defHttp} from "@/utils/http/axios";
 import {useI18n} from "@/hooks/web/useI18n";
-import {JSearchSelectOption} from "@/views/business/dto/JSearchSelectOption.dto";
+import {JSearchSelectOption} from "@/views/business/dto";
 import {downloadFile} from "@/api/common/api";
 import {ref} from "vue";
 

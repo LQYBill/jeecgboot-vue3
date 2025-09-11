@@ -3,14 +3,10 @@
     <div ref="wrapperRef" class="user-account-setting" :class="[prefixCls]">
       <Tabs tab-position="left" :tabBarStyle="tabBarStyle" @tabClick="componentClick" v-model:activeKey="activeKey">
         <template v-for="item in componentList" :key="item.key">
-          <TabPane>
+          <TabPane v-if="canView(item.role)" :key="item.key">
             <template #tab>
                 <span style="display:flex;align-items: center;cursor: pointer">
-                  <!--<Icon :icon="item.icon" class="icon-font-color"/>-->
-                  <span style="width: 30px">
-                    <img v-if="activeKey === item.key || isDark" :src="item.img2" style="height: 18px"/>
-                    <img v-else :src="item.img1" style="height: 16px"/>
-                  </span>
+                  <Icon :icon="item.icon" class="icon-font-color"/>
                   {{item.name}}
                 </span>
             </template>
@@ -24,25 +20,30 @@
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, onMounted, provide, computed } from "vue";
-import { Tabs } from "ant-design-vue";
-import { ScrollContainer } from "/@/components/Container";
-import { settingList } from "./UserSetting.data";
+import {computed, defineComponent, onMounted, ref} from "vue";
+import {Tabs} from "ant-design-vue";
+import {ScrollContainer} from "/@/components/Container";
+import {settingList} from "./UserSetting.data";
 import BaseSetting from "./BaseSetting.vue";
 import AccountSetting from "./AccountSetting.vue";
-import TenantSetting from "./TenantSetting.vue";
-import WeChatDingSetting from './WeChatDingSetting.vue';
-import { useRouter } from "vue-router";
-import { useDesign } from '/@/hooks/web/useDesign';
+import PreferencesSetting from "./PreferencesSetting.vue";
+import {useRouter} from "vue-router";
+import {useDesign} from '/@/hooks/web/useDesign';
 import {useRootSetting} from "/@/hooks/setting/useRootSetting";
 import {ThemeEnum} from "/@/enums/appEnum";
+import {Icon} from "@/components/Icon";
+import {useUserStore} from "@/store/modules/user";
+import {RoleEnum} from "@/views/business/enum/RoleEnum";
+
 export default defineComponent({
   components: {
+    Icon,
     ScrollContainer,
     Tabs,
     TabPane: Tabs.TabPane,
     BaseSetting,
     AccountSetting,
+    PreferencesSetting
   },
   props:{
     componentList:{
@@ -66,7 +67,24 @@ export default defineComponent({
       }
       return settingList.filter((item)=> item.component != 'MyVipSetting');
     })
+    const isEmployee = ref(true);
+    const userStore = useUserStore();
 
+    onMounted(async () => {
+      isEmployee.value = userStore.getIsEmployee;
+    });
+    function canView (role: RoleEnum) {
+      switch (role) {
+        case RoleEnum.ALL:
+          return true;
+        case RoleEnum.CLIENT:
+          return !isEmployee.value;
+        case RoleEnum.EMPLOYEE:
+          return isEmployee.value;
+        default:
+          return false;
+      }
+    }
     /**
      * 组件标题点击事件,解决第二次不加载数据
      * @param key
@@ -84,7 +102,8 @@ export default defineComponent({
       },
       componentClick,
       activeKey,
-      isDark
+      isDark,
+      canView
     };
   }
 });

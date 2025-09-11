@@ -40,6 +40,8 @@ export default {
     isChronologicalOrder: "Is Chronological Order",
     clientCategoryId: "Client Category ID",
     useBalance: "Use Balance",
+    displayBalance: "Display Balance",
+    receiveInvoiceByEmail: "Receive Invoice By Email",
   },
   erpStatus: {
     completed: "Completed",
@@ -267,7 +269,6 @@ export default {
     showBalance: "Show Balance",
     balanceThreshold: "Balance Threshold",
     isAutoInvoice: "Auto Invoice",
-    isChronologicalOrder: "Chronological Order",
     isBreakdownInvoice: "Breakdown Invoice",
     isCompleteInvoice: "Complete Invoice",
     canSelfInvoice: "Self Invoice",
@@ -280,8 +281,6 @@ export default {
     hasOptions: "Has Options",
     help: {
       balanceThreshold: "default: -1 no limit, 0 if balance must be positive, XX if balance debt cannot exceed -XX",
-      isChronologicalOrder1: "Requires the 'isAutoInvoice' and 'useBalance' options to be enabled. 'balanceThreshold' must be set to a value greater than 0.",
-      isChronologicalOrder2: "If enabled, orders will be invoiced in chronological order, otherwise the system will invoice the first billable order. Refer to an admin if you need further information.",
       isCompleteInvoice: "If enabled, the system will generate a complete invoice every Friday, otherwise it will only generate a shipping invoice.",
       isSelfIgnoreStock: "If enabled, when creating a complete invoice, for orders with stock only shipping fees will be invoiced.",
       configure: "Don't forget to configure the shop options. These options will be used to generate invoices and manage orders.",

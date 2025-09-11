@@ -5,7 +5,6 @@ export interface ShopOptionsUpdateParam {
   showBalance?: boolean;
   balanceThreshold?: number;
   isAutoInvoice?: boolean;
-  isChronologicalOrder?: boolean;
   isBreakdownInvoice?: boolean;
   isCompleteInvoice?: boolean;
   canSelfInvoice?: boolean;

@@ -2,9 +2,23 @@
   <PageWrapper :title="t('')"
   >
     <template #headerContent>
-      {{t('guide.paymentReview.line1')}}<br/>
-      {{t('guide.paymentReview.line2')}}<a-button type="primary" @click="" preIcon="ant-design:plus-outlined">{{ t('common.operation.addNew') }}</a-button><br/>
-      {{t('guide.paymentReview.line3')}}<a-button type="warning" @click="" preIcon="ant-design:shopping-cart-outlined"></a-button>
+      <p>
+        {{t('guide.paymentReview.line1')}}<br/>
+        {{t('guide.paymentReview.line2')}}<a-button type="primary" @click="" preIcon="ant-design:plus-outlined">{{ t('common.operation.addNew') }}</a-button><br/>
+        {{t('guide.paymentReview.line3')}}<a-button type="warning" @click="" preIcon="ant-design:shopping-cart-outlined"></a-button>
+      </p>
+      <div class="border border-amber bg-orange-50 rounded w-fit p-4">
+        <h3>{{ t('component.table.legend') }} : </h3>
+        <p>
+        <span class="text-emerald-500">
+          {{ t('data.invoice.purchaseFee') }}
+        </span>
+          <br/>
+          <span class="text-blue-500">
+          {{ t('data.invoice.shippingFee') }}
+        </span>
+        </p>
+      </div>
     </template>
     <PurchaseOrderResult/>
     <!--引用表格-->
@@ -45,44 +59,38 @@
         </span>
       </template>
       <template #totalAmount="{ record }">
-  <span :class="record.status === 0 ? 'line-through text-gray-400' : ''">
-    {{ ((+record.totalAmount || 0).toFixed(2)) }}
-    <template v-if="(+record.poTotalAmount || 0) > 0 || (+record.siTotalAmount || 0) > 0">
-      <span class="text-gray-500">
-        (
-        <template v-if="(+record.poTotalAmount || 0) > 0">
-          P: {{ ((+record.poTotalAmount || 0).toFixed(2)) }}
-        </template>
-        <template v-if="(+record.poTotalAmount || 0) > 0 && (+record.siTotalAmount || 0) > 0">
-          &nbsp;+&nbsp;
-        </template>
-        <template v-if="(+record.siTotalAmount || 0) > 0">
-          S: {{ ((+record.siTotalAmount || 0).toFixed(2)) }}
-        </template>
-        )
-      </span>
-    </template>
-  </span>
+        <div :class="record.status === 0 ? 'line-through text-gray-400' : ''">
+          <span class="font-semibold">
+            {{ ((+record.totalAmount || 0).toFixed(2)) }}
+          </span>
+          <template v-if="(+record.poTotalAmount || 0) > 0 || (+record.siTotalAmount || 0) > 0">
+            <div class="text-xs p-2">
+              <template v-if="(+record.poTotalAmount || 0) > 0">
+                <p class="m-0 text-emerald-500">{{ ((+record.poTotalAmount || 0).toFixed(2)) }}</p>
+              </template>
+              <template v-if="(+record.siTotalAmount || 0) > 0">
+                <p class="m-0 text-blue-500">{{ ((+record.siTotalAmount || 0).toFixed(2)) }}</p>
+              </template>
+            </div>
+          </template>
+        </div>
       </template>
       <template #finalAmount="{ record }">
-  <span :class="['font-bold', record.status === 0 ? 'line-through text-gray-400' : '']">
-    {{ ((+record.finalAmount || 0).toFixed(2)) }}
-    <template v-if="(+record.poFinalAmount || 0) > 0 || (+record.siFinalAmount || 0) > 0">
-      <span class="text-gray-500">
-        (
-        <template v-if="(+record.poFinalAmount || 0) > 0">
-          P: {{ ((+record.poFinalAmount || 0).toFixed(2)) }}
-        </template>
-        <template v-if="(+record.poFinalAmount || 0) > 0 && (+record.siFinalAmount || 0) > 0">
-          &nbsp;+&nbsp;
-        </template>
-        <template v-if="(+record.siFinalAmount || 0) > 0">
-          S: {{ ((+record.siFinalAmount || 0).toFixed(2)) }}
-        </template>
-        )
-      </span>
-    </template>
-  </span>
+        <div :class="record.status === 0 ? 'line-through text-gray-400' : ''">
+          <span class="font-bold">
+            {{ ((+record.finalAmount || 0).toFixed(2)) }}
+          </span>
+          <template v-if="(+record.poFinalAmount || 0) > 0 || (+record.siFinalAmount || 0) > 0">
+            <div class="text-xs p-2">
+              <template v-if="(+record.poFinalAmount || 0) > 0">
+                <p class="m-0 text-emerald-500">{{ ((+record.poFinalAmount || 0).toFixed(2)) }}</p>
+              </template>
+              <template v-if="(+record.siFinalAmount || 0) > 0">
+                <p class="m-0 text-blue-500">{{ ((+record.siFinalAmount || 0).toFixed(2)) }}</p>
+              </template>
+            </div>
+          </template>
+        </div>
       </template>
       <template #paymentApproved="{ record }">
         <a-tag v-if="record?.paymentApproved === true || record?.paymentApproved === 1" class="ant-tag-success">

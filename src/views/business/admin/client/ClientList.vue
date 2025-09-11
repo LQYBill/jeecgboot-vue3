@@ -1,13 +1,11 @@
 <template>
   <PageWrapper title='Client Management Page'>
-    <!--引用表格-->
     <div v-if="clientIdWithShops.length > 0" class=" w-full rounded-md animate-fade-in-left">
       <router-link :to="`/business/admin/client/ShopOptionsList?c=${clientIdWithShops}`" class="flex items-center justify-between p-4 bg-blue-100 hover:bg-blue-50 rounded-md mb-4">
         {{ t('data.shopOptions.help.configure')}} <Icon icon="ant-design:arrow-right-outlined" class="mx-1" />
       </router-link>
     </div>
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
-      <!--插槽:table标题-->
       <template #tableTitle>
         <a-button type="primary" @click="handleAdd" preIcon="ant-design:plus-outlined"> {{ t('common.operation.addNew') }}</a-button>
         <a-button type="primary" preIcon="ant-design:export-outlined" @click="onExportXls"> {{ t('common.operation.export') }}</a-button>
@@ -26,20 +24,17 @@
             <Icon icon="mdi:chevron-down"></Icon>
           </a-button>
         </a-dropdown>
-        <!-- 高级查询 -->
         <super-query :config="superQueryConfig" @search="handleSuperQuery" />
       </template>
-      <!--操作栏-->
       <template #action="{ record }">
         <TableAction :actions="getTableAction(record)" :dropDownActions="getDropDownAction(record)" />
       </template>
     </BasicTable>
-    <!-- 表单区域 -->
     <ClientModal @register="registerModal" @success="handleSuccess"></ClientModal>
   </PageWrapper>
 </template>
 
-<script lang="ts" name="client-client" setup>
+<script lang="ts" setup>
   import {reactive, computed, Ref, ref} from 'vue';
   import { BasicTable,TableAction } from '/@/components/Table';
   import { useListPage } from '/@/hooks/system/useListPage';
@@ -55,9 +50,7 @@
 
   const queryParam = reactive<any>({});
   const userStore = useUserStore();
-  //注册model
   const [registerModal, { openModal }] = useModal();
-  //注册table数据
   const { tableContext, onExportXls, onImportXls } = useListPage({
     tableProps: {
       title: '客户',
@@ -192,5 +185,3 @@
     ];
   }
 </script>
-
-<style scoped></style>

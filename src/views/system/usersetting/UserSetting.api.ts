@@ -14,6 +14,7 @@ enum Api {
   bindThirdAppAccount = '/sys/thirdApp/bindThirdAppAccount',
   deleteThirdAccount = '/sys/thirdApp/deleteThirdAccount',
   agreeOrRefuseJoinTenant = '/sys/tenant/agreeOrRefuseJoinTenant',
+  userPreferences = '/sys/user/userPreferences',
 }
 
 /**
@@ -119,3 +120,10 @@ export const deleteThirdAccount = (params) => {
 export const agreeOrRefuseJoinTenant = (params) => {
   return defHttp.put({ url: Api.agreeOrRefuseJoinTenant, params },{ joinParamsToUrl: true });
 };
+
+export const getUserPreferences = (params?: { username: string }) => {
+  return defHttp.get({ url: Api.userPreferences, params });
+}
+export const setUserPreferences = (params) => {
+  return defHttp.post({ url: Api.userPreferences, params }, { isTransformResponse: false });
+}
