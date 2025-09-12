@@ -116,8 +116,14 @@
             </PopConfirmButton>
           </div>
           <div class="flex item-center justify-start gap-2">
-            <a-button type="primary" @click="handleCopyOrderNumbers" preIcon="ant-design:copy-outlined" :disabled="copyDisabled">
-              {{ t('common.operation.copy') + ' ' + t('data.invoice.platformOrderNumbers') }}
+            <template v-if="isCopyMode">
+              <a-button type="warning" @click="handleCopyOrderNumbers" preIcon="ant-design:copy-outlined" :disabled="copyDisabled">
+                {{ t('common.operation.copy') + ' ' + t('data.invoice.platformOrderNumbers') }}
+              </a-button>
+              <a-button type="error" @click="handleChangeCopyMode(false)" preIcon="ant-design:close-outlined"/>
+            </template>
+            <a-button v-else type="primary" @click="handleChangeCopyMode(true)" preIcon="ant-design:select-outlined" :disabled="copyModeDisabled">
+              select orders to copy
             </a-button>
             <a-button class="mr-2" type="default" preIcon="ant-design:sync-outlined" @click="handleSyncSkus" :disabled="Object.keys(client).length === 0 || !isSkuCompareReady" :loading="!isSkuCompareReady">
               {{ t("common.operation.compareSkus") }}
@@ -132,6 +138,7 @@
                     @click="openContentModal(true, {orderId: record?.id, orderNumber: record?.platformOrderNumber})">
             {{ record?.platformOrderNumber }}
           </a-button>
+          <Icon icon="ant-design:copy-outlined" @click="handleCopy(record?.platformOrderNumber)" class="cursor-pointer"></Icon>
         </template>
         <template #productAvailability="{record}">
           <Badge
@@ -196,7 +203,7 @@
 </template>
 <script lang="ts" setup>
 
-import {onBeforeMount, reactive, ref, Ref, unref} from "vue";
+import {computed, onBeforeMount, reactive, ref, Ref, unref} from "vue";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
 import {useI18n} from "/@/hooks/web/useI18n";
 import {useMessage} from "/@/hooks/web/useMessage";
@@ -242,6 +249,7 @@ import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 import {ExceptionEnum} from "@/enums/exceptionEnum";
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
+import Icon from "@/components/Icon";
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
@@ -301,6 +309,11 @@ const shopDisabled = ref<boolean>(false);
 
 const isSkuCompareReady = ref<boolean>(false);
 const copyDisabled = ref<boolean>(true);
+const copyModeDisabled = computed(() => {
+  return orderList.value.length === 0;
+});
+
+const isCopyMode = ref<boolean>(false);
 
 const makeShippingDisabled = ref<boolean>(true);
 const makeShippingLoading = ref<boolean>(false);
@@ -652,7 +665,7 @@ function loadOrders(arg?:number) {
     estimation.value = [];
     selectedOrdersWithStock.value = [];
   }
-  let params = getQueryParams();
+  const params = getQueryParams();
   orderList.value = [];
   makeShippingDisabled.value = true;
   makeShippingLoading.value = false;
@@ -694,6 +707,10 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows: Rec
   }
   estimatesReady.value = false;
   copyDisabled.value = false;
+  if(isCopyMode.value) {
+    estimatesReady.value = true;
+    return;
+  }
   // deactivate undesired checked keys and buttons
   let uncheckableRowKeys:any[] = [];
   let shippingInvoiceAvailable = true;
@@ -757,6 +774,9 @@ function getShopName(shopId: string) {
 }
 function getCheckboxProps(record: Recordable) {
   // -1 : unavailable, 0 : available, 1 : invoiced, 2 : paid
+  if(isCopyMode.value) {
+    return { disabled: false };
+  }
   if ((['-1','1','2'].indexOf(record.shippingAvailable) > -1 && ['-1', '1', '2'].indexOf(record.purchaseAvailable) > -1) || record.hasDesyncedSku === 1) {
     return { disabled: true };
   } else {
@@ -973,9 +993,20 @@ const handleReset = (clearFilters) => {
   formState.purchaseAvailable = [];
   formState.productAvailable = [];
 };
+function handleChangeCopyMode(v: boolean) {
+  isCopyMode.value = v;
+  clipboardRef.value = '';
+  clearSelectedRowKeys();
+}
 function handleCopyOrderNumbers() {
   const selectedRows = getSelectRows();
   clipboardRef.value = selectedRows.map(row => row.platformOrderNumber).join(',');
+  if(unref(copiedRef)) {
+    createMessage.warning(t('component.copy.success'));
+  }
+}
+function handleCopy(text: string) {
+  clipboardRef.value = text;
   if(unref(copiedRef)) {
     createMessage.warning(t('component.copy.success'));
   }
