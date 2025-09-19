@@ -165,6 +165,17 @@
             {{ text === 0 ? t("common.no") : t("common.yes") }}
           </Tag>
         </template>
+        <template #orderEstimation="{ record, text }">
+          <!-- TODO gérer les commandes avec erreurs -->
+          <div>
+            <div v-if="record?.shippingEstimation !== undefined">
+              <span class="text-xs">{{ t('data.invoice.shippingFee') }}:</span> <span class="font-semibold color-blue-500">{{ record?.shippingEstimation.toFixed(2) }}</span>
+            </div>
+            <div v-if="record?.purchaseEstimation !== undefined">
+              <span class="text-xs">{{ t('data.invoice.purchaseFee') }}:</span> <span class="font-semibold color-emerald-500">{{ record?.purchaseEstimation.toFixed(2) }}</span>
+            </div>
+          </div>
+        </template>
         <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
           <div class="p-2 flex flex-col items-center justify-between w-48 min-h-20 mb-1 gap-4">
             <div class=" w-full flex flex-no-wrap gap-1">
@@ -658,7 +669,7 @@ async function syncSkus() {
     console.error(e);
   });
 }
-function loadOrders(arg?:number) {
+async function loadOrders(arg?:number) {
   if(arg === 1) {
     ipagination.value.current = 1;
     clearSelectedRowKeys();
@@ -674,8 +685,8 @@ function loadOrders(arg?:number) {
   makeCompleteDisabled.value = true;
   makeCompleteLoading.value = false;
   setLoading(true);
-  defHttp.get({url : Api.getOrderStatusByShop, params})
-    .then(res => {
+  await defHttp.get({url : Api.getOrderStatusByShop, params})
+    .then(async (res) => {
       orderList.value = res.records;
       total.value = res.total;
       page.value = res.current;
@@ -685,6 +696,8 @@ function loadOrders(arg?:number) {
         pageSize: pageSize.value,
         total: total.value,
       });
+      const orderIds = orderList.value.map(order => order.id);
+      await loadOrderEstimations({orderIds, clientID: client.value!.id});
     })
     .catch(e => {
       console.error(e);
@@ -692,6 +705,25 @@ function loadOrders(arg?:number) {
     .finally(() => {
       setLoading(false)
     });
+}
+async function loadOrderEstimations(params: {orderIds: string[], clientID: string}) {
+  await defHttp.get({url: Api.getOrderEstimations, params})
+    .then(res => {
+      const estimations = res.reduce((acc, estimation) => {
+        acc[estimation.orderId] = estimation
+        return acc
+      }, {})
+      orderList.value = orderList.value.map(order => {
+        if(estimations.hasOwnProperty(order.id)) {
+          order.shippingEstimation = estimations[order.id].shippingEstimation;
+          order.purchaseEstimation = estimations[order.id].purchaseEstimation || 0;
+        } else {
+          order.shippingEstimation = 0;
+          order.purchaseEstimation = 0;
+        }
+        return order;
+      });
+    })
 }
 function showPaginationTotal(total: number, range: [number, number]) {
   return range[0] + '-' + range[1] + ' / ' + total;

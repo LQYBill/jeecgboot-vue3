@@ -144,6 +144,7 @@ export default {
     effectiveDate: "生效日期",
     erpStatus: "ERP中状态",
     estimatedFeesForSelectedOrders: "当前已选择订单预计费用",
+    estimatedFees: "预计费用",
     export: "导出",
     feeName: "收费名称",
     finalAmount: "最终金额",

@@ -79,7 +79,21 @@ export function getColumns(): BasicColumn[] {
       dataIndex: 'hasDesyncedSku',
       slots: {customRender: 'hasDesyncedSku'},
       helpMessage: t('data.tips.desyncTips')
-    }
+    },
+    {
+      title: t('data.invoice.estimatedFees'),
+      align: 'center',
+      fixed: 'right',
+      dataIndex: 'shippingEstimation',
+      slots: { customRender: 'orderEstimation' },
+    },
+    {
+      title: "Purchase Estimation",
+      align: 'center',
+      fixed: 'right',
+      dataIndex: 'purchaseEstimation',
+      defaultHidden: true,
+    },
   ];
 }
 export const pocColumns: BasicColumn[] = [
