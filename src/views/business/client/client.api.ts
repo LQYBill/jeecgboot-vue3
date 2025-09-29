@@ -24,4 +24,5 @@ export enum Api {
   cancelInvoice = '/invoice/cancelInvoice',
   uploadPaymentProofAndNotify = '/transaction/uploadPaymentProofAndNotify',
   findEarliestInvoiceYear = '/invoice/findEarliestInvoiceYear',
+  getOrderEstimations = '/shippingInvoice/completeFeesEstimationPerOrder',
 }

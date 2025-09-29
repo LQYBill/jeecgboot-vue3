@@ -143,6 +143,7 @@ export default {
     effectiveDate: "Effective Date",
     erpStatus: "ERP Status",
     estimatedFeesForSelectedOrders: "Estimated fees for selected orders",
+    estimatedFees: "Estimated Fees",
     export: "Export",
     feeName: "Fee Name",
     finalAmount: "Final Amount",
