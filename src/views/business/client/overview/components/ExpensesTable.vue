@@ -60,6 +60,11 @@
         <span v-else class="line-through text-error">
           {{ record.invoiceNumber }}
         </span>
+        <Icon
+          icon="ant-design:copy-outlined"
+          class="cursor-pointer text-lg"
+          @click="handleCopy(record.invoiceNumber)"
+        />
       </template>
     </template>
     <template #amount="{ record }">
@@ -177,6 +182,8 @@ import dayjs from "dayjs";
 import {TransactionType} from "@/views/business/enum";
 import {useRouter} from "vue-router";
 import YearSelector from "@/views/business/client/overview/components/YearSelector.vue";
+import {Icon} from "@/components/Icon";
+import { useCopyToClipboard } from '@/hooks/web/useCopyToClipboard';
 
 const globSetting = useGlobSetting();
 const baseUploadUrl = globSetting.uploadUrl;
@@ -184,6 +191,7 @@ const uploadUrl = `${baseUploadUrl}/sys/common/static/`;
 
 const {t} = useI18n();
 const {createMessage} = useMessage();
+const { clipboardRef } = useCopyToClipboard();
 const {resolve} = useRouter();
 
 let ac = new AbortController();
@@ -457,5 +465,13 @@ function handleUploadChange(imgPath, record) {
     .catch(() => {
       createMessage.error('Save failed, please try again');
     });
+}
+function handleCopy(invoiceNumber: string) {
+  if (!invoiceNumber) {
+    createMessage.warning('No value to copy');
+    return;
+  }
+  clipboardRef.value = invoiceNumber;
+  createMessage.success(`Copied ${invoiceNumber} successfully!`);
 }
 </script>
