@@ -113,6 +113,7 @@
               :fileMax="1"
               listType="picture"
               bizPath="purchase_order/screenshots"
+              :disabled="record.paymentApproved === PaymentApproveStatus.APPROVED"
               @change="e => handleUploadChange(e, record)"
             />
           </div>
@@ -123,6 +124,7 @@
             :fileMax="1"
             listType="picture"
             bizPath="purchase_order/screenshots"
+            :disabled="record.paymentApproved === PaymentApproveStatus.APPROVED"
             @change="e => handleUploadChange(e, record)"
           />
         </template>
@@ -184,6 +186,7 @@ import {useRouter} from "vue-router";
 import YearSelector from "@/views/business/client/overview/components/YearSelector.vue";
 import {Icon} from "@/components/Icon";
 import { useCopyToClipboard } from '@/hooks/web/useCopyToClipboard';
+import { PaymentApproveStatus } from '@/views/business/enum/paymentApproveEnum';
 
 const globSetting = useGlobSetting();
 const baseUploadUrl = globSetting.uploadUrl;
@@ -462,8 +465,9 @@ function handleUploadChange(imgPath, record) {
       record.paymentProofString = imgPath;
       loadTransactions();
     })
-    .catch(() => {
-      createMessage.error('Save failed, please try again');
+    .catch((error) => {
+      const msg = error?.response?.data?.message || error?.message || 'Save failed';
+      createMessage.error(msg);
     });
 }
 function handleCopy(invoiceNumber: string) {
