@@ -25,6 +25,7 @@ enum Api {
   validateCasLogin = '/sys/cas/client/validateLogin',
   //修改密码
   passwordChange = '/sys/user/passwordChange',
+  PendingOrdersAlert = '/sys/pendingOrdersAlert',
 }
 
 /**
@@ -70,6 +71,12 @@ export function getUserInfo() {
   });
 }
 
+/**
+ * 待处理订单提醒
+ */
+export function getPendingOrdersAlert() {
+  return defHttp.get({ url: Api.PendingOrdersAlert });
+}
 export function getPermCode() {
   return defHttp.get({ url: Api.GetPermCode });
 }
