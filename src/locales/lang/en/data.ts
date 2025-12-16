@@ -279,6 +279,7 @@ export default {
     isSelfIgnoreStock: "Ignore Stock in Complete Invoice",
     hasStock: "Has Stock",
     hasShippingInvoiceRemark: "Shipping Invoice Remark in Mabang",
+    showUnassignedLogisticsOrders: "Show Unassigned Logistics Orders",
     hasOptions: "Has Options",
     help: {
       balanceThreshold: "default: -1 no limit, 0 if balance must be positive, XX if balance debt cannot exceed -XX",

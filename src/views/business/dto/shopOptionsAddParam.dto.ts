@@ -13,4 +13,5 @@ export interface ShopOptionsAddParam {
   isSelfIgnoreStock: boolean;
   hasStock: boolean;
   hasSelfLogisticsRemark: boolean;
+  showUnassignedLogisticsOrders: boolean;
 }

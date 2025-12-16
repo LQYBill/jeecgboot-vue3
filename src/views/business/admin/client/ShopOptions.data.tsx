@@ -36,6 +36,11 @@ export const columns: BasicColumn[] = [
     helpMessage: t('data.shopOptions.help.isCompleteInvoice'),
   },
   {
+    title: t('data.shopOptions.showUnassignedLogisticsOrders'),
+    align: "center",
+    dataIndex: 'showUnassignedLogisticsOrders',
+  },
+  {
     title: t('data.shopOptions.canSelfInvoice'),
     align: "center",
     dataIndex: 'canSelfInvoice',
@@ -172,6 +177,20 @@ export const formSchema: FormSchema[] = [
     dynamicDisabled: ({model}) => {
       return !(model.isBreakdownInvoice || model.isAutoInvoice);
     }
+  },
+  {
+    label: t('data.shopOptions.showUnassignedLogisticsOrders'),
+    field: 'showUnassignedLogisticsOrders',
+    colProps: { span: 12 },
+    component: 'Switch',
+    componentProps: {
+      checkedChildren: t('common.yes'),
+      unCheckedChildren: t('common.no'),
+    },
+    defaultValue: false,
+    dynamicRules: () => [
+      { required: true, message: t('component.form.required') },
+    ],
   },
   {
     label: t('data.invoicing.clientInvoicing'),

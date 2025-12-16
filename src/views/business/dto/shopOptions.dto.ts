@@ -18,4 +18,5 @@ export interface ShopOptions {
   isSelfIgnoreStock: boolean;
   hasStock: boolean;
   hasShippingInvoiceRemark: boolean;
+  showUnassignedLogisticsOrders: boolean;
 }

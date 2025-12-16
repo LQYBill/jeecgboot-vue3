@@ -280,6 +280,7 @@ export default {
     isSelfIgnoreStock: "是否忽略库存数(7xxxx)",
     hasStock: "是否客户做库存",
     hasShippingInvoiceRemark: "是否开物流票需要打备注",
+    showUnassignedLogisticsOrders: "是否显示未交运订单",
     hasOptions: "是否有选项",
     help: {
       balanceThreshold: "默认值为-1: 不限制。0: 余额为0时不允许下单。大于0: 余额不能小于-XX",
