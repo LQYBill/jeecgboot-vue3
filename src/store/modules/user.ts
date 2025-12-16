@@ -182,6 +182,7 @@ export const useUserStore = defineStore({
         //update-end---author:scott ---date::2024-02-21  for：【QQYUN-8326】登录不需要构建路由，进入首页有构建---
 
         await this.setLoginInfo({ ...data, isLogin: true });
+        localStorage.setItem("pendingOrderAlertShown", "false");
         //update-begin-author:liusq date:2022-5-5 for:登录成功后缓存拖拽模块的接口前缀
         localStorage.setItem(JDragConfigEnum.DRAG_BASE_URL, useGlobSetting().domainUrl);
         //update-end-author:liusq date:2022-5-5 for: 登录成功后缓存拖拽模块的接口前缀

@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { watch, ref } from 'vue';
+import {watch, ref, onMounted} from 'vue';
   import { theme } from 'ant-design-vue';
   import { ConfigProvider } from 'ant-design-vue';
   import { AppProvider } from '/@/components/Application';
@@ -17,7 +17,13 @@
   import { useRootSetting } from '/@/hooks/setting/useRootSetting';
   import { ThemeEnum } from '/@/enums/appEnum';
   import { changeTheme } from '/@/logics/theme/index';
+  import { checkPendingOrders } from '/@/hooks/web/useUserLoginReminder';
 
+  onMounted(() => {
+    setTimeout(() => {
+      checkPendingOrders();
+    }, 100);
+  });
   const appStore = useAppStore();
   // 解决日期时间国际化问题
   import 'dayjs/locale/zh-cn';
