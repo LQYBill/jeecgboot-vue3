@@ -225,6 +225,10 @@ export default {
     groupIdDeleteResults: "Results of purchase order cancel in Mabang ",
     orderIdUpdate: "Platform Order IDs Update",
     orderUpdate: "Purchase Order Update",
+    creating: 'Creating purchase orders (Created {count})',
+    completed: 'Purchase orders created (Total {count})',
+    taskStarted: 'Purchase order creation has started. Please check the progress below.',
+    noData: 'No records',
   },
   refund: {
     notRefunded: 'Not Settled',

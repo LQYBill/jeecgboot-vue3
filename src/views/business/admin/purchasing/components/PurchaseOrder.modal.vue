@@ -21,10 +21,12 @@ import {formSchema, listFormatting} from '../PurchaseOrder.data';
 import {createMabangPurchaseOrder, saveOrUpdate, setPaymentApproved} from '../PurchaseOrder.api';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {Modal} from "ant-design-vue";
+import { useMessage } from '/@/hooks/web/useMessage';
 
 const {t} = useI18n();
+const { createMessage } = useMessage();
 // Emits声明
-const emit = defineEmits(['register', 'success']);
+const emit = defineEmits(['register', 'success','start-create']);
 const isUpdate = ref(true);
 const showFooter = ref(false);
 const isOrder = ref(false);
@@ -135,15 +137,15 @@ async function submitMabangPurchaseOrder() {
         invoiceNumbers += ",";
     }
     // await createMabangPurchaseOrder([invoiceNumbers]);
-    await createMabangPurchaseOrder({invoiceNumbers: invoiceNumbers}, handleCreateMabangPurchaseOrder);
+    await createMabangPurchaseOrder({invoiceNumbers: invoiceNumbers},handleCreateMabangPurchaseOrder);
   } finally {
     setModalProps({confirmLoading: false});
   }
 }
-function handleCreateMabangPurchaseOrder(data:any) {
-  results.value = data;
+function handleCreateMabangPurchaseOrder() {
+  emit('start-create');
+  createMessage.success( t('data.purchase.taskStarted'),10);
   closeModal();
-  emit('success', results.value);
 }
 </script>
 

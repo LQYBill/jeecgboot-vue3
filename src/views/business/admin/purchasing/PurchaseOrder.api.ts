@@ -90,7 +90,10 @@ export const duplicateInvoiceNumberCheck = (params: { id: any; invoiceNumber: an
   return defHttp.get({url: Api.duplicateInvoiceNumberCheck, params});
 }
 
-export const createMabangPurchaseOrder = async (params: any, handleSuccess: (arg0: any) => void) => {
-  const res = await defHttp.get({url: Api.createMabangPurchaseOrder, params: params});
-  handleSuccess(res);
-}
+export const createMabangPurchaseOrder = async (params: any, handleSuccess?: (arg0: any) => void) => {
+  const res = await defHttp.post({url: Api.createMabangPurchaseOrder, params});
+  if (handleSuccess && typeof handleSuccess === 'function') {
+    handleSuccess(res);
+  }
+  return res;
+};
