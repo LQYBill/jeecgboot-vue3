@@ -26,6 +26,7 @@ enum Api {
   //修改密码
   passwordChange = '/sys/user/passwordChange',
   PendingOrdersAlert = '/sys/pendingOrdersAlert',
+  PendingOrdersAlertExport = '/sys/pendingOrdersAlert/export',
 }
 
 /**
@@ -77,6 +78,18 @@ export function getUserInfo() {
 export function getPendingOrdersAlert() {
   return defHttp.get({ url: Api.PendingOrdersAlert });
 }
+export function exportPendingOrdersAlert() {
+  return defHttp.get(
+    {
+      url: Api.PendingOrdersAlertExport,
+      responseType: 'blob',
+    },
+    {
+      isReturnNativeResponse: true,
+    }
+  );
+}
+
 export function getPermCode() {
   return defHttp.get({ url: Api.GetPermCode });
 }
