@@ -67,9 +67,14 @@
     isUpdate.value = !!data?.isUpdate;
     formDisabled.value = !data?.showFooter;
     if (unref(isUpdate)) {
+      const record = { ...data.record };
+      const ids = Array.isArray(record.salespersonIds)
+        ? record.salespersonIds
+        : [];
       //表单赋值
       await setFieldsValue({
         ...data.record,
+        salespersonIds: ids.length === 1 ? ids : undefined,
       });
       shopOptionsUrl.value = data?.record?.id ? `/business/admin/client/ShopOptionsList?c=${data.record.id}` : '/business/admin/client/ShopOptionsList';
       requestSubTableData(shopList, { id: data?.record?.id }, shopTable);
@@ -107,8 +112,16 @@
   async function requestAddOrEdit(values) {
     try {
       setModalProps({ confirmLoading: true });
+      const submitValues = {
+        ...values,
+        salespersonIds: Array.isArray(values.salespersonIds)
+          ? values.salespersonIds
+          : typeof values.salespersonIds === 'string'
+            ? values.salespersonIds.split(',').filter(Boolean)
+            : [],
+      };
       //提交表单
-      await saveOrUpdate(values, isUpdate.value);
+      await saveOrUpdate(submitValues, isUpdate.value);
       //关闭弹窗
       closeModal();
       //刷新列表
