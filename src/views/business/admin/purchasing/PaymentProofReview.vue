@@ -20,7 +20,10 @@
         </p>
       </div>
     </template>
-    <PurchaseOrderResult/>
+    <PurchaseOrderResultAsync
+      ref="purchaseResultRef"
+      @statusChange="handleStatusChange"
+    />
     <!--引用表格-->
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
       <!--插槽:table标题-->
@@ -28,7 +31,7 @@
         <a-button type="primary" @click="handleAdd" preIcon="ant-design:plus-outlined">
           {{ t('common.operation.addNew') }}
         </a-button>
-        <a-button v-if="hasPurchasePermission()" type="warning" @click="handleCreateOrder" preIcon="ant-design:shopping-cart-outlined" :disabled="createOrderDisabled">
+        <a-button v-if="hasPurchasePermission()" type="warning" @click="handleCreateOrder" preIcon="ant-design:shopping-cart-outlined" :disabled="createOrderDisabled || isCreating">
         </a-button>
       </template>
       <!--操作栏-->
@@ -147,12 +150,12 @@
       </template>
     </BasicTable>
     <!-- 表单区域 -->
-    <PurchaseOrderModal @register="registerModal" @success="handleCreateSuccess" :can-approve="hasPurchasePermission()"></PurchaseOrderModal>
+    <PurchaseOrderModal @register="registerModal" @start-create="handleStartCreate" @success="handleCreateSuccess" :can-approve="hasPurchasePermission()"></PurchaseOrderModal>
   </PageWrapper>
 </template>
 
 <script lang="ts" setup>
-import {onMounted, provide, ref, unref} from 'vue';
+import {onMounted, ref, unref} from 'vue';
 import {BasicTable, TableAction, TableImg} from '/@/components/Table';
 import {useModal} from '/@/components/Modal';
 import {useListPage} from '/@/hooks/system/useListPage'
@@ -172,20 +175,18 @@ import {useGlobSetting} from "/@/hooks/setting";
 import Icon from "/@/components/Icon";
 import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 import {useMessage} from "@/hooks/web/useMessage";
-import PurchaseOrderResult
-  from "@/views/business/admin/purchasing/components/PurchaseOrderResult.vue";
 import {getUserInfo} from "@/api/sys/user";
-
+import PurchaseOrderResultAsync from "@/views/business/admin/purchasing/components/PurchaseOrderResultAsync.vue";
+const isCreating = ref(false);
 const {t} = useI18n();
 const { clipboardRef, copiedRef } = useCopyToClipboard();
 const { createMessage } = useMessage();
 
+const purchaseResultRef = ref<any>(null);
 const globSetting = useGlobSetting();
 const baseUploadUrl = globSetting.uploadUrl;
 
 const imgPrefix = `${baseUploadUrl}/sys/common/static/`;
-
-const results = ref<Recordable>({});
 
 let ipagination = ref({
   current: 1,
@@ -390,11 +391,21 @@ function handleCopy(numbers:string) {
     createMessage.warning(t('component.copy.success'));
   }
 }
+function handleStatusChange(s: string) {
+  isCreating.value = s === 'running';
+  if (s === 'completed') {
+    reload();
+  }
+}
 function handleCreateSuccess(data: Recordable) {
-  results.value = data;
   handleSuccess();
 }
-provide('apiResponse', results);
+function handleStartCreate() {
+  selectedRowKeys.value = [];
+  selectedRows.value = [];
+  createOrderDisabled.value = true;
+  purchaseResultRef.value?.start();
+}
 </script>
 
 <style lang="less" scoped>

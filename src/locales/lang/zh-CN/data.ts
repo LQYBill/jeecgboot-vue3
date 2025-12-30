@@ -226,6 +226,10 @@ export default {
     groupIdDeleteResults: "在马帮采购订单取消的结果",
     orderIdUpdate: "平台订单号码更新",
     orderUpdate: "采购订单更新",
+    creating: '正在创建采购单（已创建 {count} 单）',
+    completed: '采购单创建完成（共 {count} 单）',
+    taskStarted: '采购单创建任务已开始，请查看下方进度',
+    noData: '暂无创建记录',
   },
   refund: {
     notRefunded: '未退款',
