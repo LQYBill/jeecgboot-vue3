@@ -509,8 +509,6 @@ export default {
       batchDelete: '是否删除选中数据',
       deleteTitle: '确认删除',
     },
-
-    // placeholders (你现在用到的 “— / 无文件 / 无图片” )
     placeholder: {
       dash: '—',
       noFile: '无文件',

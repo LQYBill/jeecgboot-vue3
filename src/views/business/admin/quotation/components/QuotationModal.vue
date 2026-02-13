@@ -121,7 +121,7 @@ function mergePreferNonNil(...objs: any[]) {
     for (const k of Object.keys(o || {})) {
       const v = o[k];
       if (v !== null && v !== undefined && v !== '') out[k] = v;
-      else if (out[k] === undefined) out[k] = v; // 第一次出现允许落位
+      else if (out[k] === undefined) out[k] = v;
     }
   }
   return out;
