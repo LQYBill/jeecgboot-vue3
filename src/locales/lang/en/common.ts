@@ -56,6 +56,8 @@ export default {
     adSearch: "Advanced Search",
     batchOperation: "Batch Operation",
     cancel: 'Cancel',
+    revoke: 'Revoke',
+    batchRevoke: 'Batch revoke',
     cancelConfirmation: 'Are you sure you want to cancel ?',
     clear: "Clear all",
     close: 'Close',

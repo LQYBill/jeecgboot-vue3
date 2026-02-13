@@ -55,6 +55,8 @@ export default {
     addNew: "新增",
     adSearch: "高级搜索",
     batchOperation: "批量操作",
+    revoke: '撤销',
+    batchRevoke: '批量撤销',
     cancel: '取消',
     cancelConfirmation: '确定要取消吗？',
     compareSkus: "重新比较SKU",

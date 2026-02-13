@@ -40,4 +40,10 @@ export default {
     deptPage: 'Department Management',
     myDeptPage: 'My Department',
   },
+  quotation: {
+    default: "Inquiry & Quotation",
+    inquiryPage: "Inquiry",
+    quotationPage: "Quotation",
+    quotationForClient: "Quotation for Client",
+  },
 }

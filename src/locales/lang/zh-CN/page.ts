@@ -40,4 +40,10 @@ export default {
     deptPage: '部门管理',
     myDeptPage: '我的部门',
   },
+  quotation: {
+    default: "询单报价",
+    inquiryPage: "询单",
+    quotationPage: "报价",
+    quotationForClient: "客户报价",
+  },
 }
