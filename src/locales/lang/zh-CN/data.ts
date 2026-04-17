@@ -419,6 +419,7 @@ export default {
       status: '状态',
       inquiryClient: '询单客户',
       inquirySales: '询单销售',
+      priorityMode: '优先级模式',
       inquiryCountry: '询单国家',
       inquiryLink: '询单链接',
       expectedSales: '预计销量',
@@ -476,6 +477,11 @@ export default {
       sizeRange: '尺码范围',
     },
 
+    priorityMode: {
+      dropShipping: '一件代发',
+      stockMode: '库存模式',
+    },
+
     // status value text
     statusText: {
       inInquiry: '询单中',
@@ -513,6 +519,10 @@ export default {
       dash: '—',
       noFile: '无文件',
       noImage: '无图片',
+    },
+
+    tips: {
+      referencePriceRoute: '(ref) 表示该路线使用对标渠道价格，实际价格按对标渠道计算。',
     },
 
     // form validation messages

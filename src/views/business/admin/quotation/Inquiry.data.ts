@@ -1,4 +1,4 @@
-import type { FormSchema } from '/@/components/Form';
+﻿import type { FormSchema } from '/@/components/Form';
 import {h} from "vue";
 import {Tooltip} from "ant-design-vue";
 import { useI18n } from '/@/hooks/web/useI18n';
@@ -8,6 +8,26 @@ const { t } = useI18n();
 const headerWrap = () => ({
   style: { whiteSpace: 'normal', lineHeight: '1.2' },
 });
+
+const priorityModeOptions = [
+  { label: t('data.quotation.priorityMode.dropShipping'), value: 'dropShipping' },
+  { label: t('data.quotation.priorityMode.stockMode'), value: 'stockMode' },
+];
+
+const legacyPriorityMode = {
+  dropShipping: '一件代发',
+  stockMode: '库存模式',
+};
+
+function renderPriorityMode(value?: string) {
+  if (value === 'dropShipping' || value === legacyPriorityMode.dropShipping) {
+    return t('data.quotation.priorityMode.dropShipping');
+  }
+  if (value === 'stockMode' || value === legacyPriorityMode.stockMode) {
+    return t('data.quotation.priorityMode.stockMode');
+  }
+  return value || '';
+}
 
 export const inquiryColumns = [
   { title: t('data.quotation.col.inquiryClient'), dataIndex: 'inquiryClient_dictText', width: 140 },
@@ -48,14 +68,15 @@ export const inquiryColumns = [
   { title: t('data.quotation.col.inquiryPhoto'), dataIndex: 'inquiryPhoto', width: 90,customHeaderCell: headerWrap, },
   { title: t('data.quotation.col.inquirySpec'), dataIndex: 'inquirySpec', width: 160 },
   { title: t('data.quotation.col.inquiryColor'), dataIndex: 'inquiryColor', width: 120 },
+  { title: t('data.quotation.col.priorityMode'), dataIndex: 'priorityMode', width: 120, customRender: ({ text }) => renderPriorityMode(text) },
   { title: t('data.quotation.col.attachments'), dataIndex: 'attachments', width: 140,customHeaderCell: headerWrap, },
   { title: t('data.quotation.col.inquiryRemark'), dataIndex: 'inquiryRemark', width: 180, ellipsis: true },
 ];
 
 export const inquirySearchFormSchema: FormSchema[] = [
-  { label: t('data.quotation.col.inquiryClient'), field: 'inquiryClient', component: 'JDictSelectTag', colProps: { span: 6 },componentProps: { dictCode: 'client,internal_code,id',showSearch: true }, },
-  { label: t('data.quotation.col.inquirySales'), field: 'inquirySales', component: 'JDictSelectTag', colProps: { span: 6 },componentProps: { dictCode: "sys_user where org_code <> 'A02' ,username,id",showSearch: true }, },
-  { label: t('data.quotation.col.inquiryCountry'), field: 'inquiryCountry', component: 'JDictSelectTag', colProps: { span: 6 },componentProps: { dictCode: 'country,name_en,id' ,showSearch: true}, },
+  { label: t('data.quotation.col.inquiryClient'), field: 'inquiryClient', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { dictCode: 'client,internal_code,id',showSearch: true, placeholder: t('common.chooseText') }, },
+  { label: t('data.quotation.col.inquirySales'), field: 'inquirySales', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { dictCode: "sys_user where org_code <> 'A02' ,username,id",showSearch: true, placeholder: t('common.chooseText') }, },
+  { label: t('data.quotation.col.inquiryCountry'), field: 'inquiryCountry', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { options: [], showSearch: true, placeholder: t('common.chooseText')}, },
 ];
 
 export const inquiryFormSchema: FormSchema[] = [
@@ -81,7 +102,8 @@ export const inquiryFormSchema: FormSchema[] = [
     component: 'JDictSelectTag',
     required: true,
     defaultValue: [],
-    componentProps: { dictCode: 'country,name_en,id' ,
+    componentProps: {
+      options: [],
       showSearch: true,
       mode: 'multiple',
       maxTagCount: 'responsive',
@@ -113,6 +135,16 @@ export const inquiryFormSchema: FormSchema[] = [
   },
   { label: t('data.quotation.col.inquirySpec'), field: 'inquirySpec', component: 'Input', required: false },
   { label: t('data.quotation.col.inquiryColor'), field: 'inquiryColor', component: 'Input', required: false },
+  {
+    label: t('data.quotation.col.priorityMode'),
+    field: 'priorityMode',
+    component: 'Select',
+    required: false,
+    componentProps: {
+      allowClear: true,
+      options: priorityModeOptions,
+    },
+  },
   {
     label: t('data.quotation.col.attachments'),
     field: 'attachments',

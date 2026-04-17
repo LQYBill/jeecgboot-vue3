@@ -416,6 +416,7 @@ export default {
       status: 'Status',
       inquiryClient: 'Client',
       inquirySales: 'Sales',
+      priorityMode: 'Priority mode',
       inquiryCountry: 'Inquiry country',
       inquiryLink: 'Inquiry link',
       expectedSales: 'Expected sales',
@@ -435,7 +436,7 @@ export default {
 
       country: 'Country',
       logisticChannel: 'Logistics route',
-      livraison: 'Lead time',
+      livraison: 'Delivery time',
       prixAchat: "Purchase price",
       logisticsFee: 'Shipping fee (€)',
       totalFee: 'Total fee (€)',
@@ -473,6 +474,11 @@ export default {
       sizeRange: 'Size range',
     },
 
+    priorityMode: {
+      dropShipping: 'Drop shipping',
+      stockMode: 'Stock mode',
+    },
+
     statusText: {
       inInquiry: 'In inquiry',
       quoted: 'Quoted',
@@ -507,6 +513,10 @@ export default {
       dash: '—',
       noFile: 'No file',
       noImage: 'No image',
+    },
+
+    tips: {
+      referencePriceRoute: '(ref) means this route uses a reference channel price. The final price is calculated from the reference route.',
     },
 
     validate: {

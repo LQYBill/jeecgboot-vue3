@@ -2,8 +2,10 @@
   <PageWrapper :title="t('data.quotation.quote')">
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
       <template #tableTitle>
-<!--        <a-button type="primary" preIcon="ant-design:plus-outlined" @click="handleAdd">{{ t('common.operation.addNew') }}</a-button>-->
-        <a-dropdown v-if="selectedRowKeys.length > 0">
+        <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportCustomerQuotes">
+          {{ t('common.operation.export') }} {{ t('data.quotation.tableGroup.customer') }} {{ t('data.quotation.quote') }}
+        </a-button>
+        <a-dropdown v-if="isEmployee && selectedRowKeys.length > 0">
           <template #overlay>
             <a-menu>
               <a-menu-item key="1" @click="batchHandleRevoke">
@@ -39,59 +41,109 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive } from 'vue';
+import { onMounted } from 'vue';
 import { PageWrapper } from '/@/components/Page';
 import { BasicTable, TableAction } from '/@/components/Table';
 import { useModal } from '/@/components/Modal';
 import { useListPage } from '/@/hooks/system/useListPage';
 import { downloadFile } from '/@/utils/common/renderUtils';
+import { useUserStore } from '/@/store/modules/user';
 import QuotationModal from './components/QuotationModal.vue';
 import { useI18n } from '/@/hooks/web/useI18n';
 import { columns, searchFormSchema, } from './Quotation.data';
 import {
   quoteList,
   quoteRevoke,
-  quoteExportXlsUrl,
-  quoteImportExcelUrl,
+  getMergedCountryOptions,
+  exportCustomerQuotes,
 } from './Quotation.api';
 const { t } = useI18n();
-const queryParam = reactive<Record<string, any>>({});
+const userStore = useUserStore();
+const isEmployee = userStore.getIsEmployee;
 
 const [registerModal, { openModal }] = useModal();
+
+const clientVisibleDataIndexes = new Set([
+  'status',
+  'inquiryClient_dictText',
+  'inquirySales_dictText',
+  'priorityMode',
+  'inquiryCountry_dictText',
+  'inquiryLink',
+  'expectedSales',
+  'inquiryPhoto',
+  'inquirySpec',
+  'inquiryColor',
+  'inquiryRemark',
+  'attachments',
+  'productName',
+  'supplierSku',
+  'moq',
+  'photo',
+  'customerUrl',
+  'customerPrice',
+  'country_dictText',
+  'livraison',
+  'prixAchat',
+  'logisticsFee',
+  'totalFee',
+  'sizeRange',
+]);
+
+function filterColumnsForClient(list: any[]): any[] {
+  return (list || [])
+    .map((column) => {
+      if (column.children?.length) {
+        const children = filterColumnsForClient(column.children);
+        return children.length ? { ...column, children } : null;
+      }
+      if (!column.dataIndex) return column;
+      return clientVisibleDataIndexes.has(column.dataIndex) ? column : null;
+    })
+    .filter(Boolean);
+}
+
+const tableColumns = isEmployee ? columns : filterColumnsForClient(columns);
+const tableSearchSchemas = isEmployee
+  ? searchFormSchema
+  : searchFormSchema.filter((schema) => schema.field !== 'inquiryClient');
 
 const { tableContext } = useListPage({
   tableProps: {
     title: t('data.quotation.quote'),
     api: quoteList,
-    columns,
+    columns: tableColumns,
     canResize: false,
     bordered: true,
     formConfig: {
-      schemas: searchFormSchema,
+      schemas: tableSearchSchemas,
       autoSubmitOnEnter: true,
-      showAdvancedButton: true,
+      showAdvancedButton: false,
+      labelWidth: 120,
+      actionColOptions: { style: { textAlign: 'right' } },
       fieldMapToNumber: [],
       fieldMapToTime: [],
     },
-    actionColumn: { width: 200, fixed: 'right', title: t('common.operation.action') },
-    beforeFetch: (params) => Object.assign(params, queryParam),
-  },
-  exportConfig: {
-    name: t('data.quotation.quote'),
-    url: quoteExportXlsUrl,
-    params: queryParam,
-  },
-  importConfig: {
-    url: quoteImportExcelUrl,
-    success: handleSuccess,
+    actionColumn: { width: isEmployee ? 200 : 120, fixed: 'right', title: t('common.operation.action') },
   },
 });
 
-const [registerTable, { reload }, { rowSelection, selectedRowKeys }] = tableContext;
+const [registerTable, { reload, getForm }, { rowSelection, selectedRowKeys }] = tableContext;
 
-function handleAdd() {
-  openModal(true, { isUpdate: false, showFooter: true });
-}
+onMounted(async () => {
+  const options = await getMergedCountryOptions();
+  await getForm().updateSchema([
+    {
+      field: 'inquiryCountry',
+      componentProps: { options, showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
+    },
+    {
+      field: 'country',
+      componentProps: { options, showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
+    },
+  ]);
+});
+
 function handleEdit(record: any) {
   openModal(true, { record, isUpdate: true, showFooter: true });
 }
@@ -109,7 +161,50 @@ function handleSuccess() {
   reload();
 }
 
+function cleanParams(params: Record<string, any>) {
+  return Object.fromEntries(
+    Object.entries(params || {}).filter(([, value]) => value !== undefined && value !== null && value !== '')
+  );
+}
+
+function getFilenameFromDisposition(disposition?: string) {
+  if (!disposition) return 'customer_quotes.xlsx';
+  const match = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)["']?/i);
+  if (!match?.[1]) return 'customer_quotes.xlsx';
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}
+
+function downloadExcelBlob(data: BlobPart, filename: string) {
+  const blob = new Blob([data], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}
+
+async function handleExportCustomerQuotes() {
+  const params = selectedRowKeys.value.length
+    ? { selections: selectedRowKeys.value.join(',') }
+    : cleanParams(await getForm().validate());
+  const res: any = await exportCustomerQuotes(params);
+  const disposition = res?.headers?.['content-disposition'] || res?.headers?.['Content-Disposition'];
+  downloadExcelBlob(res?.data ?? res, getFilenameFromDisposition(disposition));
+}
+
 function getTableAction(record: any) {
+  if (!isEmployee) {
+    return [{ label: t('common.operation.details'), onClick: handleDetail.bind(null, record) }];
+  }
   return [
     { label: t('data.quotation.quote'), onClick: handleEdit.bind(null, record) },
     { label: t('common.operation.details'), onClick: handleDetail.bind(null, record) },
@@ -123,3 +218,11 @@ function getTableAction(record: any) {
   ];
 }
 </script>
+
+<style scoped>
+:deep(.ant-form-item-label > label) {
+  white-space: normal;
+  line-height: 1.2;
+  height: auto;
+}
+</style>

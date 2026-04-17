@@ -1,7 +1,6 @@
 <template>
   <PageWrapper :title="t('data.quotation.inquiry')">
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
-      <!-- 顶部按钮区 -->
       <template #tableTitle>
         <a-button type="primary" preIcon="ant-design:plus-outlined" @click="handleAdd">
           {{ t('common.operation.addNew') }}
@@ -54,7 +53,7 @@
 </template>
 
 <script lang="ts" name="src2-inquiry" setup>
-import { reactive } from 'vue';
+import { onMounted } from 'vue';
 import { PageWrapper } from '/@/components/Page';
 import { BasicTable, TableAction,TableImg } from '/@/components/Table';
 import { useModal } from '/@/components/Modal';
@@ -62,27 +61,33 @@ import { useListPage } from '/@/hooks/system/useListPage';
 import { useI18n } from '/@/hooks/web/useI18n';
 import { downloadFile } from '/@/utils/common/renderUtils';
 import { useGlobSetting } from '/@/hooks/setting';
+import { useUserStore } from '/@/store/modules/user';
 
 import InquiryModal from './components/InquiryModal.vue';
 import { inquiryColumns, inquirySearchFormSchema } from './Inquiry.data';
-import { inquiryList, inquiryDeleteOne, inquiryBatchDelete, inquiryExportXlsUrl, inquiryImportExcelUrl,} from './Quotation.api';
+import { inquiryList, inquiryDeleteOne, inquiryBatchDelete, getMergedCountryOptions,} from './Quotation.api';
 
 const { t } = useI18n();
+const userStore = useUserStore();
 const globSetting = useGlobSetting();
 const baseUploadUrl = globSetting.uploadUrl;
 const imgPrefix = `${baseUploadUrl}/sys/common/static/`;
-const queryParam = reactive<Record<string, any>>({});
 const [registerModal, { openModal }] = useModal();
+const searchSchemas = userStore.getIsEmployee
+  ? inquirySearchFormSchema
+  : inquirySearchFormSchema.filter((schema) => schema.field !== 'inquiryClient');
 const { tableContext} = useListPage({
   tableProps: {
-    title: t('quotation.inquiryList'),
+    title: t('data.quotation.page.inquiryList'),
     api: inquiryList,
     columns: inquiryColumns,
     canResize: false,
     formConfig: {
-      schemas: inquirySearchFormSchema,
+      schemas: searchSchemas,
       autoSubmitOnEnter: true,
-      showAdvancedButton: true,
+      showAdvancedButton: false,
+      labelWidth: 120,
+      actionColOptions: { style: { textAlign: 'right' } },
       fieldMapToNumber: ['expected_sales'],
       fieldMapToTime: [],
     },
@@ -91,20 +96,18 @@ const { tableContext} = useListPage({
       fixed: 'right',
       title: t('common.operation.action'),
     },
-    beforeFetch: (params) => Object.assign(params, queryParam),
-  },
-  exportConfig: {
-    name: 'Inquiry',
-    url: inquiryExportXlsUrl,
-    params: queryParam,
-  },
-  importConfig: {
-    url: inquiryImportExcelUrl,
-    success: handleSuccess,
   },
 });
 
-const [registerTable, { reload }, { rowSelection, selectedRowKeys }] = tableContext;
+const [registerTable, { reload, getForm }, { rowSelection, selectedRowKeys }] = tableContext;
+
+onMounted(async () => {
+  const options = await getMergedCountryOptions();
+  await getForm().updateSchema({
+    field: 'inquiryCountry',
+    componentProps: { options, showSearch: true, placeholder: t('common.chooseText') },
+  });
+});
 function handleAdd() {
   openModal(true, { isUpdate: false, showFooter: true });
 }
@@ -149,4 +152,10 @@ function getDropDownAction(record: any) {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+:deep(.ant-form-item-label > label) {
+  white-space: normal;
+  line-height: 1.2;
+  height: auto;
+}
+</style>

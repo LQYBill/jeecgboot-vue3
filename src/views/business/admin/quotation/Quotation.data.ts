@@ -1,4 +1,4 @@
-import type { BasicColumn } from '/@/components/Table';
+﻿import type { BasicColumn } from '/@/components/Table';
 import type { FormSchema } from '/@/components/Table';
 import { render } from '/@/utils/common/renderUtils';
 import { h } from 'vue';
@@ -9,10 +9,31 @@ const dash = () => t('data.quotation.placeholder.dash');
 const headerWrap = () => ({
   style: { whiteSpace: 'normal', lineHeight: '1.2' },
 });
+
+const priorityModeOptions = [
+  { label: t('data.quotation.priorityMode.dropShipping'), value: 'dropShipping' },
+  { label: t('data.quotation.priorityMode.stockMode'), value: 'stockMode' },
+];
+
+const legacyPriorityMode = {
+  dropShipping: '一件代发',
+  stockMode: '库存模式',
+};
+
+function renderPriorityMode(value?: string) {
+  if (value === 'dropShipping' || value === legacyPriorityMode.dropShipping) {
+    return t('data.quotation.priorityMode.dropShipping');
+  }
+  if (value === 'stockMode' || value === legacyPriorityMode.stockMode) {
+    return t('data.quotation.priorityMode.stockMode');
+  }
+  return value || dash();
+}
+
 /** Link tool - renders a clickable link that opens in a new tab, with ellipsis and tooltip for long URLs */
 function renderLink(text: string) {
   const url = (text || '').trim();
-  if (!url) return '—';
+  if (!url) return dash();
   const open = (e: any) => {
     e?.stopPropagation?.();
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -43,7 +64,7 @@ function renderLink(text: string) {
 /** image tool - safely renders an image if text is a valid URL, otherwise shows a placeholder */
 function renderImageSafe(text?: string) {
   const v = (text || '').trim();
-  if (!v) return '—';
+  if (!v) return dash();
   return render.renderImage({ text: v } as any);
 }
 function ynText(v: any) {
@@ -52,7 +73,7 @@ function ynText(v: any) {
   return dash();
 }
 
-/** renders a colored tag based on status value (1 = green "报价完成", 0 = orange "询单中") */
+/** Renders a colored tag based on status value. */
 function statusText(v: any) {
   const baseStyle = {
     display: 'inline-block',
@@ -69,7 +90,7 @@ function showDictText(record: any, dictKey: string, rawKey: string) {
   const dt = (record?.[dictKey] ?? '').toString().trim();
   if (dt) return dt;
   const raw = (record?.[rawKey] ?? '').toString().trim();
-  return raw || '—';
+  return raw || dash();
 }
 const headerCls = (cls: string) => () => ({ class: cls });
 export const columns: BasicColumn[] = [
@@ -129,6 +150,14 @@ export const columns: BasicColumn[] = [
       },
       { title: t('data.quotation.col.inquirySpec'), align: 'center', dataIndex: 'inquirySpec', width: 180, ellipsis: true },
       { title: t('data.quotation.col.inquiryColor'), align: 'center', dataIndex: 'inquiryColor', width: 140, ellipsis: true },
+      {
+        title: t('data.quotation.col.priorityMode'),
+        align: 'center',
+        dataIndex: 'priorityMode',
+        width: 120,
+        ellipsis: true,
+        customRender: ({ text }) => renderPriorityMode(text),
+      },
       { title: t('data.quotation.col.inquiryRemark'), align: 'center', dataIndex: 'inquiryRemark', width: 200, ellipsis: true },
       { title: t('data.quotation.col.attachments'), align: 'center', dataIndex: 'attachments', width: 110 },
     ],
@@ -149,6 +178,7 @@ export const columns: BasicColumn[] = [
           { title: t('data.quotation.col.productName'), align: 'center', dataIndex: 'productName', width: 200, ellipsis: true },
           { title: t('data.quotation.col.supplierSku'), align: 'center', dataIndex: 'supplierSku', width: 140, ellipsis: true },
           { title: t('data.quotation.col.moq'), align: 'center', dataIndex: 'moq', width: 110 },
+          { title: t('data.quotation.col.sizeRange'), align: 'center', dataIndex: 'sizeRange', width: 110, customHeaderCell: headerWrap },
           {
             title: t('data.quotation.col.photo'),
             align: 'center',
@@ -295,36 +325,37 @@ export const searchFormSchema: FormSchema[] = [
           { label: t('data.quotation.statusText.quoted'), value: '1' },
         ],
         allowClear: true,
+        placeholder: t('common.chooseText'),
       },
-      colProps: { span: 6 },
+      colProps: { span: 8 },
     },
     {
       label: t('data.quotation.col.inquiryClient'),
       field: 'inquiryClient',
       component: 'JDictSelectTag',
-      componentProps: { dictCode: 'client,internal_code,id', showSearch: true, allowClear: true ,},
-      colProps: { span: 6 },
+      componentProps: { dictCode: 'client,internal_code,id', showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
+      colProps: { span: 8 },
     },
     {
       label: t('data.quotation.col.inquirySales'),
       field: 'inquirySales',
       component: 'JDictSelectTag',
-      componentProps: { dictCode: "sys_user where org_code <> 'A02',username,id", showSearch: true, allowClear: true, },
-      colProps: { span: 6 },
+      componentProps: { dictCode: "sys_user where org_code <> 'A02',username,id", showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
+      colProps: { span: 8 },
     },
     {
       label: t('data.quotation.col.inquiryCountry'),
       field: 'inquiryCountry',
       component: 'JDictSelectTag',
-      componentProps: { dictCode: 'country,name_en,id', showSearch: true, allowClear: true },
-      colProps: { span: 6 },
+      componentProps: { options: [], showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
+      colProps: { span: 8 },
     },
     {
       label: t('data.quotation.col.country'),
       field: 'country',
       component: 'JDictSelectTag',
-      componentProps: { dictCode: 'country,name_en,id', showSearch: true, allowClear: true },
-      colProps: { span: 6 },
+      componentProps: { options: [], showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
+      colProps: { span: 8 },
     },
   ];
 
@@ -375,7 +406,7 @@ export const formSchema: FormSchema[] = [
       colProps: { span: 12 },
       defaultValue: [],
       componentProps: {
-        dictCode: 'country,name_en,id',
+        options: [],
         showSearch: true,
         mode: 'multiple',
         maxTagCount: 'responsive',
@@ -410,6 +441,16 @@ export const formSchema: FormSchema[] = [
       },},
     { label: t('data.quotation.col.inquirySpec'), field: 'inquirySpec', component: 'Input', colProps: { span: 12 } },
     { label: t('data.quotation.col.inquiryColor'), field: 'inquiryColor', component: 'Input', colProps: { span: 12 } },
+    {
+      label: t('data.quotation.col.priorityMode'),
+      field: 'priorityMode',
+      component: 'Select',
+      colProps: { span: 12 },
+      componentProps: {
+        allowClear: true,
+        options: priorityModeOptions,
+      },
+    },
     { label: t('data.quotation.col.inquiryRemark'), field: 'inquiryRemark', component: 'InputTextArea', colProps: { span: 12 }, componentProps: { rows: 2 } },
 
     // zone 2 product info
@@ -447,6 +488,7 @@ export const formSchema: FormSchema[] = [
       dynamicRules: () => [{ required: true, message: t('data.quotation.validate.uploadPhoto') }],
     },
     { label: t('data.quotation.col.customerUrl'), field: 'customerUrl', component: 'InputTextArea', colProps: { span: 12 }, componentProps: { rows: 2 } },
+    { label: t('data.quotation.col.sizeRange'), field: 'sizeRange', component: 'Input', colProps: { span: 12 }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputSizeRange') }] },
 
     // zone 3 logistics and fees
     {
@@ -461,7 +503,7 @@ export const formSchema: FormSchema[] = [
       field: 'country',
       component: 'JDictSelectTag',
       colProps: { span: 12 },
-      componentProps: { dictCode: 'country,name_en,id', showSearch: true, allowClear: true },
+      componentProps: { options: [], showSearch: true, allowClear: true },
       dynamicRules: () => [{ required: true, message: t('data.quotation.validate.chooseCountry') }],
     },
     {
@@ -469,8 +511,9 @@ export const formSchema: FormSchema[] = [
       field: 'logisticChannel',
       component: 'JDictSelectTag',
       colProps: { span: 12 },
+      itemProps: { extra: t('data.quotation.tips.referencePriceRoute') },
       componentProps: {
-        dictCode: 'logistic_channel,zh_name,id',
+        options: [],
         showSearch: true,
         allowClear: true,
       },
@@ -481,8 +524,6 @@ export const formSchema: FormSchema[] = [
     { label: t('data.quotation.col.logisticsFee'), field: 'logisticsFee', component: 'InputNumber', dynamicDisabled: true, colProps: { span: 12 }, componentProps: { style: { width: '100%' } } },
     { label: t('data.quotation.col.totalFee'), field: 'totalFee', component: 'InputNumber', dynamicDisabled: true, colProps: { span: 12 }, componentProps: { style: { width: '100%' } } },
     { label: t('data.quotation.col.expressWeightG'), field: 'expressWeightG', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, customHeaderCell: headerWrap,precision: 0, disabled: true } },
-
-    { label: t('data.quotation.col.sizeRange'), field: 'sizeRange', component: 'Input', colProps: { span: 12 }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputSizeRange') }] },
 
     // zone 4 cost and profit
     {
@@ -543,3 +584,4 @@ export const formSchema: FormSchema[] = [
 export function getBpmFormSchema(_formData): FormSchema[] {
   return formSchema;
 }
+

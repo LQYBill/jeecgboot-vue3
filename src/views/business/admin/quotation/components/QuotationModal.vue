@@ -13,10 +13,11 @@
         <BasicForm class="q-form q-form-top" @register="registerTopForm" />
       </div>
       <!-- zone: for each section, render a form -->
-      <div class="q-section" v-for="sec in sections" :key="sec.key">
+      <div class="q-section" :class="{ 'q-section-readonly': sec.readonly }" v-for="sec in visibleSections" :key="sec.key">
         <div class="q-section-title">
           <span class="bar"></span>
           <span class="txt">{{ sec.title }}</span>
+          <span v-if="sec.readonly" class="readonly-tag">{{ readonlyText }}</span>
         </div>
         <BasicForm class="q-form" @register="sec.register" />
       </div>
@@ -28,16 +29,33 @@
 import { ref, computed } from 'vue';
 import { BasicModal, useModalInner } from '/@/components/Modal';
 import { BasicForm, useForm } from '/@/components/Form';
-import {quoteEdit, quoteEstimate } from '../Quotation.api';
+import { useUserStore } from '/@/store/modules/user';
+import { getLogisticChannelOptionsByCountry, getMergedCountryOptions, quoteEdit, quoteEstimate } from '../Quotation.api';
 import { formSchema as rawSchemas } from '../Quotation.data';
 import { useI18n } from '/@/hooks/web/useI18n';
-const { t } = useI18n();
+const i18n = useI18n() as any;
+const { t } = i18n;
 const emit = defineEmits(['register', 'success']);
 const editId = ref<string>('');
-const statusVal = ref<string>('0');
-type Section = { key: string; title: string; schemas: any[] };
+const userStore = useUserStore();
+const isEmployee = userStore.getIsEmployee;
+type Section = { key: string; title: string; schemas: any[]; readonly?: boolean };
+const formLabelWidth = 160;
 const { top, sections: sectionDefs } = splitByDivider(rawSchemas);
 const topSchemas = top.filter((x: any) => x?.field === 'status');
+const customerHiddenSections = new Set(['sec-4', 'sec-5']);
+const customerHiddenFields = new Set(['logisticChannel', 'expressWeightG']);
+const inquirySectionKey = 'sec-1';
+const readonlyText = computed(() => {
+  const locale = String(i18n.locale?.value || i18n.locale || '');
+  return locale.startsWith('zh') ? '只读' : 'Read-only';
+});
+
+function normalizePriorityMode(value?: string) {
+  if (value === '一件代发') return 'dropShipping';
+  if (value === '库存模式') return 'stockMode';
+  return value;
+}
 function splitByDivider(schemas: any[]): { top: any[]; sections: Section[] } {
   const top: any[] = [];
   const sections: Section[] = [];
@@ -60,29 +78,41 @@ function splitByDivider(schemas: any[]): { top: any[]; sections: Section[] } {
   return { top, sections };
 }
 const [registerTopForm, topFormApi] = useForm({
-  labelWidth: 110,
+  labelWidth: formLabelWidth,
   labelAlign: 'right',
   schemas: topSchemas,
   showActionButtonGroup: false,
+  autoSetPlaceHolder: false,
   baseColProps: { span: 24 },
   rowProps: { gutter: 16 },
 });
 function makeSectionForm(schemas: any[]) {
   return useForm({
-    labelWidth: 110,
+    labelWidth: formLabelWidth,
     labelAlign: 'right',
     schemas,
     showActionButtonGroup: false,
+    autoSetPlaceHolder: false,
     baseColProps: { span: 12 },
     rowProps: { gutter: 16 },
   });
 }
-const sections = sectionDefs.map((d) => {
+const displaySectionDefs = isEmployee
+  ? sectionDefs
+  : sectionDefs
+      .filter((sec) => !customerHiddenSections.has(sec.key))
+      .map((sec) => ({
+        ...sec,
+        schemas: (sec.schemas || []).filter((schema: any) => !schema?.field || !customerHiddenFields.has(schema.field)),
+      }));
+const sections = displaySectionDefs.map((d) => {
   const [register, api] = makeSectionForm(d.schemas);
-  return { ...d, register, api };
+  return { ...d, readonly: d.key === inquirySectionKey, register, api };
 });
 let estimateTimer: any = null;
 let estimating = false;
+const visibleSections = computed(() => sections);
+
 function debounceEstimate(fn: () => void, delay = 250) {
   clearTimeout(estimateTimer);
   estimateTimer = setTimeout(fn, delay);
@@ -91,20 +121,22 @@ function normalizePayload(v: any) {
   const payload = { ...v };
   // inquiryCountry array -> string
   if (Array.isArray(payload.inquiryCountry)) payload.inquiryCountry = payload.inquiryCountry.join(',');
+  payload.priorityMode = normalizePriorityMode(payload.priorityMode);
   payload.id = editId.value;
   return payload;
 }
 // only patch computed fields, avoid overwriting user input
 function pickComputed(est: any) {
+  const salePriceEur = est?.salePriceEur;
   return {
     expressWeight: est?.expressWeight,
     expressWeightG: est?.expressWeightG,
 
     costRmb: est?.costRmb,
     costEur: est?.costEur,
-    prixAchat: est?.prixAchat,
+    prixAchat: salePriceEur ?? est?.prixAchat,
 
-    salePriceEur: est?.salePriceEur,
+    salePriceEur,
 
     logisticsFee: est?.logisticsFee,
     totalFee: est?.totalFee,
@@ -149,7 +181,62 @@ async function applyComputedFields(fields: any) {
   for (const s of sections) await s.api.setFieldsValue(patch);
 }
 
+async function updateSchemaEverywhere(schema: any) {
+  await topFormApi.updateSchema?.(schema);
+  for (const s of sections) {
+    await s.api.updateSchema?.(schema);
+  }
+}
+
+async function applyCountryOptions() {
+  try {
+    const options = await getMergedCountryOptions();
+    await updateSchemaEverywhere([
+      {
+        field: 'inquiryCountry',
+        componentProps: {
+          options,
+          showSearch: true,
+          mode: 'multiple',
+          maxTagCount: 'responsive',
+          allowClear: true,
+          style: { width: '100%' },
+        },
+      },
+      {
+        field: 'country',
+        componentProps: {
+          options,
+          showSearch: true,
+          allowClear: true,
+        },
+      },
+    ]);
+  } catch (error) {
+    console.warn('[quotation-modal] failed to load country options', error);
+  }
+}
+
+async function applyLogisticChannelOptions(country?: string, keepCurrent = true) {
+  const raw = await collectValuesNoValidate();
+  const current = raw?.logisticChannel;
+  const options = country ? await getLogisticChannelOptionsByCountry(String(country)) : [];
+  await updateSchemaEverywhere({
+    field: 'logisticChannel',
+    componentProps: {
+      options,
+      showSearch: true,
+      allowClear: true,
+    },
+  });
+  const currentStillValid = !!current && options.some((item: any) => item.value === String(current));
+  if (!country || (keepCurrent && current && !currentStillValid)) {
+    await applyComputedFields({ logisticChannel: '' });
+  }
+}
+
 async function doEstimate() {
+  if (!isEmployee) return;
   if (estimating) return;
   estimating = true;
   try {
@@ -169,10 +256,19 @@ function estimateDebounced() {
     doEstimate();
   }, 250);
 }
+
 // these fields are the ones that affect estimate result, so onChange
 function bindEstimateHooks(formApi: any) {
   formApi.updateSchema?.([
-    { field: 'country', componentProps: { onChange: estimateDebounced } },
+    {
+      field: 'country',
+      componentProps: {
+        onChange: async (value: string) => {
+          await applyLogisticChannelOptions(value, true);
+          estimateDebounced();
+        },
+      },
+    },
     { field: 'logisticChannel', componentProps: { onChange: estimateDebounced } },
     { field: 'grossWeightG', componentProps: { onChange: estimateDebounced } },
     { field: 'packWeightG', componentProps: { onChange: estimateDebounced } },
@@ -188,12 +284,13 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
   for (const s of sections) await s.api.resetFields();
   setModalProps({
     confirmLoading: false,
-    showCancelBtn: !!data?.showFooter,
-    showOkBtn: !!data?.showFooter,
+    showCancelBtn: !!data?.showFooter || !isEmployee,
+    showOkBtn: isEmployee && !!data?.showFooter,
   });
   const r: any = { ...(data?.record || {}) };
   editId.value = r?.id || '';
-  statusVal.value = (r?.status ?? '0') + '';
+  r.priorityMode = normalizePriorityMode(r.priorityMode);
+  await applyCountryOptions();
   if (typeof r.inquiryCountry === 'string') {
     r.inquiryCountry = r.inquiryCountry
       ? r.inquiryCountry.split(',').map((x) => x.trim()).filter(Boolean)
@@ -203,17 +300,22 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
   }
   await topFormApi.setFieldsValue(r);
   for (const s of sections) await s.api.setFieldsValue(r);
-  topFormApi.setProps({ disabled: !data?.showFooter });
-  for (const s of sections) s.api.setProps({ disabled: !data?.showFooter });
-  bindEstimateHooks(topFormApi);
-  for (const s of sections) bindEstimateHooks(s.api);
-  estimateDebounced();
+  await applyLogisticChannelOptions(r.country, true);
+  const disabled = !isEmployee || !data?.showFooter;
+  topFormApi.setProps({ disabled });
+  for (const s of sections) s.api.setProps({ disabled: disabled || !!s.readonly });
+  if (isEmployee) {
+    bindEstimateHooks(topFormApi);
+    for (const s of sections) bindEstimateHooks(s.api);
+    estimateDebounced();
+  }
 });
 const title = computed(() => {
   return t('data.quotation.quote');
 });
 
 async function handleSubmit() {
+  if (!isEmployee) return;
   try {
     // 1) validate: get all values (top + sections)
     const topValues: any = await topFormApi.validate();
@@ -282,11 +384,36 @@ async function handleSubmit() {
   font-size: 15px;
   color: rgba(0, 0, 0, 0.88);
 }
+.readonly-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background: #fafafa;
+  color: rgba(0, 0, 0, 0.58);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
+.q-section-readonly {
+  background: #fbfbfb;
+}
 
 
 :deep(.q-form) {
   .ant-form-item { margin-bottom: 12px; }
-  .ant-form-item-label { white-space: nowrap; }
+  .ant-form-item-label {
+    white-space: normal;
+    overflow: visible;
+    line-height: 1.25;
+  }
+  .ant-form-item-label > label {
+    height: auto;
+    white-space: normal;
+    line-height: 1.25;
+  }
 
   .ant-form-item-control {
     flex: 1;
