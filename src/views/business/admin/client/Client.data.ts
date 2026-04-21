@@ -110,7 +110,7 @@ export const columns: BasicColumn[] = [
     title: t('data.client.salesperson'),
     align: 'center',
     sorter: true,
-    dataIndex: 'salesperson_dictText',
+    dataIndex: 'salespersonNames',
   },
   {
     title: t('data.client.isCompleteInvoice'),
@@ -291,10 +291,13 @@ export const formSchema: FormSchema[] = [
   },
   {
     label: t('data.client.salesperson'),
-    field: 'salesperson',
+    field: 'salespersonIds',
+    defaultValue: [],
     component: 'JSearchSelect',
     componentProps: {
-      dict: 'sys_user,username,id',
+      dict: 'sys_user,realname,id',
+      mode: 'multiple',
+      allowClear: true,
     },
   },
   {
