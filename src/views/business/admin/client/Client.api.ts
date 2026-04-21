@@ -14,6 +14,7 @@ enum Api {
   importExcel = '/client/client/importExcel',
   exportXls = '/client/client/exportXls',
   shopList = '/client/client/queryShopByMainId',
+  queryById = '/client/client/queryById',
 }
 /**
  * 导出api
@@ -76,3 +77,11 @@ export const saveOrUpdate = (params, isUpdate) => {
     data: params,
   });
 }
+
+/**
+ * 通过id查询
+ * @param params
+ */
+export const queryById = (params) =>
+  defHttp.get({url: Api.queryById, params});
+
