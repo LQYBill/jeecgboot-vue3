@@ -551,7 +551,7 @@ function downloadDetailFile(invoiceNumber) {
   let internalCode = customerInfo.value?.info.split(',')[2];
   console.log(`internalCode : ${internalCode}`);
 
-  let detailFilename = internalCode + "_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
+  let detailFilename = internalCode + "_" + invoiceNumber + '_Invoice_calculation_details_' + now + '.xlsx';
   console.log(`detail filename : ${detailFilename}`);
   downloadFile(Api.downloadInvoiceDetail, detailFilename, param)
     .catch(e => {

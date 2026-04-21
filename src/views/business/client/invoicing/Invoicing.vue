@@ -965,7 +965,7 @@ function downloadDetailFile(invoiceNumber: string) {
       internalCode: client.value!.internalCode
     }
   let now = dayjs().format("YYYYMMDD");
-  let detailFilename = client.value?.internalCode + "_(" + client.value!.invoiceEntity + ")_" + invoiceNumber + '_Détail_calcul_de_facture_' + now + '.xlsx';
+  let detailFilename = client.value?.internalCode + "_(" + client.value!.invoiceEntity + ")_" + invoiceNumber + '_Invoice_calculation_details_' + now + '.xlsx';
   downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {
     createMessage.info("Download successful.")
   }).catch(e => {
