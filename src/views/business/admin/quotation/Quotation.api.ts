@@ -11,6 +11,7 @@ enum Api {
   inquiryAdd = '/quotation/inquiry/add',
   inquiryEdit = '/quotation/inquiry/edit',
   inquiryQueryById = '/quotation/inquiry/queryById',
+  inquiryClientSalespersons = '/quotation/clientSalespersons',
   getCurrentClient = '/userClient/getClient',
   popularCountryList = '/country/popularList',
   logisticChannelListByCountry = '/business/logisticChannel/listByCountry',
@@ -27,6 +28,12 @@ enum Api {
   quoteEstimate = '/quotation/quote/estimate',
 }
 export const inquiryList = (params) => defHttp.get({ url: Api.inquiryList, params });
+export const getInquiryClientSalespersons = async (clientId: string) => {
+  if (!clientId) return [];
+  const resp = await defHttp.get({ url: Api.inquiryClientSalespersons, params: { clientId } });
+  const result = resp?.result ?? resp;
+  return Array.isArray(result) ? result.map(String) : [];
+};
 export const getCurrentClient = () => defHttp.get({ url: Api.getCurrentClient });
 function unwrapList(resp: any) {
   const result = resp?.result ?? resp;

@@ -18,7 +18,7 @@ import { BasicModal, useModalInner } from '/@/components/Modal';
 import { BasicForm, useForm } from '/@/components/Form';
 import { useUserStore } from '/@/store/modules/user';
 import { inquiryFormSchema } from '../Inquiry.data';
-import { getCurrentClient, getMergedCountryOptions, inquiryAdd, inquiryEdit } from '../Quotation.api';
+import { getCurrentClient, getInquiryClientSalespersons, getMergedCountryOptions, inquiryAdd, inquiryEdit } from '../Quotation.api';
 import { useI18n } from '/@/hooks/web/useI18n';
 const { t } = useI18n();
 
@@ -28,6 +28,7 @@ const showFooter = ref(true);
 const isUpdate = ref(false);
 const currentId = ref<string | null>(null);
 const userStore = useUserStore();
+let clientSalespersonsRequestId = 0;
 
 const [registerForm, { resetFields, setFieldsValue, validate, updateSchema }] = useForm({
   labelWidth: 120,
@@ -40,6 +41,31 @@ function normalizePriorityMode(value?: string) {
   if (value === '一件代发') return 'dropShipping';
   if (value === '库存模式') return 'stockMode';
   return value;
+}
+
+function normalizeMultiValue(value: any): string[] {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+async function onInquiryClientChange(clientId?: string) {
+  const requestId = ++clientSalespersonsRequestId;
+  await setFieldsValue({ inquirySales: [] });
+  if (!clientId) return;
+
+  try {
+    const salesIds = await getInquiryClientSalespersons(String(clientId));
+    if (requestId !== clientSalespersonsRequestId) return;
+    await setFieldsValue({ inquirySales: salesIds });
+  } catch (error) {
+    console.warn('[inquiry-modal] failed to load client salespersons', error);
+  }
 }
 
 async function applyCountryOptions() {
@@ -82,6 +108,7 @@ async function applyInquiryClientDisplayScope(isAdd: boolean) {
       showSearch: true,
       disabled: !isEmployee,
       allowClear: isEmployee,
+      onChange: onInquiryClientChange,
     },
   });
 
@@ -89,6 +116,7 @@ async function applyInquiryClientDisplayScope(isAdd: boolean) {
     await setFieldsValue({
       inquiryClient: currentClientId,
     });
+    await onInquiryClientChange(currentClientId);
   }
 }
 
@@ -110,6 +138,7 @@ const [registerModal, { closeModal, setModalProps }] = useModalInner(async (data
     } else if (!Array.isArray(r.inquiryCountry)) {
       r.inquiryCountry = [];
     }
+    r.inquirySales = normalizeMultiValue(r.inquirySalesList ?? r.inquirySales);
     r.priorityMode = normalizePriorityMode(r.priorityMode);
     await setFieldsValue(r);
   } else {
