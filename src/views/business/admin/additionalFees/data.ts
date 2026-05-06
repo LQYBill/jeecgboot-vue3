@@ -10,6 +10,8 @@ export const Api = {
   CREATE_EXTRA_FEE: '/extraFee/create',
   UPDATE_EXTRA_FEE: '/extraFee/update',
   DELETE_EXTRA_FEE: '/extraFee/delete',
+  IMPORT_EXCEL: '/extraFee/importExcel',
+  IMPORT_TEMPLATE: '/extraFee/importTemplate',
 }
 
 export const additionalFeesColumns: BasicColumn[] = [
@@ -106,11 +108,11 @@ export const deleteById = async (id: number, handler: Function) => {
 
 export const statusOptions = [
   {
-    label: 'Not invoiced',
+    label: t('page.invoicing.extraFeesStatusNotInvoiced'),
     value: '0',
   },
   {
-    label: 'Invoiced',
+    label: t('page.invoicing.extraFeesStatusInvoiced'),
     value: '1',
-  }
+  },
 ]
