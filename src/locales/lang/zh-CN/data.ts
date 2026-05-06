@@ -394,4 +394,162 @@ export default {
   noData: '无数据',
   database: '系统',
   mabang: '马帮',
+  quotation: {
+    quote: '报价',
+    inquiry: '询单',
+
+    page: {
+      quoteList: '报价',
+      inquiryList: '询单',
+    },
+
+    // table group titles
+    tableGroup: {
+      inquiry: '询单',
+      quote: '报价',
+      product: '产品',
+      customer: '客户',
+      logistics: '物流',
+      costProfit: '成本/利润',
+      supplierPack: '供货商/包装',
+    },
+
+    // columns
+    col: {
+      status: '状态',
+      inquiryClient: '询单客户',
+      inquirySales: '询单销售',
+      priorityMode: '优先级模式',
+      inquiryCountry: '询单国家',
+      inquiryLink: '询单链接',
+      expectedSales: '预计销量',
+      inquiryPhoto: '询单图片',
+      inquirySpec: '询单产品规格',
+      inquiryColor: '询单产品颜色',
+      inquiryRemark: '询单备注',
+      attachments: '附件',
+
+      productName: '产品名称',
+      supplierSku: '供货商SKU',
+      moq: '最低起订量',
+      photo: '图片',
+
+      customerUrl: '速卖通链接',
+      customerPrice: '客户售价(€)',
+
+      country: '国家',
+      logisticChannel: '物流路线',
+      livraison: '时效',
+      prixAchat: "Prix d’achat",
+      logisticsFee: '物流费(€)',
+      totalFee: '总费用(€)',
+      expressWeightG: '快递重量(g)',
+
+      purchasePriceRmb: '采购价(¥)',
+      domesticShippingRmb: '国内物流(¥)',
+      costRmb: '成本 RMB',
+      costEur: '成本 EUR',
+      salePriceRmb: '售价 RMB',
+      salePriceEur: '售价 EUR',
+      partnerSalePrice: '合作伙伴售价',
+      profitRmb: '利润 RMB',
+      profitEur: '利润 EUR',
+      margin: '利润率',
+      grossWeightG: '毛重(g)',
+      packWeightG: '包材重(g)',
+
+      supplierLink: '供货商链接',
+      supplierName: '供货商名',
+      supplierPrice: '供货商价格',
+      inStock: '是否现货',
+      productSize: '产品尺码',
+      productSizeImg: '尺码图',
+      isVolumetric: '是否抛重',
+      category: '自定义分类',
+      packageLength: '包装长',
+      packageWidth: '包装宽',
+      packageHeight: '包装高',
+      specification: '规格说明',
+      colorNote: '颜色说明',
+      colorImg: '颜色图',
+      outerPackageImg: '外包装图',
+
+      sizeRange: '尺码范围',
+    },
+
+    priorityMode: {
+      dropShipping: '一件代发',
+      stockMode: '库存模式',
+    },
+
+    // status value text
+    statusText: {
+      inInquiry: '询单中',
+      quoted: '报价完成',
+    },
+
+    // search/form sections
+    section: {
+      inquiryInfo: '询单信息',
+      productInfo: '产品信息',
+      logisticsFee: '物流与费用',
+      costProfit: '成本与利润',
+      supplierPack: '供货商与包装',
+    },
+
+    // modal titles
+    modalTitle: {
+      quoteDetail: '报价详情',
+      quoteEdit: '编辑报价',
+      quoteAdd: '新增报价',
+
+      inquiryDetail: '询单详情',
+      inquiryEdit: '编辑询单',
+      inquiryAdd: '新增询单',
+    },
+
+    // confirm / tips
+    confirm: {
+      revokeQuote: '撤销后将回到询单状态，确定吗？',
+      delete: '是否确认删除？',
+      batchDelete: '是否删除选中数据',
+      deleteTitle: '确认删除',
+    },
+    placeholder: {
+      dash: '—',
+      noFile: '无文件',
+      noImage: '无图片',
+    },
+
+    tips: {
+      referencePriceRoute: '(ref) 表示该路线使用对标渠道价格，实际价格按对标渠道计算。',
+    },
+
+    // form validation messages
+    validate: {
+      chooseStatus: '请选择状态!',
+      chooseInquiryCountry: '请选择询单国家!',
+      chooseCountry: '请选择国家!',
+      chooseLogisticChannel: '请选择物流路线!',
+
+      inputExpectedSales: '请输入预计销量!',
+      inputInquiryLink: '请输入询单链接!',
+      inputProductName: '请输入产品名称!',
+      inputMoq: '请输入最低起订量!',
+      uploadPhoto: '请上传产品图片!',
+      inputSizeRange: '请输入尺码范围!',
+
+      inputPurchasePrice: '请输入采购价!',
+      inputDomesticShipping: '请输入国内物流费用!',
+      inputSalePriceRmb: '请输入售价 RMB!',
+      inputPartnerSalePrice: '请输入合作伙伴售价!',
+      inputGrossWeight: '请输入毛重(g)!',
+      inputPackWeight: '请输入包材重量(g)!',
+
+      inputSupplierLink: '请输入供货商链接!',
+      inputSupplierName: '请输入供货商名!',
+      inputSupplierPrice: '请输入供货商价格!',
+      inputCategory: '请输入自定义分类!',
+    },
+  },
 }

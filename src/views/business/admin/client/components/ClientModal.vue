@@ -52,6 +52,17 @@
     dataSource: [],
     columns: shopColumns,
   });
+
+  function normalizeMultiValue(value: any): string[] {
+    if (Array.isArray(value)) return value.map(String).filter(Boolean);
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+    return [];
+  }
   //表单配置
   const [registerForm, { setProps, resetFields, setFieldsValue }] = useForm({
     //labelWidth: 150,
@@ -68,13 +79,11 @@
     formDisabled.value = !data?.showFooter;
     if (unref(isUpdate)) {
       const record = { ...data.record };
-      const ids = Array.isArray(record.salespersonIds)
-        ? record.salespersonIds
-        : [];
+      const salespersonIds = normalizeMultiValue(record.salespersonIds);
       //表单赋值
       await setFieldsValue({
-        ...data.record,
-        salespersonIds: ids.length === 1 ? ids : undefined,
+        ...record,
+        salespersonIds,
       });
       shopOptionsUrl.value = data?.record?.id ? `/business/admin/client/ShopOptionsList?c=${data.record.id}` : '/business/admin/client/ShopOptionsList';
       requestSubTableData(shopList, { id: data?.record?.id }, shopTable);
@@ -114,11 +123,7 @@
       setModalProps({ confirmLoading: true });
       const submitValues = {
         ...values,
-        salespersonIds: Array.isArray(values.salespersonIds)
-          ? values.salespersonIds
-          : typeof values.salespersonIds === 'string'
-            ? values.salespersonIds.split(',').filter(Boolean)
-            : [],
+        salespersonIds: normalizeMultiValue(values.salespersonIds),
       };
       //提交表单
       await saveOrUpdate(submitValues, isUpdate.value);

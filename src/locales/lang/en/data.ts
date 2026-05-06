@@ -392,4 +392,157 @@ export default {
   noData: "No Data",
   database: "Database",
   mabang: "Mabang",
+
+  quotation: {
+    quote: 'Quotation',
+    inquiry: 'Inquiry',
+
+    page: {
+      quoteList: 'Quotation',
+      inquiryList: 'Inquiry',
+    },
+
+    tableGroup: {
+      inquiry: 'Inquiry',
+      quote: 'Quotation',
+      product: 'Product',
+      customer: 'Customer',
+      logistics: 'Logistics',
+      costProfit: 'Cost / Profit',
+      supplierPack: 'Supplier / Packaging',
+    },
+
+    col: {
+      status: 'Status',
+      inquiryClient: 'Client',
+      inquirySales: 'Sales',
+      priorityMode: 'Priority mode',
+      inquiryCountry: 'Inquiry country',
+      inquiryLink: 'Inquiry link',
+      expectedSales: 'Expected sales',
+      inquiryPhoto: 'Inquiry photo',
+      inquirySpec: 'Spec',
+      inquiryColor: 'Color',
+      inquiryRemark: 'Remark',
+      attachments: 'Attachments',
+
+      productName: 'Product name',
+      supplierSku: 'Supplier SKU',
+      moq: 'MOQ',
+      photo: 'Photo',
+
+      customerUrl: 'Customer link',
+      customerPrice: 'Customer price (€)',
+
+      country: 'Country',
+      logisticChannel: 'Logistics route',
+      livraison: 'Delivery time',
+      prixAchat: "Purchase price",
+      logisticsFee: 'Shipping fee (€)',
+      totalFee: 'Total fee (€)',
+      expressWeightG: 'Express weight (g)',
+
+      purchasePriceRmb: 'Purchase price (¥)',
+      domesticShippingRmb: 'Domestic shipping (¥)',
+      costRmb: 'Cost RMB',
+      costEur: 'Cost EUR',
+      salePriceRmb: 'Sale price RMB',
+      salePriceEur: 'Sale price EUR',
+      partnerSalePrice: 'Partner sale price',
+      profitRmb: 'Profit RMB',
+      profitEur: 'Profit EUR',
+      margin: 'Margin',
+      grossWeightG: 'Gross weight (g)',
+      packWeightG: 'Packaging weight (g)',
+
+      supplierLink: 'Supplier link',
+      supplierName: 'Supplier name',
+      supplierPrice: 'Supplier price',
+      inStock: 'In stock',
+      productSize: 'Size',
+      productSizeImg: 'Size chart',
+      isVolumetric: 'Volumetric?',
+      category: 'Category',
+      packageLength: 'Package length',
+      packageWidth: 'Package width',
+      packageHeight: 'Package height',
+      specification: 'Specification',
+      colorNote: 'Color note',
+      colorImg: 'Color image',
+      outerPackageImg: 'Outer package image',
+
+      sizeRange: 'Size range',
+    },
+
+    priorityMode: {
+      dropShipping: 'Drop shipping',
+      stockMode: 'Stock mode',
+    },
+
+    statusText: {
+      inInquiry: 'In inquiry',
+      quoted: 'Quoted',
+    },
+
+    section: {
+      inquiryInfo: 'Inquiry info',
+      productInfo: 'Product info',
+      logisticsFee: 'Logistics & fees',
+      costProfit: 'Cost & profit',
+      supplierPack: 'Supplier & packaging',
+    },
+
+    modalTitle: {
+      quoteDetail: 'Quotation details',
+      quoteEdit: 'Edit quotation',
+      quoteAdd: 'New quotation',
+
+      inquiryDetail: 'Inquiry details',
+      inquiryEdit: 'Edit inquiry',
+      inquiryAdd: 'New inquiry',
+    },
+
+    confirm: {
+      revokeQuote: 'After revoking, it will return to inquiry status. Continue?',
+      delete: 'Confirm deletion?',
+      batchDelete: 'Delete selected records?',
+      deleteTitle: 'Confirm',
+    },
+
+    placeholder: {
+      dash: '—',
+      noFile: 'No file',
+      noImage: 'No image',
+    },
+
+    tips: {
+      referencePriceRoute: '(ref) means this route uses a reference channel price. The final price is calculated from the reference route.',
+    },
+
+    validate: {
+      chooseStatus: 'Please select status!',
+      chooseInquiryCountry: 'Please select inquiry country!',
+      chooseCountry: 'Please select country!',
+      chooseLogisticChannel: 'Please select logistics route!',
+
+      inputExpectedSales: 'Please enter expected sales!',
+      inputInquiryLink: 'Please enter inquiry link!',
+      inputProductName: 'Please enter product name!',
+      inputMoq: 'Please enter MOQ!',
+      uploadPhoto: 'Please upload product photo!',
+      inputSizeRange: 'Please enter size range!',
+
+      inputPurchasePrice: 'Please enter purchase price!',
+      inputDomesticShipping: 'Please enter domestic shipping fee!',
+      inputSalePriceRmb: 'Please enter sale price (RMB)!',
+      inputPartnerSalePrice: 'Please enter partner sale price!',
+      inputGrossWeight: 'Please enter gross weight (g)!',
+      inputPackWeight: 'Please enter packaging weight (g)!',
+
+      inputSupplierLink: 'Please enter supplier link!',
+      inputSupplierName: 'Please enter supplier name!',
+      inputSupplierPrice: 'Please enter supplier price!',
+      inputCategory: 'Please enter category!',
+    },
+  },
 }
