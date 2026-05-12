@@ -30,7 +30,7 @@ import { ref, computed } from 'vue';
 import { BasicModal, useModalInner } from '/@/components/Modal';
 import { BasicForm, useForm } from '/@/components/Form';
 import { useUserStore } from '/@/store/modules/user';
-import { getLogisticChannelOptionsByCountry, getMergedCountryOptions, quoteEdit, quoteEstimate } from '../Quotation.api';
+import { getLogisticChannelOptionsByCountry, getMergedCountryOptions, getSalespersons, quoteEdit, quoteEstimate } from '../Quotation.api';
 import { formSchema as rawSchemas } from '../Quotation.data';
 import { useI18n } from '/@/hooks/web/useI18n';
 const i18n = useI18n() as any;
@@ -55,6 +55,16 @@ function normalizePriorityMode(value?: string) {
   if (value === '一件代发') return 'dropShipping';
   if (value === '库存模式') return 'stockMode';
   return value;
+}
+function normalizeMultiValue(value: any): string[] {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
 }
 function splitByDivider(schemas: any[]): { top: any[]; sections: Section[] } {
   const top: any[] = [];
@@ -217,6 +227,24 @@ async function applyCountryOptions() {
   }
 }
 
+async function applySalespersonOptions() {
+  try {
+    const options = await getSalespersons();
+    await updateSchemaEverywhere({
+      field: 'inquirySales',
+      componentProps: {
+        options,
+        showSearch: true,
+        mode: 'multiple',
+        maxTagCount: 'responsive',
+        allowClear: true,
+      },
+    });
+  } catch (error) {
+    console.warn('[quotation-modal] failed to load salesperson options', error);
+  }
+}
+
 async function applyLogisticChannelOptions(country?: string, keepCurrent = true) {
   const raw = await collectValuesNoValidate();
   const current = raw?.logisticChannel;
@@ -290,7 +318,7 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
   const r: any = { ...(data?.record || {}) };
   editId.value = r?.id || '';
   r.priorityMode = normalizePriorityMode(r.priorityMode);
-  await applyCountryOptions();
+  await Promise.all([applyCountryOptions(), applySalespersonOptions()]);
   if (typeof r.inquiryCountry === 'string') {
     r.inquiryCountry = r.inquiryCountry
       ? r.inquiryCountry.split(',').map((x) => x.trim()).filter(Boolean)
@@ -298,6 +326,7 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
   } else if (!Array.isArray(r.inquiryCountry)) {
     r.inquiryCountry = [];
   }
+  r.inquirySales = normalizeMultiValue(r.inquirySalesList ?? r.inquirySales);
   await topFormApi.setFieldsValue(r);
   for (const s of sections) await s.api.setFieldsValue(r);
   await applyLogisticChannelOptions(r.country, true);

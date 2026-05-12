@@ -75,7 +75,7 @@ export const inquiryColumns = [
 
 export const inquirySearchFormSchema: FormSchema[] = [
   { label: t('data.quotation.col.inquiryClient'), field: 'inquiryClient', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { dictCode: 'client,internal_code,id',showSearch: true, placeholder: t('common.chooseText') }, },
-  { label: t('data.quotation.col.inquirySales'), field: 'inquirySales', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { dictCode: "sys_user where org_code <> 'A02' ,username,id",showSearch: true, mode: 'multiple', maxTagCount: 'responsive', allowClear: true, placeholder: t('common.chooseText') }, },
+  { label: t('data.quotation.col.inquirySales'), field: 'inquirySales', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { options: [], showSearch: true, mode: 'multiple', maxTagCount: 'responsive', allowClear: true, placeholder: t('common.chooseText') }, },
   { label: t('data.quotation.col.inquiryCountry'), field: 'inquiryCountry', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { options: [], showSearch: true, placeholder: t('common.chooseText')}, },
 ];
 
@@ -92,7 +92,7 @@ export const inquiryFormSchema: FormSchema[] = [
     field: 'inquirySales',
     component: 'JDictSelectTag',
     required: false,
-    componentProps: { dictCode: "sys_user where org_code <> 'A02' ,username,id",
+    componentProps: { options: [],
       showSearch: true,
       mode: 'multiple',
       maxTagCount: 'responsive',

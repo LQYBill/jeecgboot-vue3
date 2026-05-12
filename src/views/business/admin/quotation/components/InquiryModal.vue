@@ -18,7 +18,7 @@ import { BasicModal, useModalInner } from '/@/components/Modal';
 import { BasicForm, useForm } from '/@/components/Form';
 import { useUserStore } from '/@/store/modules/user';
 import { inquiryFormSchema } from '../Inquiry.data';
-import { getCurrentClient, getInquiryClientSalespersons, getMergedCountryOptions, inquiryAdd, inquiryEdit } from '../Quotation.api';
+import { getCurrentClient, getInquiryClientSalespersons, getMergedCountryOptions, getSalespersons, inquiryAdd, inquiryEdit } from '../Quotation.api';
 import { useI18n } from '/@/hooks/web/useI18n';
 const { t } = useI18n();
 
@@ -86,6 +86,24 @@ async function applyCountryOptions() {
   }
 }
 
+async function applySalespersonOptions() {
+  try {
+    const options = await getSalespersons();
+    await updateSchema({
+      field: 'inquirySales',
+      componentProps: {
+        options,
+        showSearch: true,
+        mode: 'multiple',
+        maxTagCount: 'responsive',
+        allowClear: true,
+      },
+    });
+  } catch (error) {
+    console.warn('[inquiry-modal] failed to load salesperson options', error);
+  }
+}
+
 async function applyInquiryClientDisplayScope(isAdd: boolean) {
   let isEmployee = userStore.getIsEmployee;
   let currentClientId = '';
@@ -125,7 +143,7 @@ const [registerModal, { closeModal, setModalProps }] = useModalInner(async (data
 
   isUpdate.value = !!data?.isUpdate;
   showFooter.value = data?.showFooter !== false;
-  await applyCountryOptions();
+  await Promise.all([applyCountryOptions(), applySalespersonOptions()]);
   await applyInquiryClientDisplayScope(!data?.record);
 
   if (data?.record) {

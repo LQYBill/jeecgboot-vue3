@@ -340,7 +340,7 @@ export const searchFormSchema: FormSchema[] = [
       label: t('data.quotation.col.inquirySales'),
       field: 'inquirySales',
       component: 'JDictSelectTag',
-      componentProps: { dictCode: "sys_user where org_code <> 'A02',username,id", showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
+      componentProps: { options: [], showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
       colProps: { span: 8 },
     },
     {
@@ -397,7 +397,7 @@ export const formSchema: FormSchema[] = [
       field: 'inquirySales',
       component: 'JDictSelectTag',
       colProps: { span: 12 },
-      componentProps: { dictCode: "sys_user where org_code <> 'A02',username,id", showSearch: true, allowClear: true },
+      componentProps: { options: [], showSearch: true, mode: 'multiple', maxTagCount: 'responsive', allowClear: true },
     },
     {
       label: t('data.quotation.col.inquiryCountry'),
