@@ -265,9 +265,9 @@ function downloadExcelInvoice(type : string) {
           filename = "Invoice N°" + invoiceNum + " (" + res.invoiceEntity + ").xlsx";
         }
         else if (type === "detail") {
-          filename = res.internalCode + "_" + invoiceNum + '_Détail_calcul_de_facture_' + date + '.xlsx';
+          filename = res.internalCode + "_" + invoiceNum + '_Invoice_calculation_details_' + date + '.xlsx';
         } else if (type === "completeDetail") {
-          filename = res.internalCode + "_" + invoiceNum + '_Détail_calcul_de_facture_complete_' + date + '.xlsx';
+          filename = res.internalCode + "_" + invoiceNum + '_Complete_invoice_calculation_details_' + date + '.xlsx';
         } else {
           filename = invoiceNum + "_Inventaire_SKU.xlsx";
         }

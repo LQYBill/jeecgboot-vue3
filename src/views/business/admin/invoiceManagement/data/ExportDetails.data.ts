@@ -5,7 +5,7 @@ import {downloadFile} from "@/api/common/api";
 import {ref} from "vue";
 
 const { t } = useI18n();
-const FILE_NAME = 'Détail_de_facture_';
+const FILE_NAME = 'Invoice_details_';
 const FILE_EXTENSION = '.xlsx';
 export const Api = {
   CLIENT_LIST: '/client/client/all',
