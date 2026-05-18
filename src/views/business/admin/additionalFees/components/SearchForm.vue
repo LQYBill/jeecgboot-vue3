@@ -34,10 +34,10 @@
             name="status"
           >
             <template #label>
-              Status
+              {{ t('page.invoicing.extraFeesFilterStatusLabel') }}
             </template>
             <JSelectMultiple
-              placeholder="Select status"
+              :placeholder="t('page.invoicing.extraFeesStatusPlaceholder')"
               @change="handleStatusChange"
               v-model:value="searchState.status"
               :options="statusOptions"

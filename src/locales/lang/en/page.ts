@@ -9,6 +9,16 @@ export default {
     invoicePreviewPage: 'Invoice Preview',
     detailsExportPage: 'Details Export',
     additionnalFeesPage: 'Additional Fees',
+    extraFeesDownloadImportTemplate: 'Download import template',
+    extraFeesImportTemplateTooltip:
+      'Download the .xlsx template, fill in the rows, then use Import to upload.',
+    extraFeesImportTemplateDownloadStarted:
+      'Download started — check your browser downloads bar.',
+    extraFeesImportTemplateFail: 'Template download failed.',
+    extraFeesStatusNotInvoiced: 'Not invoiced',
+    extraFeesStatusInvoiced: 'Invoiced',
+    extraFeesStatusPlaceholder: 'Select status',
+    extraFeesFilterStatusLabel: 'Status',
     billableOrdersBreakdownPage: 'Billable Order Breakdown',
   },
   clientManagement: {

@@ -1,11 +1,24 @@
 <template>
-  <PageWrapper title="Additional Fees">
+  <PageWrapper :title="t('page.invoicing.additionnalFeesPage')">
     <search-form @search="handleSearch"/>
     <BasicTable @register="registerTable">
       <template #tableTitle>
         <a-button type="primary" preIcon="ant-design:plus-outlined" @click="handleOpenAddModal">Add</a-button>
       </template>
       <template #toolbar>
+        <a-tooltip :title="t('page.invoicing.extraFeesImportTemplateTooltip')">
+          <a-button type="default" preIcon="ant-design:download-outlined" @click="handleDownloadImportTemplate">
+            {{ t('page.invoicing.extraFeesDownloadImportTemplate') }}
+          </a-button>
+        </a-tooltip>
+        <a-upload
+          name="file"
+          :showUploadList="false"
+          :customRequest="(file) => handleImportExcel(file)"
+          accept=".xls,.xlsx"
+        >
+          <a-button type="default" preIcon="ant-design:import-outlined">{{ t('common.operation.import') }}</a-button>
+        </a-upload>
         <a-button type="default" preIcon="ant-design:reload-outlined" @click="loadFeeList">{{ t('common.redo') }}</a-button>
       </template>
       <template #unitPrice="{ record }">
@@ -53,6 +66,7 @@ import {BasicTable, PaginationProps, SorterResult, TableAction, useTable} from "
 import {
   actionColumn,
   additionalFeesColumns,
+  Api,
   deleteById,
   fetchExtraFeeList,
   fetchShopList
@@ -68,6 +82,8 @@ import {useI18n} from "vue-i18n";
 import {useRouter} from "vue-router";
 import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 import {useMessage} from "@/hooks/web/useMessage";
+import {useMethods, XLSX_MIME_TYPE} from "@/hooks/system/useMethods";
+import {defHttp} from "@/utils/http/axios";
 import {Icon} from "@/components/Icon";
 import {CurrencyToken} from "@/views/business/enum";
 
@@ -75,6 +91,7 @@ const {resolve}=useRouter();
 const { t } = useI18n();
 const { clipboardRef, copiedRef } = useCopyToClipboard();
 const { createMessage } = useMessage();
+const { handleImportXls } = useMethods();
 
 const feeList = ref<Record<string, any>[]>([]);
 const shopMappedByClient: Ref<Record<string, ShopByClient>> = ref({});
@@ -108,7 +125,7 @@ const pagination = ref({
   onShowSizeChange: handleShowSizeChange,
 });
 const [registerTable, { reload, setLoading }] = useTable({
-  title: 'Additional Fees',
+  title: t('page.invoicing.additionnalFeesPage'),
   titleHelpMessage: 'This is the list of additional fees that can be added to the shipping invoice',
   dataSource: feeList,
   columns: additionalFeesColumns,
@@ -175,7 +192,7 @@ function getTableAction(record) {
     {
       onClick: handleDeleteAction.bind(null, record),
       icon: 'clarity:trash-line',
-      color: 'error',
+      color: 'error' as const,
     },
   ]
 }
@@ -239,6 +256,9 @@ async function loadFeeList(arg?:number) {
 }
 function handleFetchFeeList(res) {
   feeList.value = res.records;
+  if (typeof res.total === 'number') {
+    total.value = res.total;
+  }
   setLoading(false);
 }
 async function handleSubmit() {
@@ -293,9 +313,57 @@ function getShopCurrency(shop: string) {
   })
   return CurrencyToken[currency];
 }
-/** search */
+
+function handleImportExcel(file) {
+  handleImportXls(file, Api.IMPORT_EXCEL, async () => {
+    await loadFeeList(1);
+  });
+}
+
+async function handleDownloadImportTemplate() {
+  try {
+    const data = await defHttp.get<Blob>(
+      {
+        url: Api.IMPORT_TEMPLATE,
+        responseType: 'blob',
+        timeout: 60000,
+      },
+      { isTransformResponse: false },
+    );
+    if (!data) {
+      createMessage.warning(t('page.invoicing.extraFeesImportTemplateFail'));
+      return;
+    }
+    const blob = data instanceof Blob ? data : new Blob([data as BlobPart]);
+    if (blob.size < 8192) {
+      const peek = await blob.slice(0, 2048).text();
+      const trimmed = peek.trimStart();
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        try {
+          const j = JSON.parse(await blob.text()) as { message?: string };
+          createMessage.error(j.message || t('page.invoicing.extraFeesImportTemplateFail'));
+          return;
+        } catch {
+        }
+      }
+    }
+    const href = window.URL.createObjectURL(new Blob([blob], { type: XLSX_MIME_TYPE }));
+    const link = document.createElement('a');
+    link.href = href;
+    link.setAttribute('download', 'extra_fee_import_template.xlsx');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(href);
+    createMessage.success(t('page.invoicing.extraFeesImportTemplateDownloadStarted'));
+  } catch (e: any) {
+    console.error(e);
+    createMessage.error(e?.message || t('page.invoicing.extraFeesImportTemplateFail'));
+  }
+}
+
 async function handleSearch(state: Record<string, string>) {
-  searchState.shop = state.shop;
+  searchState.shopId = state.shop;
   searchState.status = state.status;
   await loadFeeList(1);
 }
