@@ -12,6 +12,7 @@ enum Api {
   inquiryEdit = '/quotation/inquiry/edit',
   inquiryQueryById = '/quotation/inquiry/queryById',
   inquiryClientSalespersons = '/quotation/clientSalespersons',
+  salespersons = '/sys/user/salespersons',
   getCurrentClient = '/userClient/getClient',
   popularCountryList = '/country/popularList',
   logisticChannelListByCountry = '/business/logisticChannel/listByCountry',
@@ -41,6 +42,11 @@ function unwrapList(resp: any) {
   if (Array.isArray(result?.records)) return result.records;
   return [];
 }
+function salespersonToOption(item: any) {
+  const value = item?.value ?? item?.id;
+  const label = item?.label ?? item?.text ?? item?.username ?? value;
+  return value ? { label: String(label), value: String(value) } : null;
+}
 function countryToOption(item: any) {
   const value = item?.id ?? item?.value;
   const label = item?.nameEn ?? item?.name_en ?? item?.text ?? item?.label ?? item?.nameZh ?? item?.code ?? value;
@@ -66,6 +72,10 @@ function channelToOption(item: any) {
 export const getPopularCountryOptions = async () => {
   const resp = await defHttp.get({ url: Api.popularCountryList });
   return unwrapList(resp).map(countryToOption).filter(Boolean);
+};
+export const getSalespersons = async () => {
+  const resp = await defHttp.get({ url: Api.salespersons });
+  return unwrapList(resp).map(salespersonToOption).filter(Boolean);
 };
 export const getAllCountryOptions = async () => {
   const resp = await defHttp.get({ url: '/sys/dict/getDictItems/country,name_en,id' });

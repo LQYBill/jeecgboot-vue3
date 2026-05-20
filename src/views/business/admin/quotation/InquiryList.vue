@@ -65,7 +65,7 @@ import { useUserStore } from '/@/store/modules/user';
 
 import InquiryModal from './components/InquiryModal.vue';
 import { inquiryColumns, inquirySearchFormSchema } from './Inquiry.data';
-import { inquiryList, inquiryDeleteOne, inquiryBatchDelete, getMergedCountryOptions,} from './Quotation.api';
+import { inquiryList, inquiryDeleteOne, inquiryBatchDelete, getMergedCountryOptions, getSalespersons } from './Quotation.api';
 
 const { t } = useI18n();
 const userStore = useUserStore();
@@ -102,11 +102,24 @@ const { tableContext} = useListPage({
 const [registerTable, { reload, getForm }, { rowSelection, selectedRowKeys }] = tableContext;
 
 onMounted(async () => {
-  const options = await getMergedCountryOptions();
-  await getForm().updateSchema({
-    field: 'inquiryCountry',
-    componentProps: { options, showSearch: true, placeholder: t('common.chooseText') },
-  });
+  const [countryOptions, salespersonOptions] = await Promise.all([getMergedCountryOptions(), getSalespersons()]);
+  await getForm().updateSchema([
+    {
+      field: 'inquiryCountry',
+      componentProps: { options: countryOptions, showSearch: true, placeholder: t('common.chooseText') },
+    },
+    {
+      field: 'inquirySales',
+      componentProps: {
+        options: salespersonOptions,
+        showSearch: true,
+        mode: 'multiple',
+        maxTagCount: 'responsive',
+        allowClear: true,
+        placeholder: t('common.chooseText'),
+      },
+    },
+  ]);
 });
 function handleAdd() {
   openModal(true, { isUpdate: false, showFooter: true });

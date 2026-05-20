@@ -55,6 +55,7 @@ import {
   quoteList,
   quoteRevoke,
   getMergedCountryOptions,
+  getSalespersons,
   exportCustomerQuotes,
 } from './Quotation.api';
 const { t } = useI18n();
@@ -131,15 +132,24 @@ const { tableContext } = useListPage({
 const [registerTable, { reload, getForm }, { rowSelection, selectedRowKeys }] = tableContext;
 
 onMounted(async () => {
-  const options = await getMergedCountryOptions();
+  const [countryOptions, salespersonOptions] = await Promise.all([getMergedCountryOptions(), getSalespersons()]);
   await getForm().updateSchema([
     {
       field: 'inquiryCountry',
-      componentProps: { options, showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
+      componentProps: { options: countryOptions, showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
     },
     {
       field: 'country',
-      componentProps: { options, showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
+      componentProps: { options: countryOptions, showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
+    },
+    {
+      field: 'inquirySales',
+      componentProps: {
+        options: salespersonOptions,
+        showSearch: true,
+        allowClear: true,
+        placeholder: t('common.chooseText'),
+      },
     },
   ]);
 });
