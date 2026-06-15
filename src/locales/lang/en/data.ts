@@ -420,10 +420,10 @@ export default {
       inquiryCountry: 'Inquiry country',
       inquiryLink: 'Inquiry link',
       expectedSales: 'Expected sales',
-      inquiryPhoto: 'Inquiry photo',
-      inquirySpec: 'Spec',
-      inquiryColor: 'Color',
-      inquiryRemark: 'Remark',
+      inquiryPhoto: 'Inquiry image',
+      inquirySpec: 'Inquiry spec',
+      inquiryColor: 'Inquiry color',
+      inquiryRemark: 'Inquiry remark',
       attachments: 'Attachments',
 
       productName: 'Product name',
@@ -440,7 +440,11 @@ export default {
       prixAchat: "Purchase price",
       logisticsFee: 'Shipping fee (€)',
       totalFee: 'Total fee (€)',
+      declaredValue: 'Declared value',
+      iossRate: 'IOSS rate',
+      iossFee: 'IOSS fee',
       expressWeightG: 'Express weight (g)',
+      salesRemark: 'Sales remark',
 
       purchasePriceRmb: 'Purchase price (¥)',
       domesticShippingRmb: 'Domestic shipping (¥)',
@@ -474,14 +478,19 @@ export default {
       sizeRange: 'Size range',
     },
 
+    salesRemarkText: {
+      expressWeight: 'Charge by express weight',
+      grossWeight: 'Charge by gross weight',
+    },
+
     priorityMode: {
       dropShipping: 'Drop shipping',
       stockMode: 'Stock mode',
     },
 
     statusText: {
-      inInquiry: 'In inquiry',
-      quoted: 'Quoted',
+      inInquiry: 'Quotation incomplete',
+      quoted: 'Quotation completed',
     },
 
     section: {
@@ -496,10 +505,16 @@ export default {
       quoteDetail: 'Quotation details',
       quoteEdit: 'Edit quotation',
       quoteAdd: 'New quotation',
+      directQuoteAdd: 'Add direct quotation',
 
       inquiryDetail: 'Inquiry details',
       inquiryEdit: 'Edit inquiry',
       inquiryAdd: 'New inquiry',
+    },
+
+    action: {
+      addDirectQuote: 'Add direct quotation',
+      quoteFromInquiry: 'Quote From This Inquiry',
     },
 
     confirm: {
@@ -520,6 +535,7 @@ export default {
     },
 
     validate: {
+      chooseImportFile: 'Please choose an Excel file first.',
       chooseStatus: 'Please select status!',
       chooseInquiryCountry: 'Please select inquiry country!',
       chooseCountry: 'Please select country!',
@@ -534,8 +550,12 @@ export default {
 
       inputPurchasePrice: 'Please enter purchase price!',
       inputDomesticShipping: 'Please enter domestic shipping fee!',
+      inputDeclaredValue: 'Please enter declared value!',
+      inputIossRate: 'Please enter IOSS rate!',
+      inputIossFee: 'Please enter IOSS fee!',
       inputSalePriceRmb: 'Please enter sale price (RMB)!',
       inputPartnerSalePrice: 'Please enter partner sale price!',
+      chooseSalesRemark: 'Please select sales remark!',
       inputGrossWeight: 'Please enter gross weight (g)!',
       inputPackWeight: 'Please enter packaging weight (g)!',
 

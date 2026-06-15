@@ -65,6 +65,7 @@ export default {
     clear: "清除",
     close: '关闭',
     delete: "删除",
+    batchDelete: "批量删除",
     deleteConfirmation: "确定要删除吗？",
     deleteBatchConfirmation: "是否删除选中数据",
     details: "详情",

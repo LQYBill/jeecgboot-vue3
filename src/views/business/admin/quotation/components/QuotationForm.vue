@@ -36,7 +36,7 @@ export default defineComponent({
     });
 
     let formData: any = {};
-    const queryByIdUrl = '/quotation/quote/queryById';
+    const queryByIdUrl = '/quotation/queryById';
 
     async function initFormData() {
       const params = { id: props.formData.dataId };

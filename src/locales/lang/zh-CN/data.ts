@@ -1,4 +1,4 @@
-export default {
+﻿export default {
 
   billableOrders: {
     billableOrdersBreakdown: '可开票订单详细分解',
@@ -443,7 +443,11 @@ export default {
       prixAchat: "Prix d’achat",
       logisticsFee: '物流费(€)',
       totalFee: '总费用(€)',
+      declaredValue: '申报价格',
+      iossRate: 'IOSS费率',
+      iossFee: 'IOSS金额',
       expressWeightG: '快递重量(g)',
+      salesRemark: '销售备注',
 
       purchasePriceRmb: '采购价(¥)',
       domesticShippingRmb: '国内物流(¥)',
@@ -477,6 +481,11 @@ export default {
       sizeRange: '尺码范围',
     },
 
+    salesRemarkText: {
+      expressWeight: '按快递重量计费',
+      grossWeight: '按毛重计费',
+    },
+
     priorityMode: {
       dropShipping: '一件代发',
       stockMode: '库存模式',
@@ -484,7 +493,7 @@ export default {
 
     // status value text
     statusText: {
-      inInquiry: '询单中',
+      inInquiry: '报价未完成',
       quoted: '报价完成',
     },
 
@@ -502,10 +511,16 @@ export default {
       quoteDetail: '报价详情',
       quoteEdit: '编辑报价',
       quoteAdd: '新增报价',
+      directQuoteAdd: '新增独立报价',
 
       inquiryDetail: '询单详情',
       inquiryEdit: '编辑询单',
       inquiryAdd: '新增询单',
+    },
+
+    action: {
+      addDirectQuote: '新增独立报价',
+      quoteFromInquiry: '基于当前询单报价',
     },
 
     // confirm / tips
@@ -541,8 +556,11 @@ export default {
 
       inputPurchasePrice: '请输入采购价!',
       inputDomesticShipping: '请输入国内物流费用!',
+      inputDeclaredValue: '请输入申报价格!',
+      inputIossRate: '请输入IOSS费率!',
       inputSalePriceRmb: '请输入售价 RMB!',
       inputPartnerSalePrice: '请输入合作伙伴售价!',
+      chooseSalesRemark: '请选择销售备注!',
       inputGrossWeight: '请输入毛重(g)!',
       inputPackWeight: '请输入包材重量(g)!',
 

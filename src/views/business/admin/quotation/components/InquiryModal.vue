@@ -18,7 +18,7 @@ import { BasicModal, useModalInner } from '/@/components/Modal';
 import { BasicForm, useForm } from '/@/components/Form';
 import { useUserStore } from '/@/store/modules/user';
 import { inquiryFormSchema } from '../Inquiry.data';
-import { getCurrentClient, getInquiryClientSalespersons, getMergedCountryOptions, getSalespersons, inquiryAdd, inquiryEdit } from '../Quotation.api';
+import { getClientOptions, getCurrentClient, getInquiryClientSalespersons, getMergedCountryOptions, getSalespersons, inquiryAdd, inquiryEdit } from '../Inquiry.api';
 import { useI18n } from '/@/hooks/web/useI18n';
 const { t } = useI18n();
 
@@ -37,6 +37,19 @@ const [registerForm, { resetFields, setFieldsValue, validate, updateSchema }] = 
   autoSetPlaceHolder: false,
 });
 
+async function applyReadOnlyMode(readonly: boolean) {
+  await updateSchema(
+    inquiryFormSchema.map((schema) => ({
+      field: schema.field,
+      dynamicDisabled: () => readonly,
+      componentProps: {
+        ...(schema.componentProps || {}),
+        disabled: readonly,
+      },
+    }))
+  );
+}
+
 function normalizePriorityMode(value?: string) {
   if (value === '一件代发') return 'dropShipping';
   if (value === '库存模式') return 'stockMode';
@@ -52,6 +65,61 @@ function normalizeMultiValue(value: any): string[] {
       .filter(Boolean);
   }
   return [];
+}
+
+function firstNonEmpty(...values: any[]) {
+  for (const value of values) {
+    if (value !== null && value !== undefined && value !== '') return value;
+  }
+  return undefined;
+}
+
+function mapInquiryRecordToForm(record: Record<string, any>) {
+  const mapped = { ...(record || {}) } as any;
+  mapped.inquiryClient = firstNonEmpty(mapped.inquiryClient, mapped.clientId);
+  mapped.inquirySales = normalizeMultiValue(firstNonEmpty(mapped.inquirySalesList, mapped.inquirySales, mapped.salesId));
+  const inquiryCountry = firstNonEmpty(mapped.inquiryCountry, mapped.countryId);
+  if (Array.isArray(inquiryCountry)) {
+    mapped.inquiryCountry = inquiryCountry.map(String).filter(Boolean);
+  } else if (typeof inquiryCountry === 'string') {
+    mapped.inquiryCountry = inquiryCountry
+      ? inquiryCountry.split(',').map((s) => s.trim()).filter(Boolean)
+      : [];
+  } else if (inquiryCountry !== undefined) {
+    mapped.inquiryCountry = [String(inquiryCountry)];
+  } else {
+    mapped.inquiryCountry = [];
+  }
+  mapped.inquiryLink = firstNonEmpty(mapped.inquiryLink, mapped.inquiryUrl, mapped.link);
+  mapped.inquiryPhoto = firstNonEmpty(mapped.inquiryPhoto, mapped.photo);
+  mapped.inquirySpec = firstNonEmpty(mapped.inquirySpec, mapped.specification);
+  mapped.inquiryRemark = firstNonEmpty(mapped.inquiryRemark, mapped.remark);
+  mapped.inquiryColor = firstNonEmpty(mapped.inquiryColor, mapped.color);
+  mapped.priorityMode = normalizePriorityMode(mapped.priorityMode);
+  return mapped;
+}
+
+function mapFormValuesToInquiryPayload(values: Record<string, any>) {
+  const inquiryCountry = Array.isArray(values.inquiryCountry)
+    ? values.inquiryCountry.map(String).filter(Boolean)
+    : normalizeMultiValue(values.inquiryCountry);
+  const inquirySales = Array.isArray(values.inquirySales)
+    ? values.inquirySales.map(String).filter(Boolean)
+    : normalizeMultiValue(values.inquirySales);
+
+  return {
+    clientId: firstNonEmpty(values.inquiryClient, values.clientId),
+    salesId: inquirySales.join(','),
+    countryId: inquiryCountry.join(','),
+    link: firstNonEmpty(values.inquiryLink, values.inquiryUrl, values.link),
+    expectedSales: values.expectedSales,
+    photo: firstNonEmpty(values.inquiryPhoto, values.photo, ''),
+    specification: firstNonEmpty(values.inquirySpec, values.specification, ''),
+    attachments: firstNonEmpty(values.attachments, ''),
+    remark: firstNonEmpty(values.inquiryRemark, values.remark, ''),
+    color: firstNonEmpty(values.inquiryColor, values.color, ''),
+    priorityMode: normalizePriorityMode(values.priorityMode),
+  };
 }
 
 async function onInquiryClientChange(clientId?: string) {
@@ -107,8 +175,10 @@ async function applySalespersonOptions() {
 async function applyInquiryClientDisplayScope(isAdd: boolean) {
   let isEmployee = userStore.getIsEmployee;
   let currentClientId = '';
+  let clientOptions: any[] = [];
   try {
-    const res = await getCurrentClient();
+    const [res, options] = await Promise.all([getCurrentClient(), getClientOptions()]);
+    clientOptions = options;
     if (res?.internal) {
       isEmployee = true;
     } else if (res?.client?.id) {
@@ -122,7 +192,7 @@ async function applyInquiryClientDisplayScope(isAdd: boolean) {
   await updateSchema({
     field: 'inquiryClient',
     componentProps: {
-      dictCode: 'client,internal_code,id',
+      options: clientOptions,
       showSearch: true,
       disabled: !isEmployee,
       allowClear: isEmployee,
@@ -145,19 +215,11 @@ const [registerModal, { closeModal, setModalProps }] = useModalInner(async (data
   showFooter.value = data?.showFooter !== false;
   await Promise.all([applyCountryOptions(), applySalespersonOptions()]);
   await applyInquiryClientDisplayScope(!data?.record);
+  await applyReadOnlyMode(!showFooter.value);
 
   if (data?.record) {
     currentId.value = data.record.id ?? null;
-    const r = { ...data.record };
-    if (typeof r.inquiryCountry === 'string') {
-      r.inquiryCountry = r.inquiryCountry
-        ? r.inquiryCountry.split(',').map((s) => s.trim()).filter(Boolean)
-        : [];
-    } else if (!Array.isArray(r.inquiryCountry)) {
-      r.inquiryCountry = [];
-    }
-    r.inquirySales = normalizeMultiValue(r.inquirySalesList ?? r.inquirySales);
-    r.priorityMode = normalizePriorityMode(r.priorityMode);
+    const r = mapInquiryRecordToForm(data.record);
     await setFieldsValue(r);
   } else {
     currentId.value = null;
@@ -174,11 +236,11 @@ const modalTitle = computed(() => {
 async function handleSubmit() {
   try {
     const values = await validate();
-    values.priorityMode = normalizePriorityMode(values.priorityMode);
+    const payload = mapFormValuesToInquiryPayload(values);
     setModalProps({ confirmLoading: true });
 
-    if (isUpdate.value) await inquiryEdit({ ...values, id: currentId.value });
-    else await inquiryAdd(values);
+    if (isUpdate.value) await inquiryEdit({ ...payload, id: currentId.value });
+    else await inquiryAdd(payload);
 
     closeModal();
     emit('success');
