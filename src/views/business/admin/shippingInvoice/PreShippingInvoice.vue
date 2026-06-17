@@ -67,7 +67,7 @@
                 <div class="fee-card">
                   <div class="flex flex-col items-center head-info">
                     <span class="text-md mt-2">{{item.shop}}</span>
-                    <p class="text-md mt-2">{{item.dueForProcessedOrders}} €</p>
+                    <p class="text-md mt-2">{{item.dueForProcessedOrders}} {{ item.currency }}</p>
                   </div>
                 </div>
               </template>
