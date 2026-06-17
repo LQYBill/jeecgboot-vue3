@@ -3,10 +3,12 @@ export enum CurrencyEnum {
   USD = 'USD',
   RMB = 'RMB',
   GBP = 'GBP',
+  CAD = 'CAD',
 }
 export enum CurrencyToken {
   EUR = '€',
   USD = '$',
   RMB = '¥',
   GBP = '£',
+  CAD = 'C$',
 }

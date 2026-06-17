@@ -5,6 +5,7 @@ const { t } = useI18n();
 export enum CurrencyEnum {
   EUR = "€",
   USD = "$",
+  CAD = "C$",
   RMB = "¥",
 }
 export const Api = {
