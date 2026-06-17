@@ -12,15 +12,15 @@
             <h1 class="text-md mt-2">{{item.shop}}</h1>
             <div class="flex justify-between w-full">
               <span class="text-md mt-2">{{ t('data.invoice.shippingFee')}} : </span>
-              <span class="text-md mt-2">{{item?.shippingFeesEstimation}} €</span>
+              <span class="text-md mt-2">{{item?.shippingFeesEstimation}} {{item?.currency}}</span>
             </div>
             <div class="flex justify-between w-full">
               <span class="text-md mt-2">{{ t('data.invoice.purchaseFee')}} : </span>
-              <span class="text-md mt-2">{{item?.purchaseEstimation}} €</span>
+              <span class="text-md mt-2">{{item?.purchaseEstimation}} {{item?.currency}}</span>
             </div>
             <div class="flex justify-between w-full">
               <span class="text-md mt-2">{{ t('data.invoice.total')}} : </span>
-              <span class="text-md mt-2">{{item?.totalEstimation}} €</span>
+              <span class="text-md mt-2">{{item?.totalEstimation}} {{item?.currency}}</span>
             </div>
           </div>
         </div>
