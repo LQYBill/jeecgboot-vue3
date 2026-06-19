@@ -283,7 +283,8 @@ export default {
     canSelfPL: "是否可以开P+L票",
     isSelfIgnoreStock: "是否忽略库存数(7xxxx)",
     hasStock: "是否客户做库存",
-    hasShippingInvoiceRemark: "是否开物流票需要打备注",
+    hasPreshippingInvoiceRemark: "开预收物流票打备注",
+    hasPostshippingInvoiceRemark: "开已发货物流票打备注",
     showUnassignedLogisticsOrders: "是否显示未交运订单",
     hasOptions: "是否有选项",
     help: {

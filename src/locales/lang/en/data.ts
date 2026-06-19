@@ -282,7 +282,8 @@ export default {
     canSelfPL: "Self Complete Invoice",
     isSelfIgnoreStock: "Ignore Stock in Complete Invoice",
     hasStock: "Has Stock",
-    hasShippingInvoiceRemark: "Shipping Invoice Remark in Mabang",
+    hasPreshippingInvoiceRemark: "Add remark for pre-shipping invoices",
+    hasPostshippingInvoiceRemark: "Add remark for post-shipping invoices",
     showUnassignedLogisticsOrders: "Show Unassigned Logistics Orders",
     hasOptions: "Has Options",
     help: {

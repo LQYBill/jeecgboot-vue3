@@ -14,6 +14,8 @@ export interface ShopWithOptions {
   canSelfPL: boolean;
   isSelfIgnoreStock: boolean;
   hasStock: boolean;
-  hasShippingInvoiceRemark: boolean;
+  hasPreshippingInvoiceRemark: boolean;
+  hasPostshippingInvoiceRemark: boolean;
+  hasShippingInvoiceRemark?: boolean;
   hasOptions: boolean;
 }

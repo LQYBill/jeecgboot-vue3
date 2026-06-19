@@ -72,9 +72,14 @@ export const columns: BasicColumn[] = [
     dataIndex: 'hasStock',
   },
   {
-    title: t('data.shopOptions.hasShippingInvoiceRemark'),
+    title: t('data.shopOptions.hasPreshippingInvoiceRemark'),
     align: "center",
-    dataIndex: 'hasShippingInvoiceRemark',
+    dataIndex: 'hasPreshippingInvoiceRemark',
+  },
+  {
+    title: t('data.shopOptions.hasPostshippingInvoiceRemark'),
+    align: "center",
+    dataIndex: 'hasPostshippingInvoiceRemark',
   },
   {
     title: 'hasOptions',
@@ -320,8 +325,24 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    label: t('data.shopOptions.hasShippingInvoiceRemark'),
-    field: 'hasShippingInvoiceRemark',
+    label: t('data.shopOptions.hasPreshippingInvoiceRemark'),
+    field: 'hasPreshippingInvoiceRemark',
+    colProps: {span: 12},
+    component: 'Switch',
+    componentProps: {
+      checkedChildren: t('common.yes'),
+      unCheckedChildren: t('common.no'),
+    },
+    defaultValue: false,
+    dynamicRules: () => {
+      return [
+        {required: true, message: t('component.form.required')},
+      ];
+    },
+  },
+  {
+    label: t('data.shopOptions.hasPostshippingInvoiceRemark'),
+    field: 'hasPostshippingInvoiceRemark',
     colProps: {span: 12},
     component: 'Switch',
     componentProps: {
