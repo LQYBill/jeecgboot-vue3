@@ -65,6 +65,7 @@ export default {
     confirm: 'Confirm',
     copy: 'Copy',
     delete: "Delete",
+    batchDelete: "Batch Delete",
     deleteConfirmation: "Are you sure you want to delete ?",
     deleteBatchConfirmation: "Are you sure you want to delete selected data ?",
     details: "Details",

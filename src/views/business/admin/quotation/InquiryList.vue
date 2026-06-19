@@ -5,25 +5,19 @@
         <a-button type="primary" preIcon="ant-design:plus-outlined" @click="handleAdd">
           {{ t('common.operation.addNew') }}
         </a-button>
-        <a-dropdown v-if="selectedRowKeys.length > 0">
-          <template #overlay>
-            <a-menu>
-              <a-menu-item key="1" @click="batchHandleDelete">
-                <Icon icon="ant-design:delete-outlined" />
-                {{ t('common.operation.delete') }}
-              </a-menu-item>
-            </a-menu>
-          </template>
-          <a-button>
-            {{ t('common.operation.batchEdit') }}
-            <Icon icon="mdi:chevron-down" />
-          </a-button>
-        </a-dropdown>
+        <a-button
+          v-if="selectedRowKeys.length > 0"
+          danger
+          preIcon="ant-design:delete-outlined"
+          @click="batchHandleDelete"
+        >
+          {{ t('common.operation.batchDelete') }}
+        </a-button>
       </template>
       <template #action="{ record }">
-        <TableAction :actions="getTableAction(record)" :dropDownActions="getDropDownAction(record)" />
+        <TableAction :actions="getTableAction(record)" />
       </template>
-      <template #bodyCell="{ column, text }">
+      <template #bodyCell="{ column, text, record }">
         <template v-if="column.dataIndex === 'attachments'">
           <span v-if="!text" style="font-size: 12px; font-style: italic">{{ t('data.upload.noDocument') }}</span>
           <a-button
@@ -38,11 +32,11 @@
           </a-button>
         </template>
         <template v-else-if="column.dataIndex === 'inquiryPhoto'">
-          <span v-if="!text" style="font-size: 12px; font-style: italic">{{ t('data.upload.noDocument') }}</span>
+          <span v-if="!(text || record?.photo)" style="font-size: 12px; font-style: italic">{{ t('data.upload.noDocument') }}</span>
           <TableImg
             v-else
             :size="60"
-            :imgList="String(text).split(',').filter(Boolean)"
+            :imgList="String(text || record?.photo).split(',').filter(Boolean)"
             :src-prefix="imgPrefix"
           />
         </template>
@@ -54,8 +48,9 @@
 
 <script lang="ts" name="src2-inquiry" setup>
 import { onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { PageWrapper } from '/@/components/Page';
-import { BasicTable, TableAction,TableImg } from '/@/components/Table';
+import { BasicTable, TableAction, TableImg } from '/@/components/Table';
 import { useModal } from '/@/components/Modal';
 import { useListPage } from '/@/hooks/system/useListPage';
 import { useI18n } from '/@/hooks/web/useI18n';
@@ -64,8 +59,17 @@ import { useGlobSetting } from '/@/hooks/setting';
 import { useUserStore } from '/@/store/modules/user';
 
 import InquiryModal from './components/InquiryModal.vue';
-import { inquiryColumns, inquirySearchFormSchema } from './Inquiry.data';
-import { inquiryList, inquiryDeleteOne, inquiryBatchDelete, getMergedCountryOptions, getSalespersons } from './Quotation.api';
+import { inquiryColumns, inquirySearchFormSchema, setInquiryDisplayOptions } from './Inquiry.data';
+import {
+  getClientOptions,
+  inquiryBatchDelete,
+  inquiryDeleteOne,
+  inquiryList,
+  inquiryQueryById,
+  getMergedCountryOptions,
+  getSalespersons,
+} from './Inquiry.api';
+import { buildInquiryQuoteRouteQuery, resolveQuoteRoutePath } from './quotation.route';
 
 const { t } = useI18n();
 const userStore = useUserStore();
@@ -73,9 +77,11 @@ const globSetting = useGlobSetting();
 const baseUploadUrl = globSetting.uploadUrl;
 const imgPrefix = `${baseUploadUrl}/sys/common/static/`;
 const [registerModal, { openModal }] = useModal();
+const router = useRouter();
+const route = useRoute();
 const searchSchemas = userStore.getIsEmployee
   ? inquirySearchFormSchema
-  : inquirySearchFormSchema.filter((schema) => schema.field !== 'inquiryClient');
+  : inquirySearchFormSchema.filter((schema) => schema.field !== 'clientId');
 const { tableContext} = useListPage({
   tableProps: {
     title: t('data.quotation.page.inquiryList'),
@@ -87,12 +93,12 @@ const { tableContext} = useListPage({
       autoSubmitOnEnter: true,
       showAdvancedButton: false,
       labelWidth: 120,
-      actionColOptions: { style: { textAlign: 'right' } },
+      actionColOptions: { span: 8, offset: 16, style: { textAlign: 'right' } },
       fieldMapToNumber: ['expected_sales'],
       fieldMapToTime: [],
     },
     actionColumn: {
-      width: 160,
+      width: 220,
       fixed: 'right',
       title: t('common.operation.action'),
     },
@@ -102,14 +108,25 @@ const { tableContext} = useListPage({
 const [registerTable, { reload, getForm }, { rowSelection, selectedRowKeys }] = tableContext;
 
 onMounted(async () => {
-  const [countryOptions, salespersonOptions] = await Promise.all([getMergedCountryOptions(), getSalespersons()]);
+  const [clientOptions, countryOptions, salespersonOptions] = await Promise.all([
+    getClientOptions(),
+    getMergedCountryOptions(),
+    getSalespersons(),
+  ]);
+  setInquiryDisplayOptions('client', clientOptions);
+  setInquiryDisplayOptions('country', countryOptions);
+  setInquiryDisplayOptions('salesperson', salespersonOptions);
   await getForm().updateSchema([
     {
-      field: 'inquiryCountry',
+      field: 'clientId',
+      componentProps: { options: clientOptions, showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
+    },
+    {
+      field: 'countryId',
       componentProps: { options: countryOptions, showSearch: true, placeholder: t('common.chooseText') },
     },
     {
-      field: 'inquirySales',
+      field: 'salesId',
       componentProps: {
         options: salespersonOptions,
         showSearch: true,
@@ -129,8 +146,17 @@ function handleEdit(record: any) {
   openModal(true, { record, isUpdate: true, showFooter: true });
 }
 
-function handleDetail(record: any) {
-  openModal(true, { record, isUpdate: true, showFooter: false });
+async function handleQuote(record: any) {
+  await router.push({
+    path: resolveQuoteRoutePath(router, route.path),
+    query: buildInquiryQuoteRouteQuery(String(record.id)),
+  });
+}
+
+async function handleDetail(record: any) {
+  const fullRecordResp = await inquiryQueryById({ id: record.id });
+  const fullRecord = fullRecordResp?.result ?? fullRecordResp;
+  openModal(true, { record: fullRecord, isUpdate: true, showFooter: false });
 }
 
 async function handleDelete(record: any) {
@@ -147,14 +173,12 @@ function handleSuccess() {
 
 function getTableAction(record: any) {
   return [
+    { label: t('data.quotation.quote'), onClick: handleQuote.bind(null, record) },
     { label: t('common.operation.details'), onClick: handleDetail.bind(null, record) },
     { label: t('common.operation.edit'), onClick: handleEdit.bind(null, record) },
-  ];
-}
-function getDropDownAction(record: any) {
-  return [
     {
-      label: t('common.operation.delete') ,
+      label: t('common.operation.delete'),
+      color: 'error',
       popConfirm: {
         title: t('common.operation.deleteConfirmation'),
         confirm: handleDelete.bind(null, record),

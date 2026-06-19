@@ -2,6 +2,7 @@
 import {h} from "vue";
 import {Tooltip} from "ant-design-vue";
 import { useI18n } from '/@/hooks/web/useI18n';
+import { render } from '/@/utils/common/renderUtils';
 
 const { t } = useI18n();
 
@@ -19,6 +20,24 @@ const legacyPriorityMode = {
   stockMode: '库存模式',
 };
 
+const inquiryDisplayMaps = {
+  client: new Map<string, string>(),
+  salesperson: new Map<string, string>(),
+  country: new Map<string, string>(),
+};
+
+export function setInquiryDisplayOptions(type: 'client' | 'salesperson' | 'country', options: any[] = []) {
+  const target = inquiryDisplayMaps[type];
+  target.clear();
+  options.forEach((item) => {
+    const value = item?.value ?? item?.id;
+    const label = item?.label ?? item?.text ?? item?.name ?? value;
+    if (value !== null && value !== undefined && value !== '') {
+      target.set(String(value), String(label ?? ''));
+    }
+  });
+}
+
 function renderPriorityMode(value?: string) {
   if (value === 'dropShipping' || value === legacyPriorityMode.dropShipping) {
     return t('data.quotation.priorityMode.dropShipping');
@@ -29,12 +48,70 @@ function renderPriorityMode(value?: string) {
   return value || '';
 }
 
+function firstNonEmpty(...values: any[]) {
+  for (const value of values) {
+    if (value !== null && value !== undefined && value !== '') return value;
+  }
+  return '';
+}
+
+function normalizeDisplayValue(value: any) {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value === 'string' && value.includes(',')) {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return value;
+}
+
+function mapValueWithOptions(value: any, type: 'client' | 'salesperson' | 'country') {
+  const normalized = normalizeDisplayValue(value);
+  if (Array.isArray(normalized)) {
+    return normalized
+      .map((item) => inquiryDisplayMaps[type].get(String(item)) || String(item))
+      .filter(Boolean)
+      .join(', ');
+  }
+  if (normalized === null || normalized === undefined || normalized === '') return '';
+  return inquiryDisplayMaps[type].get(String(normalized)) || normalized;
+}
+
+function showRecordText(record: any, ...keys: string[]) {
+  return firstNonEmpty(...keys.map((key) => record?.[key]));
+}
+
+function renderImageSafe(text?: string) {
+  const value = String(text || '').trim();
+  if (!value) return '';
+  return render.renderImage({ text: value } as any);
+}
+
 export const inquiryColumns = [
-  { title: t('data.quotation.col.inquiryClient'), dataIndex: 'inquiryClient_dictText', width: 140 },
-  { title:t('data.quotation.col.inquirySales'), dataIndex: 'inquirySales_dictText', width: 120 },
+  {
+    title: t('data.quotation.col.inquiryClient'),
+    dataIndex: 'inquiryClient_dictText',
+    width: 140,
+    customRender: ({ record }) =>
+      firstNonEmpty(
+        showRecordText(record, 'inquiryClient_dictText', 'clientName'),
+        mapValueWithOptions(firstNonEmpty(record?.inquiryClient, record?.clientId), 'client')
+      ),
+  },
+  {
+    title:t('data.quotation.col.inquirySales'),
+    dataIndex: 'inquirySales_dictText',
+    width: 120,
+    customRender: ({ record }) =>
+      firstNonEmpty(
+        showRecordText(record, 'inquirySales_dictText', 'salespersonNames'),
+        mapValueWithOptions(firstNonEmpty(record?.inquirySales, record?.salesId), 'salesperson')
+      ),
+  },
   { title: t('data.quotation.col.inquiryLink'), dataIndex: 'inquiryLink', width: 260, ellipsis: true,
-    customRender: ({ text }) => {
-      const url = (text || '').trim();
+    customRender: ({ record }) => {
+      const url = String(showRecordText(record, 'inquiryLink', 'inquiryUrl', 'link')).trim();
       if (!url) return '';
       const open = (e) => {
         e?.stopPropagation?.();
@@ -63,20 +140,37 @@ export const inquiryColumns = [
       );
     },
   },
-  { title: t('data.quotation.col.inquiryCountry'), dataIndex: 'inquiryCountry_dictText', width: 110, ellipsis: true,customHeaderCell: headerWrap, },
+  {
+    title: t('data.quotation.col.inquiryCountry'),
+    dataIndex: 'inquiryCountry_dictText',
+    width: 110,
+    ellipsis: true,
+    customHeaderCell: headerWrap,
+    customRender: ({ record }) =>
+      firstNonEmpty(
+        showRecordText(record, 'inquiryCountry_dictText', 'countryName'),
+        mapValueWithOptions(firstNonEmpty(record?.inquiryCountry, record?.countryId), 'country')
+      ),
+  },
   { title: t('data.quotation.col.expectedSales'), dataIndex: 'expectedSales', width: 90,customHeaderCell: headerWrap, },
-  { title: t('data.quotation.col.inquiryPhoto'), dataIndex: 'inquiryPhoto', width: 90,customHeaderCell: headerWrap, },
-  { title: t('data.quotation.col.inquirySpec'), dataIndex: 'inquirySpec', width: 160 },
-  { title: t('data.quotation.col.inquiryColor'), dataIndex: 'inquiryColor', width: 120 },
+  {
+    title: t('data.quotation.col.inquiryPhoto'),
+    dataIndex: 'inquiryPhoto',
+    width: 90,
+    customHeaderCell: headerWrap,
+    customRender: ({ record }) => renderImageSafe(showRecordText(record, 'inquiryPhoto', 'photo')),
+  },
+  { title: t('data.quotation.col.inquirySpec'), dataIndex: 'inquirySpec', width: 160, customRender: ({ record }) => showRecordText(record, 'inquirySpec', 'specification') },
+  { title: t('data.quotation.col.inquiryColor'), dataIndex: 'inquiryColor', width: 120, customRender: ({ record }) => showRecordText(record, 'inquiryColor', 'color') },
   { title: t('data.quotation.col.priorityMode'), dataIndex: 'priorityMode', width: 120, customRender: ({ text }) => renderPriorityMode(text) },
   { title: t('data.quotation.col.attachments'), dataIndex: 'attachments', width: 140,customHeaderCell: headerWrap, },
-  { title: t('data.quotation.col.inquiryRemark'), dataIndex: 'inquiryRemark', width: 180, ellipsis: true },
+  { title: t('data.quotation.col.inquiryRemark'), dataIndex: 'inquiryRemark', width: 180, ellipsis: true, customRender: ({ record }) => showRecordText(record, 'inquiryRemark', 'remark') },
 ];
 
 export const inquirySearchFormSchema: FormSchema[] = [
-  { label: t('data.quotation.col.inquiryClient'), field: 'inquiryClient', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { dictCode: 'client,internal_code,id',showSearch: true, placeholder: t('common.chooseText') }, },
-  { label: t('data.quotation.col.inquirySales'), field: 'inquirySales', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { options: [], showSearch: true, mode: 'multiple', maxTagCount: 'responsive', allowClear: true, placeholder: t('common.chooseText') }, },
-  { label: t('data.quotation.col.inquiryCountry'), field: 'inquiryCountry', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { options: [], showSearch: true, placeholder: t('common.chooseText')}, },
+  { label: t('data.quotation.col.inquiryClient'), field: 'clientId', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { options: [], showSearch: true, allowClear: true, placeholder: t('common.chooseText') }, },
+  { label: t('data.quotation.col.inquirySales'), field: 'salesId', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { options: [], showSearch: true, mode: 'multiple', maxTagCount: 'responsive', allowClear: true, placeholder: t('common.chooseText') }, },
+  { label: t('data.quotation.col.inquiryCountry'), field: 'countryId', component: 'JDictSelectTag', colProps: { span: 8 },componentProps: { options: [], showSearch: true, placeholder: t('common.chooseText')}, },
 ];
 
 export const inquiryFormSchema: FormSchema[] = [
@@ -85,7 +179,7 @@ export const inquiryFormSchema: FormSchema[] = [
     field: 'inquiryClient',
     component: 'JDictSelectTag',
     required: false,
-    componentProps: { dictCode: 'client,internal_code,id' ,showSearch: true},
+    componentProps: { options: [], showSearch: true, allowClear: true },
   },
   {
     label: t('data.quotation.col.inquirySales'),

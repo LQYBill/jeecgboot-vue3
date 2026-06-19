@@ -30,13 +30,16 @@ import { ref, computed } from 'vue';
 import { BasicModal, useModalInner } from '/@/components/Modal';
 import { BasicForm, useForm } from '/@/components/Form';
 import { useUserStore } from '/@/store/modules/user';
-import { getLogisticChannelOptionsByCountry, getMergedCountryOptions, getSalespersons, quoteEdit, quoteEstimate } from '../Quotation.api';
+import { getClientOptions, getLogisticChannelOptionsByCountry, getMergedCountryOptions, getSalespersons, quoteAdd, quoteDirectAdd, quoteEdit, quoteEstimate } from '../Quotation.api';
 import { formSchema as rawSchemas } from '../Quotation.data';
 import { useI18n } from '/@/hooks/web/useI18n';
 const i18n = useI18n() as any;
 const { t } = i18n;
 const emit = defineEmits(['register', 'success']);
 const editId = ref<string>('');
+const isDirectAdd = ref(false);
+const fromInquiry = ref(false);
+const sourceInquiryId = ref<string>('');
 const userStore = useUserStore();
 const isEmployee = userStore.getIsEmployee;
 type Section = { key: string; title: string; schemas: any[]; readonly?: boolean };
@@ -121,7 +124,19 @@ const sections = displaySectionDefs.map((d) => {
 });
 let estimateTimer: any = null;
 let estimating = false;
-const visibleSections = computed(() => sections);
+const hasLinkedInquiry = computed(() => {
+  const inquiryId = String(sourceInquiryId.value || '').trim();
+  return !!inquiryId && inquiryId !== '0' && inquiryId.toLowerCase() !== 'null' && inquiryId.toLowerCase() !== 'undefined';
+});
+const visibleSections = computed(() =>
+  isDirectAdd.value || (!fromInquiry.value && !hasLinkedInquiry.value)
+    ? sections.filter((section) => section.key !== inquirySectionKey)
+    : sections
+);
+
+function getActiveSections() {
+  return visibleSections.value;
+}
 
 function debounceEstimate(fn: () => void, delay = 250) {
   clearTimeout(estimateTimer);
@@ -132,7 +147,17 @@ function normalizePayload(v: any) {
   // inquiryCountry array -> string
   if (Array.isArray(payload.inquiryCountry)) payload.inquiryCountry = payload.inquiryCountry.join(',');
   payload.priorityMode = normalizePriorityMode(payload.priorityMode);
-  payload.id = editId.value;
+  if (fromInquiry.value && !editId.value) {
+    payload.inquiryId = payload.inquiryId || sourceInquiryId.value;
+  }
+  if (isDirectAdd.value) {
+    delete payload.inquiryId;
+  }
+  if (editId.value) {
+    payload.id = editId.value;
+  } else {
+    delete payload.id;
+  }
   return payload;
 }
 // only patch computed fields, avoid overwriting user input
@@ -171,7 +196,7 @@ function mergePreferNonNil(...objs: any[]) {
 
 async function collectValuesNoValidate() {
   const topV = topFormApi.getFieldsValue?.() ?? {};
-  const parts = sections.map((s) => s.api.getFieldsValue?.() ?? {});
+  const parts = getActiveSections().map((s) => s.api.getFieldsValue?.() ?? {});
   return mergePreferNonNil(topV, ...parts);
 }
 
@@ -188,7 +213,7 @@ async function applyComputedFields(fields: any) {
   const patch = removeNil(fields);
   if (!Object.keys(patch).length) return;
   await topFormApi.setFieldsValue(patch);
-  for (const s of sections) await s.api.setFieldsValue(patch);
+  for (const s of getActiveSections()) await s.api.setFieldsValue(patch);
 }
 
 async function updateSchemaEverywhere(schema: any) {
@@ -224,6 +249,22 @@ async function applyCountryOptions() {
     ]);
   } catch (error) {
     console.warn('[quotation-modal] failed to load country options', error);
+  }
+}
+
+async function applyClientOptions() {
+  try {
+    const options = await getClientOptions();
+    await updateSchemaEverywhere({
+      field: 'inquiryClient',
+      componentProps: {
+        options,
+        showSearch: true,
+        allowClear: true,
+      },
+    });
+  } catch (error) {
+    console.warn('[quotation-modal] failed to load client options', error);
   }
 }
 
@@ -308,6 +349,8 @@ function bindEstimateHooks(formApi: any) {
 
 /** when modal opens, reset all forms, set values, bind hooks, and trigger estimate */
 const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data) => {
+  isDirectAdd.value = !!data?.isDirectAdd;
+  fromInquiry.value = !!data?.fromInquiry;
   await topFormApi.resetFields();
   for (const s of sections) await s.api.resetFields();
   setModalProps({
@@ -316,9 +359,10 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
     showOkBtn: isEmployee && !!data?.showFooter,
   });
   const r: any = { ...(data?.record || {}) };
-  editId.value = r?.id || '';
+  editId.value = r?.id ?? '';
+  sourceInquiryId.value = String(r?.inquiryId || data?.record?.inquiryId || '');
   r.priorityMode = normalizePriorityMode(r.priorityMode);
-  await Promise.all([applyCountryOptions(), applySalespersonOptions()]);
+  await Promise.all([applyClientOptions(), applyCountryOptions(), applySalespersonOptions()]);
   if (typeof r.inquiryCountry === 'string') {
     r.inquiryCountry = r.inquiryCountry
       ? r.inquiryCountry.split(',').map((x) => x.trim()).filter(Boolean)
@@ -328,18 +372,20 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
   }
   r.inquirySales = normalizeMultiValue(r.inquirySalesList ?? r.inquirySales);
   await topFormApi.setFieldsValue(r);
-  for (const s of sections) await s.api.setFieldsValue(r);
+  for (const s of getActiveSections()) await s.api.setFieldsValue(r);
   await applyLogisticChannelOptions(r.country, true);
   const disabled = !isEmployee || !data?.showFooter;
   topFormApi.setProps({ disabled });
   for (const s of sections) s.api.setProps({ disabled: disabled || !!s.readonly });
   if (isEmployee) {
     bindEstimateHooks(topFormApi);
-    for (const s of sections) bindEstimateHooks(s.api);
+    for (const s of getActiveSections()) bindEstimateHooks(s.api);
     estimateDebounced();
   }
 });
 const title = computed(() => {
+  if (isDirectAdd.value) return t('data.quotation.modalTitle.directQuoteAdd');
+  if (!editId.value) return t('data.quotation.modalTitle.quoteAdd');
   return t('data.quotation.quote');
 });
 
@@ -349,7 +395,7 @@ async function handleSubmit() {
     // 1) validate: get all values (top + sections)
     const topValues: any = await topFormApi.validate();
     const values: any = { ...topValues };
-    for (const s of sections) {
+    for (const s of getActiveSections()) {
       const part = await s.api.validate();
       Object.assign(values, part);
     }
@@ -357,18 +403,31 @@ async function handleSubmit() {
     if (Array.isArray(values.inquiryCountry)) {
       values.inquiryCountry = values.inquiryCountry.join(',');
     }
-    values.id = editId.value;
+    if (fromInquiry.value && !editId.value) {
+      values.inquiryId = values.inquiryId || sourceInquiryId.value;
+    }
+    if (editId.value) {
+      values.id = editId.value;
+    } else {
+      delete values.id;
+    }
     setModalProps({ confirmLoading: true });
     // 4) estimate: call quoteEstimate with current values to get computed fields
-    const estimated = await quoteEstimate(values);
+    const estimated = await quoteEstimate(normalizePayload(values));
     // 5) merge: prefer non-nil computed fields,
     // but don't overwrite user input with nil
     // (e.g. if estimate fails and returns null, we keep user's input instead of wiping it)
     const est = (estimated as any)?.result ?? estimated;
-    const payload = { ...values, ...pickComputed(est), id: editId.value };
-    await quoteEdit(payload);
+    const payload = normalizePayload({ ...values, ...pickComputed(est) });
+    if (editId.value) {
+      await quoteEdit(payload);
+    } else if (isDirectAdd.value) {
+      await quoteDirectAdd(payload);
+    } else {
+      await quoteAdd(payload);
+    }
     await topFormApi.setFieldsValue(payload);
-    for (const s of sections) await s.api.setFieldsValue(payload);
+    for (const s of getActiveSections()) await s.api.setFieldsValue(payload);
     closeModal();
     emit('success');
   } finally {

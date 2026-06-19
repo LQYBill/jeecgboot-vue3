@@ -15,6 +15,11 @@ const priorityModeOptions = [
   { label: t('data.quotation.priorityMode.stockMode'), value: 'stockMode' },
 ];
 
+const salesRemarkOptions = [
+  { label: t('data.quotation.salesRemarkText.expressWeight'), value: 'EXPRESS_WEIGHT' },
+  { label: t('data.quotation.salesRemarkText.grossWeight'), value: 'GROSS_WEIGHT' },
+];
+
 const legacyPriorityMode = {
   dropShipping: '一件代发',
   stockMode: '库存模式',
@@ -77,7 +82,8 @@ function ynText(v: any) {
 function statusText(v: any) {
   const baseStyle = {
     display: 'inline-block',
-    width: '88px',
+    minWidth: '132px',
+    paddingInline: '8px',
     textAlign: 'center',
   };
   if (v === '1' || v === 1) return h(Tag, { color: 'green', style: baseStyle }, () => t('data.quotation.statusText.quoted'));
@@ -89,6 +95,16 @@ function statusText(v: any) {
 function showDictText(record: any, dictKey: string, rawKey: string) {
   const dt = (record?.[dictKey] ?? '').toString().trim();
   if (dt) return dt;
+  const fallbacks = {
+    inquiryClient: ['clientName', 'clientInternalCode'],
+    inquirySales: ['salespersonNames', 'salesName'],
+    inquiryCountry: ['countryName', 'countryNameEn'],
+  } as Record<string, string[]>;
+  const extraKeys = fallbacks[rawKey] || [];
+  for (const key of extraKeys) {
+    const value = (record?.[key] ?? '').toString().trim();
+    if (value) return value;
+  }
   const raw = (record?.[rawKey] ?? '').toString().trim();
   return raw || dash();
 }
@@ -98,7 +114,7 @@ export const columns: BasicColumn[] = [
     title: t('data.quotation.col.status'),
     align: 'center',
     dataIndex: 'status',
-    width: 110,
+    width: 160,
     customRender: ({ text }) => statusText(text),
   },
   // zone inquiry
@@ -316,6 +332,23 @@ export const columns: BasicColumn[] = [
 
 export const searchFormSchema: FormSchema[] = [
     {
+      label: 'inquiryId',
+      field: 'inquiryId',
+      component: 'Input',
+      ifShow: false,
+      colProps: { span: 8 },
+    },
+    {
+      label: t('data.quotation.col.productName'),
+      field: 'productName',
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: t('common.inputText') + t('data.quotation.col.productName'),
+      },
+      colProps: { span: 8 },
+    },
+    {
       label: t('data.quotation.col.status'),
       field: 'status',
       component: 'Select',
@@ -333,7 +366,7 @@ export const searchFormSchema: FormSchema[] = [
       label: t('data.quotation.col.inquiryClient'),
       field: 'inquiryClient',
       component: 'JDictSelectTag',
-      componentProps: { dictCode: 'client,internal_code,id', showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
+      componentProps: { options: [], showSearch: true, allowClear: true, placeholder: t('common.chooseText') },
       colProps: { span: 8 },
     },
     {
@@ -390,7 +423,7 @@ export const formSchema: FormSchema[] = [
       field: 'inquiryClient',
       component: 'JDictSelectTag',
       colProps: { span: 12 },
-      componentProps: { dictCode: 'client,internal_code,id', showSearch: true, allowClear: true },
+      componentProps: { options: [], showSearch: true, allowClear: true },
     },
     {
       label: t('data.quotation.col.inquirySales'),
@@ -523,7 +556,48 @@ export const formSchema: FormSchema[] = [
     { label: t('data.quotation.col.prixAchat'), field: 'prixAchat', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, precision: 2, disabled: true } },
     { label: t('data.quotation.col.logisticsFee'), field: 'logisticsFee', component: 'InputNumber', dynamicDisabled: true, colProps: { span: 12 }, componentProps: { style: { width: '100%' } } },
     { label: t('data.quotation.col.totalFee'), field: 'totalFee', component: 'InputNumber', dynamicDisabled: true, colProps: { span: 12 }, componentProps: { style: { width: '100%' } } },
+    { label: t('data.quotation.col.grossWeightG'), field: 'grossWeightG', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' } }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputGrossWeight') }] },
+    { label: t('data.quotation.col.packWeightG'), field: 'packWeightG', component: 'Input', colProps: { span: 12 }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputPackWeight') }] },
     { label: t('data.quotation.col.expressWeightG'), field: 'expressWeightG', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, customHeaderCell: headerWrap,precision: 0, disabled: true } },
+    {
+      label: t('data.quotation.col.salesRemark'),
+      field: 'salesRemark',
+      component: 'Select',
+      colProps: { span: 12 },
+      defaultValue: 'EXPRESS_WEIGHT',
+      componentProps: {
+        options: salesRemarkOptions,
+        allowClear: false,
+      },
+      dynamicRules: () => [{ required: true, message: t('data.quotation.validate.chooseSalesRemark') }],
+    },
+    {
+      label: t('data.quotation.col.declaredValue'),
+      field: 'declaredValue',
+      component: 'InputNumber',
+      colProps: { span: 12 },
+      defaultValue: 1,
+      componentProps: { style: { width: '100%' }, precision: 2, min: 0 },
+      dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputDeclaredValue') }],
+    },
+    {
+      label: t('data.quotation.col.iossRate'),
+      field: 'iossRate',
+      component: 'InputNumber',
+      colProps: { span: 12 },
+      defaultValue: 0.22,
+      componentProps: { style: { width: '100%' }, precision: 2, min: 0 },
+      dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputIossRate') }],
+    },
+    {
+      label: t('data.quotation.col.iossFee'),
+      field: 'iossFee',
+      component: 'InputNumber',
+      colProps: { span: 12 },
+      defaultValue: 0.22,
+      dynamicDisabled: true,
+      componentProps: { style: { width: '100%' }, precision: 2, min: 0, disabled: true },
+    },
 
     // zone 4 cost and profit
     {
@@ -540,13 +614,9 @@ export const formSchema: FormSchema[] = [
     { label: t('data.quotation.col.salePriceRmb'), field: 'salePriceRmb', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' } }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputSalePriceRmb') }] },
     { label: t('data.quotation.col.salePriceEur'), field: 'salePriceEur', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, disabled: true } },
     { label: t('data.quotation.col.partnerSalePrice'), field: 'partnerSalePrice', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' } }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputPartnerSalePrice') }] },
-    { label: t('data.quotation.col.margin'), field: 'margin', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, precision: 4, disabled: true } },
+    { label: t('data.quotation.col.margin'), field: 'margin', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, precision: 4 } },
     { label: t('data.quotation.col.profitRmb'), field: 'profitRmb', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, disabled: true } },
     { label: t('data.quotation.col.profitEur'), field: 'profitEur', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, disabled: true } },
-    { label: t('data.quotation.col.expressWeightG'), field: 'expressWeightG', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, precision: 0, disabled: true } },
-    { label: t('data.quotation.col.grossWeightG'), field: 'grossWeightG', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' } }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputGrossWeight') }] },
-    { label: t('data.quotation.col.packWeightG'), field: 'packWeightG', component: 'Input', colProps: { span: 12 }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputPackWeight') }] },
-
     // zone 5 supplier and packaging
     {
       field: 'd5',
