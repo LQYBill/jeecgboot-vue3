@@ -860,7 +860,7 @@ function makeManualShippingInvoice() {
       const code = res.invoiceCode;
       downloadInvoice(code, filename);
       downloadDetailFile(code);
-      editInvoiceOrdersRemark(code, null);
+      editInvoiceOrdersRemark(code, InvoicingMethod.PRESHIPPING);
     })
     .catch(e => {
       console.error(e);

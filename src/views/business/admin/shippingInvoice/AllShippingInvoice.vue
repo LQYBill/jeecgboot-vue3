@@ -865,7 +865,7 @@ async function makeManualInvoice() {
         let code = res.invoiceCode;
         downloadInvoice(filename);
         downloadDetailFile(code);
-        editInvoiceOrdersRemark(code, null);
+        editInvoiceOrdersRemark(code, getInvoiceMethod());
         ipagination.value.current = 1;
         findOrdersLoading.value = true;
         loadOrders();
@@ -952,8 +952,7 @@ async function makeManualCompleteInvoice() {
         }
         downloadInvoice(filename);
         downloadDetailFile(code);
-        if(getInvoiceMethod() === InvoicingMethod.PRESHIPPING)
-          editInvoiceOrdersRemark(code, getInvoiceMethod());
+        editInvoiceOrdersRemark(code, getInvoiceMethod());
       }
     ).catch(e => {
       console.error(e);
@@ -1020,7 +1019,7 @@ async function makeInvoice() {
         const invoiceNumber = res.invoiceCode;
         downloadInvoice(invoiceFilename);
         downloadDetailFile(invoiceNumber);
-        editInvoiceOrdersRemark(invoiceNumber, null);
+        editInvoiceOrdersRemark(invoiceNumber, getInvoiceMethod());
         step.value = erpStatus.value === InvoicingMethodStatus.POSTSHIPPING ? stepsEnum.periodSelection : stepsEnum.finish;
       }
     ).catch(e => {
@@ -1099,8 +1098,7 @@ async function makeCompleteInvoice() {
         }
         downloadInvoice(filename);
         downloadDetailFile(code);
-        if(getInvoiceMethod() === InvoicingMethod.PRESHIPPING)
-          editInvoiceOrdersRemark(code, getInvoiceMethod());
+        editInvoiceOrdersRemark(code, getInvoiceMethod());
         step.value = erpStatus.value === InvoicingMethodStatus.POSTSHIPPING ? stepsEnum.periodSelection : stepsEnum.finish;
       }
     ).catch(e => {

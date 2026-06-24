@@ -12,6 +12,7 @@ export interface ShopOptionsAddParam {
   canSelfPL: boolean;
   isSelfIgnoreStock: boolean;
   hasStock: boolean;
-  hasSelfLogisticsRemark: boolean;
+  hasPreshippingInvoiceRemark: boolean;
+  hasPostshippingInvoiceRemark: boolean;
   showUnassignedLogisticsOrders: boolean;
 }
