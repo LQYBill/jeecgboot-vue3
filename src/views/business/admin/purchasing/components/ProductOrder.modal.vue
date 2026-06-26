@@ -1,14 +1,15 @@
 <template>
-  <BasicModal v-bind="$attrs" @register="registerModal" destroyOnClose :title="title" :width="800" @ok="handleSubmit">
+  <BasicModal v-bind="$attrs" @register="registerModal" destroyOnClose :title="title" :width="800"
+              @ok="handleSubmit" >
     <slot>
       <div class="flex flex-row items-center flex-nowrap text-center min-h-8 mb-4">
-        <div class="flex flex-row flex-1 border-b" v-for="n in 2" :key="n" :class="n == 2 ? 'border-l' : ''">
+        <div class="flex flex-row flex-1 border-b" v-for="n in 2" :class="n==2 ? 'border-l' : '' ">
           <h2 class="w-64 text-sm flex items-center justify-center">{{ t('data.product.product') }}</h2>
           <div class="grid grid-cols-6 flex-1">
             <h2 class="col-span-2 text-sm flex items-center justify-center">{{ t('data.sku.sales') }} 7 | 28 | 42</h2>
             <h2 class="text-sm flex items-center justify-center">{{ t('data.order.stock') }}</h2>
             <h2 class="col-span-2 text-sm flex items-center justify-center">{{ t('data.invoice.quantity') }}</h2>
-            <h2 class="text-sm flex items-center justify-center" :class="n == 1 ? 'mr-4' : 'mr-0'">{{ t('data.invoice.subTotal') }}</h2>
+            <h2 class=" text-sm flex items-center justify-center" :class="n==1 ? 'mr-4' : 'mr-0'">{{ t('data.invoice.subTotal') }}</h2>
           </div>
         </div>
       </div>
@@ -16,11 +17,12 @@
     <BasicForm @register="registerForm" @change="calculateTotal">
       <template #qty="{ model, field }">
         <div class="grid grid-cols-6 items-center">
+          <!-- sales 7,14,42 -->
           <div class="flex text-sm items-center justify-center col-span-2">
             <div class="qtyPerPeriod w-full">
-              <span class="flex-1 border-r">{{ selectedSkuMap.get(field).salesLastWeek == null ? 0 : selectedSkuMap.get(field).salesLastWeek }}</span>
-              <span class="flex-1 border-r">{{ selectedSkuMap.get(field).salesFourWeeks == null ? 0 : selectedSkuMap.get(field).salesFourWeeks }}</span>
-              <span class="flex-1">{{ selectedSkuMap.get(field).salesSixWeeks == null ? 0 : selectedSkuMap.get(field).salesSixWeeks }}</span>
+              <span class="flex-1 border-r">{{selectedSkuMap.get(field).salesLastWeek == null ? 0 : selectedSkuMap.get(field).salesLastWeek}}</span>
+              <span class="flex-1 border-r">{{selectedSkuMap.get(field).salesFourWeeks == null ? 0 : selectedSkuMap.get(field).salesFourWeeks}}</span>
+              <span class="flex-1">{{selectedSkuMap.get(field).salesSixWeeks == null ? 0 : selectedSkuMap.get(field).salesSixWeeks}}</span>
             </div>
           </div>
           <div class="flex items-center justify-center">
@@ -130,55 +132,37 @@ const [registerForm1] = useForm({
     {
       field: 'days',
       component: 'InputNumber',
-      label: t('component.searchForm.dayAutoPicker1'),
-      colProps: {
-        xs: { span: 18 },
-        lg: { span: 16 },
-        xl: { span: 16 },
-        xxl: { span: 10 },
-      },
+      label: ' ',
+      colProps: { span: 24 },
       defaultValue: 0,
-      dynamicRules: () => {
-        return [
-          {
-            validator: (_, value) => {
-              if (value >= 0) {
-                return Promise.resolve();
-              }
-              return Promise.reject('Please enter a valid number of days');
-            },
+      dynamicRules: () => [
+        {
+          validator: (_, value) => {
+            if (value >= 0) return Promise.resolve();
+            return Promise.reject('Please enter a valid number of days');
           },
-        ];
-      },
+        },
+      ],
       slot: 'autoPicker',
     },
     {
       field: 'allQty',
       component: 'InputNumber',
-      label: t('component.searchForm.qtyAutoPicker'),
-      colProps: {
-        xs: { span: 4 },
-        lg: { span: 6 },
-        xl: { span: 6 },
-        xxl: { span: 6 },
-      },
+      label: ' ',
+      colProps: { span: 24 },
       defaultValue: 0,
-      dynamicRules: () => {
-        return [
-          {
-            validator: (_, value) => {
-              if (value >= 0) {
-                return Promise.resolve();
-              }
-              return Promise.reject('Please enter a valid number');
-            },
+      dynamicRules: () => [
+        {
+          validator: (_, value) => {
+            if (value >= 0) return Promise.resolve();
+            return Promise.reject('Please enter a valid number');
           },
-        ];
-      },
+        },
+      ],
       slot: 'setQtyToAll',
     },
   ],
-  labelWidth: 'auto',
+  labelWidth: 0,
   showAdvancedButton: false,
   showResetButton: false,
   showSubmitButton: false,
@@ -221,18 +205,14 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
           colProps: {
             span: 12,
           },
-          dynamicRules: () => {
-            return [
-              {
-                validator: (_, value) => {
-                  if (value >= 0) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject('Please enter a valid quantity');
-                },
+          dynamicRules: () => [
+            {
+              validator: (_, value) => {
+                if (value >= 0) return Promise.resolve();
+                return Promise.reject('Please enter a valid quantity');
               },
-            ];
-          },
+            },
+          ],
           slot: 'qty',
         },
         ''
@@ -289,9 +269,7 @@ async function handleSubmit(_v) {
         let result = {};
         setModalProps({ confirmLoading: true });
         for (const i in values) {
-          if (values[i] > 0) {
-            params[i] = values[i];
-          }
+          if (values[i] > 0) params[i] = values[i];
         }
         await createPurchaseInvoice(params).then((res) => {
           result = res;
@@ -338,9 +316,7 @@ function formatPrice(price) {
 
 function hasDiscountPrice(field, qty) {
   const sku = selectedSkuMap.value.get(field);
-  if (!sku) {
-    return false;
-  }
+  if (!sku) return false;
   const currentQty = Number(qty || 0);
   const discountMoq = Number(sku.discountMoq || 0);
   const discountedPrice = Number(sku.discountedPrice || 0);
@@ -349,25 +325,19 @@ function hasDiscountPrice(field, qty) {
 
 function getOriginalUnitPrice(field) {
   const sku = selectedSkuMap.value.get(field);
-  if (!sku) {
-    return 0;
-  }
+  if (!sku) return 0;
   return formatPrice(sku.originalSkuPrice ?? sku.price ?? sku.skuPrice);
 }
 
 function shouldShowOriginalPrice(field, qty) {
   const sku = selectedSkuMap.value.get(field);
-  if (!sku || !hasDiscountPrice(field, qty)) {
-    return false;
-  }
+  if (!sku || !hasDiscountPrice(field, qty)) return false;
   return getOriginalUnitPrice(field) > 0;
 }
 
 function getDisplayUnitPrice(field, qty) {
   const sku = selectedSkuMap.value.get(field);
-  if (!sku) {
-    return 0;
-  }
+  if (!sku) return 0;
   return formatPrice(hasDiscountPrice(field, qty) ? sku.discountedPrice : sku.skuPrice);
 }
 
