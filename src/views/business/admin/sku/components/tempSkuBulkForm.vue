@@ -8,7 +8,7 @@
           v-if="source.length > 0"
           label-align="left"
   >
-    <a-row v-for="(row, index) in source" :key="index" class="bg-white p-4 rounded-2 shadow mb-4">
+    <a-row v-for="(row, index) in source" :key="index" class="sku-bulk-card bg-white p-4 rounded-2 shadow mb-4" :gutter="[16, 16]">
       <a-col :span="24">
         <div class="flex justify-between items-center mb-4">
           <p class="text-xl mb-0"><span class="font-semibold">{{ row.id }}</span><span v-if="!!row.specifics" class="text-gray-500"> - {{ row.specifics }}</span></p>
@@ -17,7 +17,7 @@
         <ImagePreview :imageList="[{src:row.imageSource}]" :size="30"/>
       </a-col>
       <template v-for="(value, fieldName) in row">
-        <a-col :span="8" class="pr-4" v-if="fieldName !== 'id' && fieldName !== 'status' && fieldName !== 'specifics'">
+        <a-col :xs="{ span: 24 }" :sm="{ span: 12 }" :lg="{ span: 12 }" class="sku-bulk-col" v-if="fieldName !== 'id' && fieldName !== 'status' && fieldName !== 'specifics'">
           <a-form-item
             :labelCol="labelCol"
             :wrapperCol="wrapperCol"
@@ -96,8 +96,8 @@ const addMoreDisabled = ref(true);
 
 const useForm = Form.useForm;
 const formRef = ref();
-const labelCol = ref<any>({ xs: { span: 24 }, sm: { span: 6 } });
-const wrapperCol = ref<any>({ xs: { span: 24 }, sm: { span: 18 } });
+const labelCol = ref<any>({ span: 24 });
+const wrapperCol = ref<any>({ span: 24 });
 const validatorRules = ref({});
 let formState = ref<Sku[]>([]);
 const { validateInfos } = useForm(formState, validatorRules, { immediate: true });

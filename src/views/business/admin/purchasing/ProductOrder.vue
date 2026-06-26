@@ -380,9 +380,13 @@ function handleSetSkus(res) {
   });
 }
 function orderMenu() {
+  const rows = (allSelected.value ? allSkus.value : getSelectRows()).map((sku) => ({
+    ...sku,
+    originalSkuPrice: sku.originalSkuPrice ?? sku.price ?? sku.originalPrice ?? sku.skuPrice ?? 0,
+  }));
   openModal(true, {
     showFooter: true,
-    selectedRows: allSelected.value ? allSkus.value : getSelectRows(),
+    selectedRows: rows,
     internalUse: internalUse.value,
   })
 }
@@ -579,7 +583,11 @@ async function handlePlaceOrderByExcel() {
         enName: sku.enName,
         zhName: sku.zhName,
         stock: sku.stock ?? 0,
+        originalSkuPrice: sku.originalSkuPrice ?? sku.price ?? sku.originalPrice ?? sku.skuPrice ?? 0,
         skuPrice: sku.skuPrice ?? 0,
+        discountMoq: sku.discountMoq ?? 0,
+        discountedPrice: sku.discountedPrice ?? 0,
+        unit: sku.unit ?? 1,
         salesLastWeek: sku.sales7d ?? 0,
         salesFourWeeks: sku.sales28d ?? 0,
         salesSixWeeks: sku.sales42d ?? 0,
