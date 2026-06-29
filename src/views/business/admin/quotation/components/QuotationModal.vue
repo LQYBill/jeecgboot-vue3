@@ -40,6 +40,7 @@ const editId = ref<string>('');
 const isDirectAdd = ref(false);
 const fromInquiry = ref(false);
 const sourceInquiryId = ref<string>('');
+type PricingDriver = 'salePriceRmb' | 'margin';
 const userStore = useUserStore();
 const isEmployee = userStore.getIsEmployee;
 type Section = { key: string; title: string; schemas: any[]; readonly?: boolean };
@@ -122,8 +123,19 @@ const sections = displaySectionDefs.map((d) => {
   const [register, api] = makeSectionForm(d.schemas);
   return { ...d, readonly: d.key === inquirySectionKey, register, api };
 });
+const estimateTriggerFields = [
+  'logisticChannel',
+  'grossWeightG',
+  'packWeightG',
+  'purchasePriceRmb',
+  'domesticShippingRmb',
+  'declaredValue',
+  'iossRate',
+] as const;
 let estimateTimer: any = null;
 let estimating = false;
+let pendingEstimateDriver: PricingDriver | undefined;
+let hasPendingEstimate = false;
 const hasLinkedInquiry = computed(() => {
   const inquiryId = String(sourceInquiryId.value || '').trim();
   return !!inquiryId && inquiryId !== '0' && inquiryId.toLowerCase() !== 'null' && inquiryId.toLowerCase() !== 'undefined';
@@ -142,11 +154,28 @@ function debounceEstimate(fn: () => void, delay = 250) {
   clearTimeout(estimateTimer);
   estimateTimer = setTimeout(fn, delay);
 }
-function normalizePayload(v: any) {
+function hasValue(value: any) {
+  return value !== null && value !== undefined && value !== '';
+}
+function applyPricingDriver(payload: Record<string, any>, driver?: PricingDriver) {
+  if (driver && hasValue(payload[driver])) {
+    payload.pricingDriver = driver;
+    if (driver === 'salePriceRmb') {
+      delete payload.margin;
+    }
+    if (driver === 'margin') {
+      delete payload.salePriceRmb;
+    }
+    return;
+  }
+  delete payload.pricingDriver;
+}
+function normalizePayload(v: any, driver?: PricingDriver) {
   const payload = { ...v };
   // inquiryCountry array -> string
   if (Array.isArray(payload.inquiryCountry)) payload.inquiryCountry = payload.inquiryCountry.join(',');
   payload.priorityMode = normalizePriorityMode(payload.priorityMode);
+  applyPricingDriver(payload, driver);
   if (fromInquiry.value && !editId.value) {
     payload.inquiryId = payload.inquiryId || sourceInquiryId.value;
   }
@@ -171,10 +200,12 @@ function pickComputed(est: any) {
     costEur: est?.costEur,
     prixAchat: salePriceEur ?? est?.prixAchat,
 
+    salePriceRmb: est?.salePriceRmb,
     salePriceEur,
 
     logisticsFee: est?.logisticsFee,
     totalFee: est?.totalFee,
+    iossFee: est?.iossFee,
 
     profitRmb: est?.profitRmb,
     profitEur: est?.profitEur,
@@ -208,17 +239,24 @@ function removeNil(obj: Record<string, any>) {
   });
   return out;
 }
-async function applyComputedFields(fields: any) {
+function buildComputedPatch(fields: any, skipFields: string[] = []) {
   if (!fields) return;
   const patch = removeNil(fields);
-  if (!Object.keys(patch).length) return;
+  skipFields.forEach((field) => {
+    delete patch[field];
+  });
+  return Object.keys(patch).length ? patch : undefined;
+}
+async function applyComputedFields(fields: any, skipFields: string[] = []) {
+  const patch = buildComputedPatch(fields, skipFields);
+  if (!patch) return;
   await topFormApi.setFieldsValue(patch);
   for (const s of getActiveSections()) await s.api.setFieldsValue(patch);
 }
 
 async function updateSchemaEverywhere(schema: any) {
   await topFormApi.updateSchema?.(schema);
-  for (const s of sections) {
+  for (const s of getActiveSections()) {
     await s.api.updateSchema?.(schema);
   }
 }
@@ -304,31 +342,51 @@ async function applyLogisticChannelOptions(country?: string, keepCurrent = true)
   }
 }
 
-async function doEstimate() {
+function queueEstimate(driver?: PricingDriver) {
+  pendingEstimateDriver = driver;
+  hasPendingEstimate = true;
+}
+
+function flushQueuedEstimate() {
+  if (!hasPendingEstimate) return;
+  const nextDriver = pendingEstimateDriver;
+  hasPendingEstimate = false;
+  pendingEstimateDriver = undefined;
+  doEstimate(nextDriver);
+}
+
+async function doEstimate(driver?: PricingDriver) {
   if (!isEmployee) return;
-  if (estimating) return;
+  if (estimating) {
+    queueEstimate(driver);
+    return;
+  }
   estimating = true;
   try {
     const raw = await collectValuesNoValidate();
-    const payload = normalizePayload(raw);
+    const payload = normalizePayload(raw, driver);
     const resp = await quoteEstimate(payload);
     const est = (resp as any)?.result ?? resp;
-    await applyComputedFields(pickComputed(est));
+    await applyComputedFields(pickComputed(est), driver ? [driver] : []);
   } catch (e) {
     console.warn('[quote-estimate] failed', e);
   } finally {
     estimating = false;
+    flushQueuedEstimate();
   }
 }
-function estimateDebounced() {
+function estimateDebounced(driver?: PricingDriver) {
   debounceEstimate(() => {
-    doEstimate();
+    doEstimate(driver);
   }, 250);
+}
+function triggerEstimateFrom(field: PricingDriver) {
+  estimateDebounced(field);
 }
 
 // these fields are the ones that affect estimate result, so onChange
 function bindEstimateHooks(formApi: any) {
-  formApi.updateSchema?.([
+  const schemaUpdates: any[] = [
     {
       field: 'country',
       componentProps: {
@@ -338,13 +396,14 @@ function bindEstimateHooks(formApi: any) {
         },
       },
     },
-    { field: 'logisticChannel', componentProps: { onChange: estimateDebounced } },
-    { field: 'grossWeightG', componentProps: { onChange: estimateDebounced } },
-    { field: 'packWeightG', componentProps: { onChange: estimateDebounced } },
-    { field: 'purchasePriceRmb', componentProps: { onChange: estimateDebounced } },
-    { field: 'domesticShippingRmb', componentProps: { onChange: estimateDebounced } },
-    { field: 'salePriceRmb', componentProps: { onChange: estimateDebounced } },
-  ]);
+    ...estimateTriggerFields.map((field) => ({
+      field,
+      componentProps: { onChange: estimateDebounced },
+    })),
+    { field: 'salePriceRmb', componentProps: { onChange: () => triggerEstimateFrom('salePriceRmb') } },
+    { field: 'margin', componentProps: { onChange: () => triggerEstimateFrom('margin') } },
+  ];
+  formApi.updateSchema?.(schemaUpdates);
 }
 
 /** when modal opens, reset all forms, set values, bind hooks, and trigger estimate */
@@ -352,7 +411,7 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
   isDirectAdd.value = !!data?.isDirectAdd;
   fromInquiry.value = !!data?.fromInquiry;
   await topFormApi.resetFields();
-  for (const s of sections) await s.api.resetFields();
+  for (const s of getActiveSections()) await s.api.resetFields();
   setModalProps({
     confirmLoading: false,
     showCancelBtn: !!data?.showFooter || !isEmployee,
@@ -376,7 +435,7 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
   await applyLogisticChannelOptions(r.country, true);
   const disabled = !isEmployee || !data?.showFooter;
   topFormApi.setProps({ disabled });
-  for (const s of sections) s.api.setProps({ disabled: disabled || !!s.readonly });
+  for (const s of getActiveSections()) s.api.setProps({ disabled: disabled || !!s.readonly });
   if (isEmployee) {
     bindEstimateHooks(topFormApi);
     for (const s of getActiveSections()) bindEstimateHooks(s.api);
