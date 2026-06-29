@@ -1,6 +1,6 @@
 <template>
-  <skuTable @generate="handleGenerate"></skuTable>
-  <div class="flex flex-row flex-nowrap gap-5 sku-builder-div">
+  <div class="flex flex-row flex-wrap gap-5 sku-builder-div">
+    <skuTable @generate="handleGenerate"></skuTable>
   </div>
   <div class="mt-4" ref="tempSkuBulkForm">
     <TempSkuBulkForm @submit="handleBulkEdit" @error="handleError" @addMore="handleAddMore"/>
