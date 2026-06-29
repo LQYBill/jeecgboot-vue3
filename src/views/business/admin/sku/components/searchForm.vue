@@ -65,13 +65,14 @@
 <script lang="ts" setup>
 import JSelectInput from "@/components/Form/src/jeecg/components/JSelectInput.vue";
 import {useI18n} from "vue-i18n";
-import {onMounted, reactive, Ref, ref} from "vue";
+import {inject, onMounted, reactive, Ref, ref} from "vue";
 import {Form, SelectProps} from "ant-design-vue";
 import {shopListApi} from "@/views/business/admin/sku/data";
 import {ShopByClient, ShopResponse} from "@/views/business/dto/shop.dto";
 const { t } = useI18n();
 
 const emit = defineEmits(['search']);
+const persistedSearchState = inject('tempSkuSearchState', ref<Recordable | null>(null)) as Ref<Recordable | null>;
 
 const shopMappedByClient: Ref<Record<string, ShopByClient>> = ref({});
 const shopOptionList = ref<SelectProps['options']>([]);
@@ -79,6 +80,10 @@ const shopList: Ref<ShopResponse[]> = ref([]);
 
 onMounted(() => {
   shopListApi(handleFetchShops);
+  if (persistedSearchState.value) {
+    searchState.shop = persistedSearchState.value.shop || '';
+    searchState.skuNames = persistedSearchState.value.skuNames || '';
+  }
 });
 
 const useForm = Form.useForm;
@@ -133,11 +138,13 @@ function handleShopChange(value: string) {
   searchState.shop = value;
 }
 function handleSearch() {
-  emit('search', {
+  const payload = {
     shop: searchState.shop,
     client: Object.keys(shopMappedByClient.value).find(clientCode => shopMappedByClient.value[clientCode].shops.includes(searchState.shop)),
     skuNames: searchState.skuNames,
     defaultSkuZhName: shopList.value.find(shop => shop.shopCode === searchState.shop)?.defaultSkuZhName || '',
-  });
+  };
+  persistedSearchState.value = payload;
+  emit('search', payload);
 }
 </script>

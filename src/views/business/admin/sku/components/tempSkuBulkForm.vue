@@ -8,7 +8,7 @@
           v-if="source.length > 0"
           label-align="left"
   >
-    <a-row v-for="(row, index) in source" :key="index" class="bg-white p-4 rounded-2 shadow mb-4">
+    <a-row v-for="(row, index) in source" :key="`${row.id}-${row.specifics || ''}`" class="bg-white p-4 rounded-2 shadow mb-4">
       <a-col :span="24">
         <div class="flex justify-between items-center mb-4">
           <p class="text-xl mb-0"><span class="font-semibold">{{ row.id }}</span><span v-if="!!row.specifics" class="text-gray-500"> - {{ row.specifics }}</span></p>
@@ -90,7 +90,7 @@ import {Icon} from "@/components/Icon";
 
 const { t } = useI18n();
 
-const emit = defineEmits(['submit', 'error', 'addMore']);
+const emit = defineEmits(['submit', 'error', 'addMore', 'sync']);
 
 const addMoreDisabled = ref(true);
 
@@ -104,6 +104,7 @@ const { validateInfos } = useForm(formState, validatorRules, { immediate: true }
 
 const unpairedSkuList = inject('currentFormSkuList', ref<Sku[]>([])) as Ref<Sku[]>;
 const source = ref<Sku[]>([]);
+const isInitializing = ref(false);
 
 watch(
   unpairedSkuList,
@@ -112,8 +113,19 @@ watch(
   },
   { deep: true, immediate: true } // Ensures it runs immediately if values are already present
 );
+watch(
+  formState,
+  () => {
+    if (isInitializing.value || source.value.length === 0 || formState.value.length === 0) {
+      return;
+    }
+    emit('sync', formState.value);
+  },
+  { deep: true }
+);
 function initializeForm() {
-  source.value = unpairedSkuList.value;
+  isInitializing.value = true;
+  source.value = [...unpairedSkuList.value];
   formState.value = [];
   for(let i = 0; i < source.value.length; i++) {
     for(const key in source.value[i]) {
@@ -139,8 +151,16 @@ function initializeForm() {
       validatorRules.value[key + '_' + i] = [{ type: 'string', required: true, message: 'empty or wrong format', trigger: 'none'}];
     }
   }
+  isInitializing.value = false;
 }
-async function handleSubmit() {
+
+async function validateCurrentForm(shouldEmitError = true) {
+  if (formState.value.length === 0) {
+    if (shouldEmitError) {
+      emit('error');
+    }
+    return null;
+  }
   const fieldNames = Object.keys(formState.value[0]);
   let isValid = true;
   for(let index in formState.value) {
@@ -162,11 +182,21 @@ async function handleSubmit() {
     }
   }
   if(!isValid) {
-    emit('error');
+    if (shouldEmitError) {
+      emit('error');
+    }
+    return null;
+  }
+  return formState.value.map((item) => ({ ...item }));
+}
+
+async function handleSubmit() {
+  const validatedData = await validateCurrentForm();
+  if (!validatedData) {
     return;
   }
   addMoreDisabled.value = false;
-  emit('submit', formState.value);
+  emit('submit', validatedData);
 }
 function handleAddMore() {
   emit('addMore');
@@ -176,4 +206,8 @@ function handleCommonFieldUpdate({field, value}) {
     formState.value[i][field] = value;
   }
 }
+
+defineExpose({
+  validateCurrentForm,
+});
 </script>

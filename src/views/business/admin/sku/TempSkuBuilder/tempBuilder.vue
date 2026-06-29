@@ -1,9 +1,9 @@
 <template>
-  <skuTable @generate="handleGenerate"></skuTable>
+  <skuTable @generate="handleGenerate" @selectionChange="handleSelectionChange"></skuTable>
   <div class="flex flex-row flex-nowrap gap-5 sku-builder-div">
   </div>
   <div class="mt-4" ref="tempSkuBulkForm">
-    <TempSkuBulkForm @submit="handleBulkEdit" @error="handleError" @addMore="handleAddMore"/>
+    <TempSkuBulkForm ref="tempSkuBulkFormRef" @submit="handleBulkEdit" @error="handleError" @addMore="handleAddMore" @sync="handleSync"/>
   </div>
 </template>
 <script setup lang="ts">
@@ -14,9 +14,10 @@ import SkuTable from "@/views/business/admin/sku/components/skuTable.vue";
 import TempSkuBulkForm from "@/views/business/admin/sku/components/tempSkuBulkForm.vue";
 
 const { createMessage } = useMessage();
-const emit = defineEmits(["submit", "error", "generate", "addMore"]);
+const emit = defineEmits(["submit", "error", "generate", "addMore", "sync", "selectionChange"]);
 
 const tempSkuBulkForm = ref<HTMLDivElement | null>(null);
+const tempSkuBulkFormRef = ref<InstanceType<typeof TempSkuBulkForm> | null>(null);
 
 const editedUnpairedSkuList = ref<Sku[]>([]);
 
@@ -45,7 +46,29 @@ function handleBulkEdit(data: Sku[]) {
   emit('submit', editedUnpairedSkuList.value);
 }
 
+function handleSync(data: Sku[]) {
+  emit('sync', data);
+}
+
+function handleSelectionChange(records: Sku[]) {
+  emit('selectionChange', records);
+}
+
 function handleAddMore() {
   emit('addMore');
 }
+
+async function validateBeforeNext() {
+  const validatedData = await tempSkuBulkFormRef.value?.validateCurrentForm?.(false);
+  if (!validatedData) {
+    return false;
+  }
+  editedUnpairedSkuList.value = validatedData;
+  emit('submit', editedUnpairedSkuList.value);
+  return true;
+}
+
+defineExpose({
+  validateBeforeNext,
+});
 </script>
