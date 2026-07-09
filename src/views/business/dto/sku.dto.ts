@@ -37,6 +37,7 @@ export interface Sku {
   saleUrl?: string,
   specifics?: string,
   warehouse?: string,
+  declareCode?: string,
   labelData?: string,
 }
 
