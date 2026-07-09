@@ -343,7 +343,7 @@
     weight: '重量',
     weightEffectiveDate: '重量生效日期',
     zhName: '中文名称',
-
+    declareCode: "HS编码",
     codeBuilder: '代码生成器',
     individualInformation: "个人信息",
     commonInformation: "通用信息",

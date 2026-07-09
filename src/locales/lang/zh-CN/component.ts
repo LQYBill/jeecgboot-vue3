@@ -114,6 +114,7 @@ export default {
     warehouseSelect: "发货仓库不能为空！",
     weightInputSearch: "请输入重量",
     zhNameInput: '请输入中文名',
+    declareCodeInput: '海关编码不能为空!',
   },
   table: {
     legend: '表格图例',
