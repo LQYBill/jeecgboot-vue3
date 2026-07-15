@@ -18,7 +18,7 @@ import {ref, computed, unref} from 'vue';
 import {BasicModal, useModalInner} from '/@/components/Modal';
 import {BasicForm, useForm} from '/@/components/Form/index';
 import {formSchema, listFormatting} from '../PurchaseOrder.data';
-import {createMabangPurchaseOrder, saveOrUpdate, setPaymentApproved} from '../PurchaseOrder.api';
+import {createMabangPurchaseOrder, fetchInvoiceEntitiesByClientId, saveOrUpdate, setPaymentApproved} from '../PurchaseOrder.api';
 import {useI18n} from "/@/hooks/web/useI18n";
 import {Modal} from "ant-design-vue";
 import { useMessage } from '/@/hooks/web/useMessage';
@@ -53,11 +53,26 @@ const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) 
   });
   isUpdate.value = !!data?.isUpdate;
   showFooter.value = !!data?.showFooter;
+  await updateSchema([
+    {
+      field: 'clientId',
+      componentProps: {
+        onChange: async (clientId: string) => {
+          await setFieldsValue({ invoiceEntityId: undefined });
+          await loadInvoiceEntityOptions(clientId);
+        },
+      },
+    },
+  ]);
   if (unref(isUpdate)) {
     //表单赋值
     await setFieldsValue({
       ...data.record,
     });
+    if (data.record?.clientId) {
+      await loadInvoiceEntityOptions(data.record.clientId);
+      await setFieldsValue({ invoiceEntityId: data.record.invoiceEntityId });
+    }
   }
   isOrder.value = !!data?.isOrder;
   if(unref(isOrder)) {
@@ -74,6 +89,31 @@ const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) 
     },
     ]);
 });
+function extractInvoiceEntityRows(payload: any): any[] {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.result)) return payload.result;
+  if (Array.isArray(payload?.records)) return payload.records;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.result?.records)) return payload.result.records;
+  if (Array.isArray(payload?.result?.data)) return payload.result.data;
+  return [];
+}
+async function loadInvoiceEntityOptions(clientId?: string) {
+  // updateSchema deep-merges componentProps.options by array index rather than replacing it,
+  // so the old list must be cleared first or a shorter new list would leave stale trailing entries.
+  await updateSchema([{ field: 'invoiceEntityId', componentProps: { options: [] } }]);
+  if (!clientId) return;
+  try {
+    const res = await fetchInvoiceEntitiesByClientId({ id: clientId });
+    const options = extractInvoiceEntityRows(res).map((entity: Recordable) => ({
+      label: [entity.invoiceEntity, entity.country, entity.currency].filter(Boolean).join(' / '),
+      value: entity.id,
+    }));
+    await updateSchema([{ field: 'invoiceEntityId', componentProps: { options } }]);
+  } catch (error) {
+    console.error('failed to load invoice entities', error);
+  }
+}
 //设置标题
 const title = computed(() => (unref(isOrder) ? 'Order' : !unref(isUpdate) ? t('common.operation.addNew') : t('common.operation.edit')));
 

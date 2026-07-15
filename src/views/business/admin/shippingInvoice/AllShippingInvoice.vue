@@ -90,6 +90,25 @@
           </a-col>
           <a-col :span="5">
             <a-form-item
+              :labelCol="labelCol"
+              :wrapperCol="wrapperCol"
+              name="invoiceEntityId"
+            >
+              <template #label>
+                <span title="Invoice Entity">{{ t('data.InvoiceEntity') }}</span>
+              </template>
+              <JSearchSelect
+                :placeholder="t('common.chooseText')"
+                :dictOptions="invoiceEntityOptions"
+                @change="handleInvoiceEntityChange"
+                v-model:value="formState.invoiceEntityId"
+                allowClear
+                :disabled="invoiceEntityDisabled"
+              />
+            </a-form-item>
+          </a-col>
+          <a-col :span="5">
+            <a-form-item
               :labelCol="{span: 8}"
               :wrapperCol="{span: 18}"
               v-bind="validateInfos.name"
@@ -297,6 +316,7 @@ import {
   compareSku,
   editOrdersRemark,
   fetchClientList,
+  fetchInvoiceEntitiesByClientId,
   fetchCompleteFeesEstimation,
   fetchOrders,
   fetchShopsByCustomerId,
@@ -352,6 +372,7 @@ const validatorRules = ref({
 });
 const formState = reactive<Record<string, any>>({
   customer: '',
+  invoiceEntityId: '',
   shop: '',
   date: '',
   invoiceMode: '',
@@ -368,6 +389,10 @@ const customerInfo = ref<any>();
 const customerSelectList = ref<any[]>([]);
 const customerList = ref<any[]>([]);
 const customerDisabled = ref<boolean>(true);
+
+const invoiceEntityOptions = ref<any[]>([]);
+const invoiceEntityDisabled = ref<boolean>(true);
+const selectedInvoiceEntityName = ref<string>('');
 
 const shopList = ref<JSelectMultipleOptions[]>([]);
 const shopIDs = ref<string>();
@@ -503,6 +528,47 @@ async function loadCustomerList() {
     console.error(error);
   })
 }
+async function loadInvoiceEntityOptions(clientId: string) {
+  invoiceEntityDisabled.value = true;
+  invoiceEntityOptions.value = [];
+  selectedInvoiceEntityName.value = '';
+  try {
+    const res = await fetchInvoiceEntitiesByClientId({ id: clientId });
+    const entityList = Array.isArray(res)
+      ? res
+      : Array.isArray(res?.result)
+        ? res.result
+        : Array.isArray(res?.records)
+          ? res.records
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+    invoiceEntityOptions.value = entityList.map((entity: Recordable) => ({
+      text: [entity.invoiceEntity, entity.country, entity.currency].filter(Boolean).join(' / '),
+      value: entity.id,
+      raw: entity,
+    }));
+    if (invoiceEntityOptions.value.length === 1) {
+      formState.invoiceEntityId = invoiceEntityOptions.value[0].value;
+      selectedInvoiceEntityName.value = invoiceEntityOptions.value[0].raw?.invoiceEntity || invoiceEntityOptions.value[0].text || '';
+    }
+  } catch (error) {
+    console.error('failed to load invoice entities', error);
+  } finally {
+    invoiceEntityDisabled.value = false;
+  }
+}
+function handleInvoiceEntityChange(id?: string) {
+  const matched = invoiceEntityOptions.value.find((item) => item.value === id);
+  selectedInvoiceEntityName.value = matched?.raw?.invoiceEntity || matched?.text || '';
+}
+function ensureInvoiceEntitySelected() {
+  if (!!formState.invoiceEntityId) {
+    return true;
+  }
+  createMessage.warning(`${t('common.chooseText')} ${t('data.InvoiceEntity')}`);
+  return false;
+}
 function handleInvoiceModeChange(e: Event) {
   erpStatus.value = (e.target as HTMLInputElement).value;
   customerDisabled.value = false;
@@ -517,11 +583,13 @@ function handleClientChange(id: string) {
   const index = customerList.value.map(i => i.id).indexOf(id);
   customerId.value = id;
   customerInfo.value = customerList.value[index];
+  clearField("invoiceEntity");
   //clear selected shops
   shopDisabled.value = true;
   searchDisabled.value = true;
   clearField("shop");
   if(id !== undefined) {
+    loadInvoiceEntityOptions(customerId.value);
     loadShopList(customerId.value);
     syncSkus();
   }
@@ -680,6 +748,9 @@ async function loadOrders() {
   if(searchDisabled.value === true) {
     return;
   }
+  if (!ensureInvoiceEntitySelected()) {
+    return;
+  }
   if(!customerId.value) {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     clearField("shop");
@@ -769,6 +840,9 @@ async function checkSkuBetweenDate() {
     clearField("shop");
     return;
   }
+  if (!ensureInvoiceEntitySelected()) {
+    return;
+  }
   if(!selectedStartDate.value || !selectedEndDate.value) {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     clearField("date");
@@ -780,6 +854,7 @@ async function checkSkuBetweenDate() {
   }
   let params: shippingInvoiceParam = {
     clientID: customerId.value.toString(),
+    invoiceEntityId: formState.invoiceEntityId,
     shopIDs: shopIDs.value!.split(','),
     start: selectedStartDate.value.toString(),
     end: dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString(),
@@ -829,6 +904,9 @@ async function makeManualInvoice() {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     return;
   }
+  if (!ensureInvoiceEntitySelected()) {
+    return;
+  }
   if (!selectedStartDate.value || !selectedEndDate.value) {
     createMessage.warning(t("component.searchForm.dateInputSearch"));
     return;
@@ -842,6 +920,7 @@ async function makeManualInvoice() {
 
   const params = {
     clientID: customerId.value,
+    invoiceEntityId: formState.invoiceEntityId,
     orderIds: checkedKeys.value,
     type: type,
     period: [period],
@@ -890,6 +969,9 @@ async function makeManualCompleteInvoice() {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     return;
   }
+  if (!ensureInvoiceEntitySelected()) {
+    return;
+  }
   if (!selectedStartDate.value || !selectedEndDate.value) {
     createMessage.warning(t("component.searchForm.dateInputSearch"));
     return;
@@ -911,6 +993,7 @@ async function makeManualCompleteInvoice() {
 
   const params = {
     clientID: customerId.value,
+    invoiceEntityId: formState.invoiceEntityId,
     orderIds: checkedKeys.value,
     type: type,
     period: [period],
@@ -979,6 +1062,9 @@ async function makeInvoice() {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     return;
   }
+  if (!ensureInvoiceEntitySelected()) {
+    return;
+  }
   if (!selectedStartDate.value || !selectedEndDate.value) {
     createMessage.warning(t("component.searchForm.dateInputSearch"));
     return;
@@ -1006,6 +1092,7 @@ async function makeInvoice() {
   completeInvoiceDisabled.value = true;
   const param = {
     clientID: customerId.value,
+    invoiceEntityId: formState.invoiceEntityId,
     shopIDs: shopIDs.value!.split(','),
     start: selectedStartDate.value.toString(),
     end: dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString(),
@@ -1041,6 +1128,9 @@ async function makeCompleteInvoice() {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     return;
   }
+  if (!ensureInvoiceEntitySelected()) {
+    return;
+  }
   if (!selectedStartDate.value || !selectedEndDate.value) {
     createMessage.warning(t("component.searchForm.dateInputSearch"));
     return;
@@ -1059,6 +1149,7 @@ async function makeCompleteInvoice() {
   }
   const param = {
     clientID: customerId.value.toString(),
+    invoiceEntityId: formState.invoiceEntityId,
     shopIDs: shopIDs.value!.split(','),
     start: selectedStartDate.value,
     end: dayjs(selectedEndDate.value).add(1, 'days').format('YYYY-MM-DD').toString(),
@@ -1124,14 +1215,16 @@ function downloadInvoice(invoiceFilename: string) {
   });
 }
 function downloadDetailFile(invoiceNumber: string) {
+  const invoiceEntityName = selectedInvoiceEntityName.value || customerInfo.value?.invoiceEntity;
   const param =
     {
       invoiceNumber: invoiceNumber,
-      invoiceEntity: customerInfo.value?.invoiceEntity,
+      invoiceEntity: invoiceEntityName,
+      invoiceEntityId: formState.invoiceEntityId,
       internalCode: customerInfo.value?.internalCode
     }
   let now = dayjs().format("YYYYMMDD");
-  let detailFilename = customerInfo.value?.internalCode + "_(" + customerInfo.value?.invoiceEntity + ")_" + invoiceNumber + '_Invoice_calculation_details_' + now + '.xlsx';
+  let detailFilename = customerInfo.value?.internalCode + "_(" + invoiceEntityName + ")_" + invoiceNumber + '_Invoice_calculation_details_' + now + '.xlsx';
   downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {
     createMessage.info("Download successful.")
   }).catch(e => {
@@ -1203,11 +1296,18 @@ function clearField(field:any) {
 
     case "client" :
       fields.customer = "";
+      fields.invoiceEntityId = "";
       customerInfo.value = undefined;
       customerId.value = undefined;
+      invoiceEntityOptions.value = [];
+      invoiceEntityDisabled.value = true;
+      selectedInvoiceEntityName.value = '';
       shopDisabled.value = true;
       warehouseDisabled.value = false;
       isSkuCompareReady.value = false;
+    case "invoiceEntity":
+      fields.invoiceEntityId = "";
+      selectedInvoiceEntityName.value = '';
     case "shop" :
       fields.shop = "";
       startDate.value = dayjs(undefined);
@@ -1264,6 +1364,7 @@ async function onSelectChange(selectedRowKeys: (string | number)[], selectionRow
     step.value = stepsEnum.invoiceTypeSelection;
     const params = {
       clientID: customerId.value,
+      invoiceEntityId: formState.invoiceEntityId,
       orderIds: checkedKeys.value,
       type: getInvoiceMethod(),
     };

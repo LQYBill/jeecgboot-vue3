@@ -164,6 +164,7 @@ import {
   downloadInvoice, getAllSelectableSkus,
   getMabangUsername, getClient, listClientSkus,
   listCustomers, syncSkuQty, skuOrderExport, placeOrderByExcel, downloadInvoicePdf,
+  fetchInvoiceEntitiesByClientId,
 } from './ProductOrder.api';
 import { columns, clientColumns } from "./ProductOrder.data";
 import ProductOrderModal from "./components/ProductOrder.modal.vue";
@@ -212,6 +213,8 @@ const allSelected = ref<boolean>(false);
 const allSkus = ref<any>([]);
 
 const client = ref<Recordable>();
+const invoiceEntityOptions = ref<any[]>([]);
+const defaultInvoiceEntityId = ref<string | undefined>(undefined);
 
 const skuList = ref<any>([]);
 
@@ -284,6 +287,7 @@ async function checkUser() {
     }
     else {
       client.value = res.client;
+      await loadInvoiceEntityOptions(client.value?.id);
     }
     await checkUserMabangUsername();
   }).catch(err => {
@@ -308,6 +312,32 @@ async function handleMabangUsername(username: string | null) {
 async function loadCustomerList() {
   await listCustomers(handleSetCustomer);
 }
+function extractInvoiceEntityRows(payload: any): any[] {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.result)) return payload.result;
+  if (Array.isArray(payload?.records)) return payload.records;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.result?.records)) return payload.result.records;
+  if (Array.isArray(payload?.result?.data)) return payload.result.data;
+  return [];
+}
+async function loadInvoiceEntityOptions(clientId?: string) {
+  invoiceEntityOptions.value = [];
+  defaultInvoiceEntityId.value = undefined;
+  if (!clientId) return;
+  try {
+    const res = await fetchInvoiceEntitiesByClientId({ id: clientId });
+    const entities = extractInvoiceEntityRows(res);
+    invoiceEntityOptions.value = entities.map((entity: Recordable) => ({
+      label: [entity.invoiceEntity, entity.country, entity.currency].filter(Boolean).join(' / '),
+      value: entity.id,
+    }));
+    // isDefault 是 '1'/'0' 字符串（同 active 字段约定），字符串 "0" 在 JS 里是真值，必须严格比较
+    defaultInvoiceEntityId.value = entities.find((entity: Recordable) => entity.isDefault === '1')?.id;
+  } catch (error) {
+    console.error('failed to load invoice entities', error);
+  }
+}
 function handleSetCustomer(selectList, list) {
   customerSelectList.value = selectList;
   customerList.value = list;
@@ -331,6 +361,7 @@ async function handleClientChange(id) {
   let index = customerList.value.map(i => i.id).indexOf(id);
   client.value = customerList.value[index];
   if(id !== undefined) {
+    await loadInvoiceEntityOptions(client.value?.id);
     await loadSkuList(1);
   }
 }
@@ -388,6 +419,8 @@ function orderMenu() {
     showFooter: true,
     selectedRows: rows,
     internalUse: internalUse.value,
+    invoiceEntityOptions: invoiceEntityOptions.value,
+    invoiceEntityId: defaultInvoiceEntityId.value,
   })
 }
 function handleModalSuccess (result:InvoiceMetaData) {
@@ -597,6 +630,8 @@ async function handlePlaceOrderByExcel() {
         showFooter: true,
         selectedRows: mappedSkuList,
         internalUse: internalUse.value,
+        invoiceEntityOptions: invoiceEntityOptions.value,
+        invoiceEntityId: defaultInvoiceEntityId.value,
       });
     } catch (e) {
       console.error('Failed to parse Excel', e);

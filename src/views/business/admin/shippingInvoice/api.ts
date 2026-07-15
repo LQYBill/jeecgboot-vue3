@@ -2,6 +2,7 @@ import {defHttp} from "@/utils/http/axios";
 
 export const Api = {
   getClientList: "/client/client/all",
+  getInvoiceEntitiesByClientId: "/client/client/queryInvoiceEntityByMainId",
   getShopsByCustomerId: "/shippingInvoice/shopsByClient",
   getValidPeriod: "/shippingInvoice/period",
   getValidOrderTimePeriod: "/shippingInvoice/preShipping/orderTime",
@@ -23,6 +24,9 @@ export const Api = {
 
 export const fetchClientList = async () => {
   return await defHttp.get({url: Api.getClientList});
+}
+export const fetchInvoiceEntitiesByClientId = async (params) => {
+  return await defHttp.get({url: Api.getInvoiceEntitiesByClientId, params});
 }
 export const fetchShopsByCustomerId = async (params) => {
   return await defHttp.get({url: Api.getShopsByCustomerId, params})

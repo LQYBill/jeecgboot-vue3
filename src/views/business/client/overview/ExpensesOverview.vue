@@ -28,6 +28,16 @@
       <a-card class="card-header" v-if="client">
         <h1>{{ fullName }} <span style="font-weight: 200">( {{ invoiceEntity }} )</span></h1>
         <p>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ CurrencyToken[currency] }}</p>
+        <div v-if="invoiceEntityOptions.length > 1" class="mt-2" style="max-width: 360px;">
+          <span class="mr-2">{{ t('data.InvoiceEntity') }}</span>
+          <JSearchSelect
+            :placeholder="t('common.chooseText')"
+            :dictOptions="invoiceEntityOptions"
+            @change="handleInvoiceEntityChange"
+            v-model:value="selectedInvoiceEntityId"
+            allowClear
+          />
+        </div>
       </a-card>
       <a-tabs v-if="client && currencyList.length > 0"
               :defaultActiveKey="1"
@@ -70,7 +80,7 @@ import {useI18n} from "/@/hooks/web/useI18n";
 import {defHttp} from "/@/utils/http/axios";
 
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
-import type {Client, Currency, ShopOptions} from "@/views/business/dto";
+import type {Client, Currency, InvoiceEntity, ShopOptions} from "@/views/business/dto";
 import {CurrencyEnum, CurrencyToken, TransactionType} from "@/views/business/enum";
 
 import {Api} from "../client.api";
@@ -112,6 +122,8 @@ const fullName = ref<string>();
 const invoiceEntity = ref<string>();
 const shopOptions = ref<Record<string, ShopOptions>>({});
 const currencyList = ref<CurrencyEnum[]>([]);
+const invoiceEntityOptions = ref<any[]>([]);
+const selectedInvoiceEntityId = ref<string>();
 
 const activeTab = ref(1);
 const editMode = ref(false);
@@ -143,6 +155,8 @@ function handleClientChange(id?: string) {
   currency.value = '';
   fullName.value = '';
   invoiceEntity.value = '';
+  invoiceEntityOptions.value = [];
+  selectedInvoiceEntityId.value = undefined;
   activeTab.value = 1;
   const customer = customerList.value.find(c => c.id === id);
   if(!customer) {
@@ -152,11 +166,29 @@ function handleClientChange(id?: string) {
 }
 async function loadClient(clientParam: Client) {
   client.value = clientParam;
-  currency.value = client.value.currency as string;
   fullName.value = `${client.value.firstName} ${client.value.surname}`
-  invoiceEntity.value = client.value.invoiceEntity as string;
+  loadInvoiceEntityOptions();
   await loadAllTransactionCurrencies();
   await loadShopOptions();
+}
+function loadInvoiceEntityOptions() {
+  const entities = client.value?.invoiceEntityList || [];
+  invoiceEntityOptions.value = entities.map((entity: InvoiceEntity) => ({
+    text: [entity.invoiceEntity, entity.country, entity.currency].filter(Boolean).join(' / '),
+    value: entity.id,
+    raw: entity,
+  }));
+  selectedInvoiceEntityId.value = invoiceEntityOptions.value[0]?.value;
+  applySelectedInvoiceEntity();
+}
+function handleInvoiceEntityChange(_id?: string) {
+  applySelectedInvoiceEntity();
+}
+function applySelectedInvoiceEntity() {
+  const matched = invoiceEntityOptions.value.find((item) => item.value === selectedInvoiceEntityId.value);
+  const entity: InvoiceEntity | undefined = matched?.raw;
+  currency.value = entity?.currency as string || '';
+  invoiceEntity.value = entity?.invoiceEntity || '';
 }
 async function loadAllTransactionCurrencies() {
   const params = {

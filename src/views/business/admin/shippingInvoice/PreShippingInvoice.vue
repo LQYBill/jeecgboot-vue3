@@ -23,6 +23,23 @@
           </a-col>
           <a-col :span="5">
             <a-form-item
+              :label="t('data.InvoiceEntity')"
+              :labelCol="labelCol"
+              :wrapperCol="wrapperCol"
+              name="invoiceEntityId"
+            >
+              <JSearchSelect
+                :placeholder="t('common.chooseText')"
+                :dictOptions="invoiceEntityOptions"
+                @change="handleInvoiceEntityChange"
+                v-model:value="formState.invoiceEntityId"
+                allowClear
+                :disabled="invoiceEntityDisabled"
+              />
+            </a-form-item>
+          </a-col>
+          <a-col :span="5">
+            <a-form-item
               :label="t('data.invoice.shop')"
               :labelCol="labelCol"
               :wrapperCol="wrapperCol"
@@ -162,12 +179,14 @@ const validatorRules = ref({
 });
 const formState = reactive<Record<string, any>>({
   customer: '',
+  invoiceEntityId: '',
   shop: '',
 });
 const { resetFields, validate, validateInfos } = useForm(formState, validatorRules, { immediate: false });
 
 const Api = {
   getClientList: "/client/client/all",
+  getInvoiceEntitiesByClientId: "/client/client/queryInvoiceEntityByMainId",
   getShopsByCustomerId: "/shippingInvoice/shopsByClient",
   checkOrdersBetweenDate: '/shippingInvoice/postShipping/ordersBetweenDates',
   makeInvoice: "/shippingInvoice/makeManualInvoice",
@@ -190,6 +209,10 @@ const customerInfo = ref<string>();
 const customerSelectList = ref([]);
 const customerList = ref([]);
 const customerDisabled = ref<boolean>(false);
+
+const invoiceEntityOptions = ref<any[]>([]);
+const invoiceEntityDisabled = ref<boolean>(true);
+const selectedInvoiceEntityName = ref<string>('');
 
 const shopList = ref([]);
 const shopIDs = ref([]);
@@ -343,12 +366,54 @@ function loadCustomerList() {
     console.error(error);
   })
 }
+async function loadInvoiceEntityOptions(clientId) {
+  invoiceEntityDisabled.value = true;
+  invoiceEntityOptions.value = [];
+  selectedInvoiceEntityName.value = '';
+  try {
+    const res = await defHttp.get({url: Api.getInvoiceEntitiesByClientId, params: { id: clientId }});
+    const entityList = Array.isArray(res)
+      ? res
+      : Array.isArray(res?.result)
+        ? res.result
+        : Array.isArray(res?.records)
+          ? res.records
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+    invoiceEntityOptions.value = entityList.map((entity) => ({
+      text: [entity.invoiceEntity, entity.country, entity.currency].filter(Boolean).join(' / '),
+      value: entity.id,
+      raw: entity,
+    }));
+    if (invoiceEntityOptions.value.length === 1) {
+      formState.invoiceEntityId = invoiceEntityOptions.value[0].value;
+      selectedInvoiceEntityName.value = invoiceEntityOptions.value[0].raw?.invoiceEntity || invoiceEntityOptions.value[0].text || '';
+    }
+  } catch (error) {
+    console.error('failed to load invoice entities', error);
+  } finally {
+    invoiceEntityDisabled.value = false;
+  }
+}
+function handleInvoiceEntityChange(id) {
+  const matched = invoiceEntityOptions.value.find((item) => item.value === id);
+  selectedInvoiceEntityName.value = matched?.raw?.invoiceEntity || matched?.text || '';
+}
+function ensureInvoiceEntitySelected() {
+  if (!!formState.invoiceEntityId) {
+    return true;
+  }
+  createMessage.warning(`${t('common.chooseText')} ${t('data.InvoiceEntity')}`);
+  return false;
+}
 function handleClientChange(id) {
   // console.log(`fields value : customer : ${formState["customer"]}, shop : ${formState["shop"]}`)
   console.log(`client selected ${id}`);
   let index = customerList.value.map(i => i.id).indexOf(id);
   customerId.value = id;
   customerInfo.value = customerList.value[index];
+  clearField("invoiceEntity");
   //clear selected shops
   shopIDs.value = [];
   shopDisabled.value = true;
@@ -366,6 +431,7 @@ function handleClientChange(id) {
     checkbox.parentElement?.classList.remove("ant-checkbox-checked");
   }
   if(id !== undefined) {
+    loadInvoiceEntityOptions(customerId.value);
     loadShopList(customerId.value)
       .then(() => {
           shopDisabled.value = false;
@@ -402,6 +468,9 @@ function handleShopChange(shops) {
   }
 }
 function loadOrders() {
+  if (!ensureInvoiceEntitySelected()) {
+    return;
+  }
   let requestParam = {
     clientId: customerId.value,
     shopIds: shopIDs.value.toString().split(','),
@@ -436,6 +505,7 @@ function loadOrders() {
         syncDisabled.value = false;
         let param = {
           clientID: customerId.value,
+          invoiceEntityId: formState.invoiceEntityId,
           orderIds: orderIdList,
           type: "pre-shipping"
         }
@@ -469,8 +539,12 @@ function makeInvoice() {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     return;
   }
+  if (!ensureInvoiceEntitySelected()) {
+    return;
+  }
   let param = {
     clientID: customerId.value,
+    invoiceEntityId: formState.invoiceEntityId,
     orderIds: checkedKeys.value,
     type: "pre-shipping"
   };
@@ -506,8 +580,12 @@ function makeCompleteInvoice() {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
     return;
   }
+  if (!ensureInvoiceEntitySelected()) {
+    return;
+  }
   let param = {
     clientID: customerId.value,
+    invoiceEntityId: formState.invoiceEntityId,
     orderIds: checkedKeys.value,
     type: "pre-shipping"
   };
@@ -546,12 +624,17 @@ function downloadInvoice(invoiceFilename) {
   });
 }
 function downloadDetailFile(invoiceNumber) {
-  const param = {invoiceNumber: invoiceNumber}
+  const invoiceEntityName = selectedInvoiceEntityName.value || '';
+  const param = {
+    invoiceNumber: invoiceNumber,
+    invoiceEntityId: formState.invoiceEntityId,
+    invoiceEntity: invoiceEntityName,
+  }
   let now = dayjs().format("YYYYMMDD");
   let internalCode = customerInfo.value?.info.split(',')[2];
   console.log(`internalCode : ${internalCode}`);
 
-  let detailFilename = internalCode + "_" + invoiceNumber + '_Invoice_calculation_details_' + now + '.xlsx';
+  let detailFilename = internalCode + "_(" + invoiceEntityName + ")_" + invoiceNumber + '_Invoice_calculation_details_' + now + '.xlsx';
   console.log(`detail filename : ${detailFilename}`);
   downloadFile(Api.downloadInvoiceDetail, detailFilename, param)
     .catch(e => {
@@ -581,10 +664,17 @@ function clearField(field) {
     case "all" :
     case "client" :
       fields.customer = "";
+      fields.invoiceEntityId = "";
       customerInfo.value = undefined;
       customerId.value = undefined;
+      invoiceEntityOptions.value = [];
+      invoiceEntityDisabled.value = true;
+      selectedInvoiceEntityName.value = '';
       shopDisabled.value = true;
       searchDisabled.value = true;
+    case "invoiceEntity":
+      fields.invoiceEntityId = "";
+      selectedInvoiceEntityName.value = '';
     case "shop" :
       fields.shop = "";
       shopIDs.value = [];
@@ -614,6 +704,7 @@ function onSelectChange(selectedRowKeys: (string | number)[], selectionRows) {
   if(checkedKeys.value.length > 0) {
     let param = {
       clientID: customerId.value,
+      invoiceEntityId: formState.invoiceEntityId,
       orderIds: selectedRowKeys,
       type: "pre-shipping"
     };

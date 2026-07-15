@@ -74,6 +74,27 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
+    label: t('data.InvoiceEntity'),
+    field: 'invoiceEntityId',
+    component: 'Select',
+    componentProps: {
+      options: [],
+      placeholder: t('common.chooseText'),
+      showSearch: true,
+      optionFilterProp: 'label',
+      allowClear: true,
+    },
+    dynamicDisabled: ({ values }) => {
+      return !!values.id;
+    },
+    dynamicRules: ({ values }) => {
+      if (!!values.id) return [];
+      return [
+        {required: true, message: t('common.chooseText') + t('data.InvoiceEntity')},
+      ];
+    },
+  },
+  {
     label: t('data.invoice.invoiceNumber'),
     field: 'invoiceNumber',
     component: 'Input',

@@ -9,6 +9,7 @@ enum Api {
   list = '/purchaseOrder/list',
   paymentProofReviewList = '/purchaseOrder/paymentProofReview/list',
   setPaymentApproved = '/purchaseOrder/paymentProofReview/setPaymentApproved',
+  getInvoiceEntitiesByClientId = '/client/client/queryInvoiceEntityByMainId',
   // save='/purchaseOrder/add',
   save='/purchaseOrder/addPurchaseAndOrder',
   // edit='/purchaseOrder/edit',
@@ -88,6 +89,10 @@ export const saveOrUpdate = (params: Recordable, isUpdate: boolean) => {
 
 export const duplicateInvoiceNumberCheck = (params: { id: any; invoiceNumber: any; invoiceType: string; }) => {
   return defHttp.get({url: Api.duplicateInvoiceNumberCheck, params});
+}
+
+export const fetchInvoiceEntitiesByClientId = (params: { id: any }) => {
+  return defHttp.get({url: Api.getInvoiceEntitiesByClientId, params});
 }
 
 export const createMabangPurchaseOrder = async (params: any, handleSuccess?: (arg0: any) => void) => {

@@ -14,6 +14,7 @@ enum Api {
   importExcel = '/client/client/importExcel',
   exportXls = '/client/client/exportXls',
   shopList = '/client/client/queryShopByMainId',
+  invoiceEntityList = '/client/client/queryInvoiceEntityByMainId',
   queryById = '/client/client/queryById',
 }
 /**
@@ -31,6 +32,9 @@ export const getImportUrl = Api.importExcel;
  * @param params
  */
 export const shopList = Api.shopList;
+export const invoiceEntityList = Api.invoiceEntityList;
+export const queryInvoiceEntityByMainId = (params) =>
+  defHttp.get({url: Api.invoiceEntityList, params});
 /**
  * 列表接口
  * @param params
