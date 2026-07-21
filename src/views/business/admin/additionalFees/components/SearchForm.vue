@@ -83,8 +83,8 @@ const searchState = reactive<Record<string, string>>({
 });
 const { validateInfos } = useForm(searchState, validatorRules, { immediate: false });
 
-function handleShopChange(event: Event) {
-  searchState.shop = (event.target as HTMLInputElement).value;
+function handleShopChange(value: string) {
+  searchState.shop = value;
 }
 function handleStatusChange(value: string) {
   searchState.status = value;
@@ -93,3 +93,4 @@ function handleSearch() {
   emit('search', searchState);
 }
 </script>
+
