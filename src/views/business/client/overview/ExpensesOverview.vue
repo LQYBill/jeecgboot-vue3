@@ -70,7 +70,7 @@ import {useI18n} from "/@/hooks/web/useI18n";
 import {defHttp} from "/@/utils/http/axios";
 
 import JSearchSelect from "/@/components/Form/src/jeecg/components/JSearchSelect.vue";
-import type {Client, Currency, ShopOptions} from "@/views/business/dto";
+import type {Client, Currency} from "@/views/business/dto";
 import {CurrencyEnum, CurrencyToken, TransactionType} from "@/views/business/enum";
 
 import {Api} from "../client.api";
@@ -110,7 +110,6 @@ const client = ref<Client>();
 const currency = ref<string>();
 const fullName = ref<string>();
 const invoiceEntity = ref<string>();
-const shopOptions = ref<Record<string, ShopOptions>>({});
 const currencyList = ref<CurrencyEnum[]>([]);
 
 const activeTab = ref(1);
@@ -138,7 +137,6 @@ async function checkUser() {
 }
 function handleClientChange(id?: string) {
   client.value = undefined;
-  shopOptions.value = {};
   currencyList.value = [];
   currency.value = '';
   fullName.value = '';
@@ -156,7 +154,6 @@ async function loadClient(clientParam: Client) {
   fullName.value = `${client.value.firstName} ${client.value.surname}`
   invoiceEntity.value = client.value.invoiceEntity as string;
   await loadAllTransactionCurrencies();
-  await loadShopOptions();
 }
 async function loadAllTransactionCurrencies() {
   const params = {
@@ -171,19 +168,6 @@ async function loadAllTransactionCurrencies() {
       currencyList.value = sortedCurrencies;
     });
 }
-async function loadShopOptions() {
-  const params = {
-    clientID: client.value!.id
-  };
-  await defHttp.get({url: Api.getShopOptions, params})
-    .then( res => {
-      shopOptions.value = res;
-    })
-    .catch(e => {
-      console.error(e);
-    });
-}
-
 /**
  * colorize debit and credit rows for better visibility
  */
@@ -215,6 +199,9 @@ function handleEditModeChange(checked: boolean) {
   editMode.value = checked;
   if(checked)
     colorizeRows();
+}
+function handleTabChange(key: number) {
+  activeTab.value = key;
 }
 </script>
 

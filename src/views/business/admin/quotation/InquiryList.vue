@@ -15,7 +15,9 @@
         </a-button>
       </template>
       <template #action="{ record }">
-        <TableAction :actions="getTableAction(record)" />
+        <div class="inquiry-action-cell">
+          <TableAction :actions="getTableAction(record)" />
+        </div>
       </template>
       <template #bodyCell="{ column, text, record }">
         <template v-if="column.dataIndex === 'attachments'">
@@ -98,7 +100,7 @@ const { tableContext} = useListPage({
       fieldMapToTime: [],
     },
     actionColumn: {
-      width: 220,
+      width: 300,
       fixed: 'right',
       title: t('common.operation.action'),
     },
@@ -194,5 +196,21 @@ function getTableAction(record: any) {
   white-space: normal;
   line-height: 1.2;
   height: auto;
+}
+
+.inquiry-action-cell {
+  min-width: 260px;
+}
+
+.inquiry-action-cell:deep(.jeecg-basic-table-action) {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 0;
+  height: auto;
+  min-height: 22px;
+}
+
+.inquiry-action-cell:deep(.jeecg-basic-table-action button) {
+  white-space: nowrap;
 }
 </style>

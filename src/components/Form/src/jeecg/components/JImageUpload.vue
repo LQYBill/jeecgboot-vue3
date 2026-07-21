@@ -18,7 +18,7 @@
           <UploadOutlined v-else />
           <div class="ant-upload-text">{{ text }}</div>
         </div>
-        <a-button v-if="listType == 'picture'" :disabled="disabled">
+        <a-button v-if="listType == 'picture'" :disabled="disabled || loading" :loading="loading">
           <UploadOutlined></UploadOutlined>
           {{ text }}
         </a-button>
@@ -72,6 +72,11 @@
         required: false,
         default: false,
       },
+      loading: {
+        type: Boolean,
+        required: false,
+        default: false,
+      },
       //上传数量
       fileMax: {
         type: Number,
@@ -79,7 +84,7 @@
         default: 1,
       },
     },
-    emits: ['options-change', 'change', 'update:value'],
+    emits: ['options-change', 'change', 'update:value', 'upload-status'],
     setup(props, { emit, refs }) {
       const emitData = ref<any[]>([]);
       const attrs = useAttrs();
@@ -95,7 +100,7 @@
       //token
       const headers = getHeaders();
       //上传状态
-      const loading = ref<boolean>(false);
+      const innerLoading = ref<boolean>(false);
       //是否是初始化加载
       const initTag = ref<boolean>(true);
       //文件列表
@@ -112,6 +117,9 @@
 
       //计算是否可以继续上传
       const uploadVisible = computed(() => {
+        if (props['listType'] === 'picture') {
+          return true;
+        }
         return uploadFileList.value.length < props['fileMax'];
       });
 
@@ -171,6 +179,8 @@
        */
       function handleChange({ file, fileList, event }) {
         initTag.value = false;
+        innerLoading.value = file.status === 'uploading';
+        emit('upload-status', file.status === 'uploading');
         // update-begin--author:liaozhiyang---date:20231116---for：【issues/846】上传多个列表只显示一个
         // uploadFileList.value = fileList;
         if (file.status === 'error') {
@@ -188,9 +198,11 @@
             }
           });
           if (file.status === 'removed') {
+            innerLoading.value = false;
             handleDelete(file);
           }
           if (noUploadingFileCount == fileList.length) {
+            innerLoading.value = false;
             state.value = fileUrls.join(',');
             emit('update:value', fileUrls.join(','));
             // update-begin---author:wangshuai ---date:20221121  for：[issues/248]原生表单内使用图片组件,关闭弹窗图片组件值不会被清空------------
@@ -238,7 +250,7 @@
         uploadFileList,
         multiple,
         headers,
-        loading,
+        loading: computed(() => props.loading || innerLoading.value),
         uploadUrl,
         beforeUpload,
         uploadVisible,

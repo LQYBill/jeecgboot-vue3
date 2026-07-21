@@ -61,12 +61,6 @@ export function getColumns(): BasicColumn[] {
       slots: {customRender: 'amount'},
     },
     {
-      title: t('data.transaction.paymentProof'),
-      align: 'center',
-      dataIndex: 'paymentProofString',
-      slots: { customRender: 'img' },
-    },
-    {
       title: t('data.client.currency'),
       align: 'center',
       dataIndex: 'currency',

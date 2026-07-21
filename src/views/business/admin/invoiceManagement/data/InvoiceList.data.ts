@@ -73,6 +73,14 @@ export const columns: BasicColumn[] = [
     slots: {customRender: 'type'}
   },
   {
+    title: t('data.transaction.paymentProof'),
+    align: 'center',
+    dataIndex: 'paymentDocumentString',
+    fixed: 'right',
+    width: 150,
+    slots: { customRender: 'paymentProof' },
+  },
+  {
     title: t('common.operation.action'),
     dataIndex: 'action',
     align: "center",

@@ -2,20 +2,6 @@
   <PageWrapper title="Invoice Management">
     <InvoiceListSearchForm @search="handleSearch"/>
     <BasicTable @register="registerTable" :rowSelection="rowSelection" ref="tableRef">
-      <template #tableTitle>
-        <PopConfirmButton
-          v-if="checkedKeys && checkedKeys.length > 0 && !hasPurchaseInvoice()"
-          type="success"
-          :title="t('component.popConfirm.setInvoicesPaid')"
-          preIcon="ant-design:dollar-outlined"
-          @confirm="setPaid(selectRows, handleSetPaid)"
-          :disabled="paidDisabled"
-          okText="ok" :loading="paidLoading"
-          cancelText="Cancel"
-        >
-          {{ t("data.invoice.paid") }}
-        </PopConfirmButton>
-      </template>
       <template #toolbar>
         <a-button type="primary" preIcon="ant-design:export-outlined" @click="handleExportXls('Invoice List', Api.exportXls, exportParams)"> {{ t("common.operation.export") }}</a-button>
         <a-button v-if="checkedKeys && checkedKeys.length > 0" type="primary" preIcon="ic:outline-receipt-long" @click="downloadExcelInvoice('invoice')" :disabled = 'downloadInvoiceDisabled'> {{ t("data.invoice.downloadInvoice") }}</a-button>
@@ -63,11 +49,34 @@
           <Icon icon="ant-design:copy-outlined" @click="handleCopy(record.invoiceNumber)" class="cursor-pointer"></Icon>
         </div>
       </template>
+      <template #paymentProof="{ record }">
+        <span v-if="record?.type === 'credit'">-</span>
+        <div v-else class="invoice-payment-proof flex flex-row flex-nowrap justify-center items-center gap-2">
+          <TableImg
+            v-if="record.paymentDocumentString"
+            :size="28"
+            :imgList="[uploadUrl + record.paymentDocumentString]"
+          />
+          <JImageUpload
+            class="invoice-payment-upload"
+            :value="''"
+            :key="`${record.id}-${record.paymentDocumentString || ''}`"
+            :text="isUploadingPaymentProof(record) ? '\u4e0a\u4f20\u4e2d' : (record.paymentDocumentString ? t('component.upload.reUpload') : t('component.upload.upload'))"
+            :fileMax="1"
+            listType="picture"
+            bizPath="purchase_order/screenshots"
+            :disabled="isUploadDisabled(record)"
+            :loading="isUploadingPaymentProof(record)"
+            @upload-status="isUploading => handleUploadStatusChange(isUploading, record)"
+            @update:value="value => handleUploadPaymentProof(value, record)"
+          />
+        </div>
+      </template>
     </BasicTable>
   </PageWrapper>
 </template>
 <script async setup lang="ts">
-import {BasicTable, TableAction, useTable} from "/@/components/Table";
+import {BasicTable, TableAction, TableImg, useTable} from "/@/components/Table";
 import {downloadFile} from '/@/api/common/api';
 import {defHttp} from '/@/utils/http/axios';
 import {useMessage} from '/@/hooks/web/useMessage';
@@ -76,10 +85,9 @@ import {useMethods} from "/@/hooks/system/useMethods";
 import {computed, onMounted, reactive, ref, unref} from "vue";
 import {filterObj} from "/@/utils/common/compUtils";
 import {useUserStore} from "/@/store/modules/user";
-import {PopConfirmButton} from "/@/components/Button";
 import { PageWrapper } from '/@/components/Page';
 import {columns} from "./data/InvoiceList.data";
-import {list, Api, setPaid} from "./api/InvoiceList.api";
+import {list, Api} from "./api/InvoiceList.api";
 import PlainIcon from "/@/views/business/admin/invoiceManagement/components/PlainIcon.vue";
 import BasketIcon from "/@/views/business/admin/invoiceManagement/components/BasketIcon.vue";
 import {useRouter} from "vue-router";
@@ -90,6 +98,10 @@ import InvoiceListSearchForm
 import { useInvoiceStore } from '@/store/modules/invoice'
 import { storeToRefs } from 'pinia';
 import {getModifyingInvoice} from "@/utils/cache/modifyingInvoice";
+import JImageUpload from '/@/components/Form/src/jeecg/components/JImageUpload.vue';
+import {useGlobSetting} from "@/hooks/setting";
+import {Api as ClientApi} from "@/views/business/client/client.api";
+import {PaymentApproveStatus} from "@/views/business/enum/paymentApproveEnum";
 const invoiceStore = useInvoiceStore()
 const { modifyingInvoiceNumber } = storeToRefs(invoiceStore);
 
@@ -101,6 +113,9 @@ const {resolve}=useRouter();
 const { clipboardRef, copiedRef } = useCopyToClipboard();
 const username = ref<string>();
 const tableRef = ref();
+const globSetting = useGlobSetting();
+const uploadUrl = `${globSetting.uploadUrl}/sys/common/static/`;
+const uploadingPaymentProofInvoiceNumbers = ref<string[]>([]);
 
 onMounted(async () => {
   username.value = userStore.getUserInfo.username;
@@ -144,10 +159,8 @@ const deleteBatchDisabled = ref(true);
 const downloadInvoiceDisabled = ref(true);
 const downloadDetailDisabled = ref(true);
 const downloadInventoryDisabled = ref(true);
-const paidDisabled = ref(false);
 
 const deleteBatchLoading = ref<boolean>(false);
-const paidLoading = ref<boolean>(false);
 
 const searchState = reactive<Record<string, string | string[]>>({
   createBy: '',
@@ -356,9 +369,7 @@ async function handleDeleteBatch() {
     setLoading(false);
   });
 }
-function handleSetPaid() {
-  reload();
-}
+
 
 function openInvoice(record) {
   const invoicePreviewRoute = resolve({name: 'invoice-preview', query: {invoice: record.invoiceNumber}});
@@ -374,14 +385,57 @@ function handleCopy(invoiceNumber:string) {
     createMessage.warning(t('component.copy.success'));
   }
 }
-function hasPurchaseInvoice() {
-  for (let row of selectRows.value) {
-    if(row.type === 'purchase') {
-      return true;
-    }
-  }
-  return false;
+function isPaymentApproved(record: Recordable) {
+  return record?.paymentApproved === true
+    || record?.paymentApproved === 1
+    || record?.paymentApproved === '1';
 }
+function isUploadDisabled(record: Recordable) {
+  return record?.status !== 1 || isPaymentApproved(record);
+}
+function updateUploadingPaymentProof(record: Recordable, isUploading: boolean) {
+  const invoiceNumber = record?.invoiceNumber;
+  if (!invoiceNumber) {
+    return;
+  }
+  const uploadingSet = new Set(uploadingPaymentProofInvoiceNumbers.value);
+  if (isUploading) {
+    uploadingSet.add(invoiceNumber);
+  } else {
+    uploadingSet.delete(invoiceNumber);
+  }
+  uploadingPaymentProofInvoiceNumbers.value = Array.from(uploadingSet);
+}
+function isUploadingPaymentProof(record: Recordable) {
+  return uploadingPaymentProofInvoiceNumbers.value.includes(record?.invoiceNumber);
+}
+function handleUploadStatusChange(isUploading: boolean, record: Recordable) {
+  updateUploadingPaymentProof(record, isUploading);
+}
+function handleUploadPaymentProof(imgPath: string, record: Recordable) {
+  if (!imgPath || typeof imgPath !== 'string') {
+    createMessage.error('Upload failed, no valid path returned');
+    return;
+  }
+  updateUploadingPaymentProof(record, true);
+  defHttp.post({
+    url: ClientApi.uploadPaymentProofAndNotify,
+    data: {
+      invoiceNumber: record.invoiceNumber,
+      paymentProofString: imgPath,
+    },
+    headers: { 'Content-Type': 'application/json' },
+  }).then(() => {
+    record.paymentDocumentString = imgPath;
+    loadInvoices();
+  }).catch((error) => {
+    const msg = error?.response?.data?.message || error?.message || 'Save failed';
+    createMessage.error(msg);
+  }).finally(() => {
+    updateUploadingPaymentProof(record, false);
+  });
+}
+
 function handleSearch({clientId, createBy, invoiceNumbers, type}): void {
   searchState.clientId = clientId;
   searchState.createBy = createBy;
@@ -404,5 +458,21 @@ function handleSearch({clientId, createBy, invoiceNumbers, type}): void {
 .ant-checkbox-disabled .ant-checkbox-inner{
   background-color: fade(@error-color, 10%);
   border-color: @error-color!important;
+}
+.invoice-payment-proof {
+  min-height: 36px;
+}
+.invoice-payment-proof .ant-image {
+  display: inline-flex;
+}
+.invoice-payment-proof .clearfix .ant-upload-list,
+.invoice-payment-proof .clearfix .ant-upload-list-picture,
+.invoice-payment-proof .clearfix .ant-upload-list-picture-card-container,
+.invoice-payment-proof .clearfix .ant-upload-list-item-container {
+  display: none !important;
+}
+.invoice-payment-proof .clearfix .ant-upload-select,
+.invoice-payment-proof .clearfix .ant-upload-select-picture {
+  margin: 0;
 }
 </style>

@@ -97,42 +97,6 @@
         - {{ record.purchaseFee }}
       </span>
     </template>
-    <template #img="{ text, record }">
-      <template v-if="record.type == TransactionType.CREDIT && !!record.paymentProofString">
-        <TableImg
-          :size="60"
-          :imgList="[uploadUrl+record.paymentProofString]"
-        />
-      </template>
-      <template v-else-if="record.type == TransactionType.DEBIT && !!record.invoiceNumber">
-        <template v-if="text">
-          <div style="display: inline-flex; align-items: center;">
-            <TableImg :imgList="[uploadUrl + text]" :size="40"/>
-            <JImageUpload
-              :text="t('component.upload.reUpload')"
-              :fileMax="1"
-              listType="picture"
-              bizPath="purchase_order/screenshots"
-              :disabled="record.paymentApproved === PaymentApproveStatus.APPROVED"
-              @change="e => handleUploadChange(e, record)"
-            />
-          </div>
-        </template>
-        <template v-else>
-          <JImageUpload
-            :text="t('component.upload.upload')"
-            :fileMax="1"
-            listType="picture"
-            bizPath="purchase_order/screenshots"
-            :disabled="record.paymentApproved === PaymentApproveStatus.APPROVED"
-            @change="e => handleUploadChange(e, record)"
-          />
-        </template>
-      </template>
-      <template v-else>
-        <span>-</span>
-      </template>
-    </template>
     <template #action="{ record }">
       <TableAction
         :actions="[
@@ -168,10 +132,8 @@
 import {Tag} from "ant-design-vue";
 import {Loading} from "@/components/Loading";
 import BasicTable from "/@/components/Table/src/BasicTable.vue";
-import {TableAction, TableImg, useTable} from "/@/components/Table";
-import JImageUpload from '/@/components/Form/src/jeecg/components/JImageUpload.vue';
+import {TableAction, useTable} from "/@/components/Table";
 import {SizeEnum} from "@/enums/sizeEnum";
-import {useGlobSetting} from "@/hooks/setting";
 import {useI18n} from "@/hooks/web/useI18n";
 import {useMessage} from "@/hooks/web/useMessage";
 import {reactive, ref, watch, defineEmits, PropType, onUnmounted} from "vue";
@@ -186,11 +148,6 @@ import {useRouter} from "vue-router";
 import YearSelector from "@/views/business/client/overview/components/YearSelector.vue";
 import {Icon} from "@/components/Icon";
 import { useCopyToClipboard } from '@/hooks/web/useCopyToClipboard';
-import { PaymentApproveStatus } from '@/views/business/enum/paymentApproveEnum';
-
-const globSetting = useGlobSetting();
-const baseUploadUrl = globSetting.uploadUrl;
-const uploadUrl = `${baseUploadUrl}/sys/common/static/`;
 
 const {t} = useI18n();
 const {createMessage} = useMessage();
@@ -446,29 +403,6 @@ function handleDelete(record: Recordable) {
     loadTransactions();
     tableLoading.value = false;
   });
-}
-function handleUploadChange(imgPath, record) {
-  if (!imgPath) {
-    createMessage.error('Upload failed, no valid path returned');
-    return;
-  }
-  const params = {
-    invoiceNumber: record.invoiceNumber,
-    paymentProofString: imgPath,
-  };
-  defHttp.post({
-    url: Api.uploadPaymentProofAndNotify,
-    data: params,
-    headers: { 'Content-Type': 'application/json' },
-  })
-    .then(() => {
-      record.paymentProofString = imgPath;
-      loadTransactions();
-    })
-    .catch((error) => {
-      const msg = error?.response?.data?.message || error?.message || 'Save failed';
-      createMessage.error(msg);
-    });
 }
 function handleCopy(invoiceNumber: string) {
   if (!invoiceNumber) {
