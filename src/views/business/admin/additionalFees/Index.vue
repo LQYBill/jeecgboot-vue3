@@ -22,9 +22,9 @@
         <a-button type="default" preIcon="ant-design:reload-outlined" @click="loadFeeList">{{ t('common.redo') }}</a-button>
       </template>
       <template #unitPrice="{ record }">
-        <p class="font-semibold">{{ (record.unitPrice * record.quantity).toFixed(2) }}€</p>
+        <p class="font-semibold">{{ (record.unitPrice * record.quantity).toFixed(2) }}&euro;</p>
         <p class="text-gray-400 text-xs">
-          {{ record.unitPrice }}€ / unit
+          {{ record.unitPrice }}&euro; / unit
         </p>
       </template>
       <template #feeName="{ record }">
@@ -154,7 +154,7 @@ const [registerTable, { reload, setLoading }] = useTable({
 const [registerModal, {openModal}] = useModal();
 
 const searchState = reactive<Record<string, string>>({
-  shopId: '',
+  shop: '',
   status: '',
 });
 
@@ -169,7 +169,7 @@ function getQueryParams() {
   params.pageSize = pageSize.value;
   params.order = defSort.value.order;
   params.column = defSort.value.column;
-  params.shopId = searchState.shopId.toString();
+  params.shop = searchState.shop.toString();
   params.status = searchState.status.toString();
   return filterObj(params);
 }
@@ -363,10 +363,11 @@ async function handleDownloadImportTemplate() {
 }
 
 async function handleSearch(state: Record<string, string>) {
-  searchState.shopId = state.shop;
+  searchState.shop = state.shop;
   searchState.status = state.status;
   await loadFeeList(1);
 }
 provide('shopMappedByClient', shopMappedByClient);
 provide('shopOptionList', shopOptionList);
 </script>
+
