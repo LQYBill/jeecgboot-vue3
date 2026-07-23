@@ -30,7 +30,7 @@
         <p>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ CurrencyToken[currency] }}</p>
       </a-card>
       <a-tabs v-if="client && currencyList.length > 0"
-              :defaultActiveKey="1"
+              :defaultActiveKey="activeTab"
               v-model:activeKey="activeTab"
               style="margin: 10px"
               @change="handleTabChange"
@@ -47,7 +47,7 @@
             </a-switch>
           </div>
         </template>
-        <a-tab-pane v-for="(curr, index) in currencyList" :tab="curr" :key="index+1" forceRender>
+        <a-tab-pane v-for="(curr, index) in currencyList" :tab="curr" :key="curr">
           <ExpensesTable
             :client="client"
             :currency="curr"
@@ -56,6 +56,15 @@
           />
         </a-tab-pane>
       </a-tabs>
+      <div v-else-if="showClientHint" class="empty-state-panel">
+        <div class="empty-state-panel__icon">
+          <SearchOutlined />
+        </div>
+        <div class="empty-state-panel__content">
+          <p class="empty-state-panel__title">Select a customer to view expenses</p>
+          <p class="empty-state-panel__text">{{ t('component.searchForm.clientInputSearch') }}</p>
+        </div>
+      </div>
       <a-skeleton v-else active/>
     </a-card>
   </PageWrapper>
@@ -75,7 +84,7 @@ import {CurrencyEnum, CurrencyToken, TransactionType} from "@/views/business/enu
 
 import {Api} from "../client.api";
 import ExpensesTable from "@/views/business/client/overview/components/ExpensesTable.vue";
-import {EditOutlined} from "@ant-design/icons-vue";
+import {EditOutlined, SearchOutlined} from "@ant-design/icons-vue";
 
 const { t } = useI18n();
 
@@ -104,6 +113,7 @@ const { validateInfos } = useForm(formState, validatorRules, { immediate: false 
 const customerList = ref<Client[]>([]);
 const customerSelectList = ref<any[]>([]);
 const customerListDisabled = ref<boolean>(false);
+const showClientHint = ref<boolean>(false);
 
 const client = ref<Client>();
 
@@ -113,7 +123,7 @@ const invoiceEntity = ref<string>();
 const shopOptions = ref<Record<string, ShopOptions>>({});
 const currencyList = ref<CurrencyEnum[]>([]);
 
-const activeTab = ref(1);
+const activeTab = ref<string>('');
 const editMode = ref(false);
 async function checkUser() {
   defHttp.get({url: Api.getClient})
@@ -127,8 +137,10 @@ async function checkUser() {
           })
         );
         internalUse.value = true;
+        showClientHint.value = true;
       }
       else {
+        showClientHint.value = false;
         loadClient(res.client);
       }
     })
@@ -143,7 +155,8 @@ function handleClientChange(id?: string) {
   currency.value = '';
   fullName.value = '';
   invoiceEntity.value = '';
-  activeTab.value = 1;
+  activeTab.value = '';
+  showClientHint.value = !id;
   const customer = customerList.value.find(c => c.id === id);
   if(!customer) {
     return;
@@ -151,12 +164,12 @@ function handleClientChange(id?: string) {
   loadClient(customer);
 }
 async function loadClient(clientParam: Client) {
+  showClientHint.value = false;
   client.value = clientParam;
   currency.value = client.value.currency as string;
   fullName.value = `${client.value.firstName} ${client.value.surname}`
   invoiceEntity.value = client.value.invoiceEntity as string;
-  await loadAllTransactionCurrencies();
-  await loadShopOptions();
+  await Promise.all([loadAllTransactionCurrencies(), loadShopOptions()]);
 }
 async function loadAllTransactionCurrencies() {
   const params = {
@@ -169,6 +182,7 @@ async function loadAllTransactionCurrencies() {
         currencies.filter(c => c !== currency.value)
       );
       currencyList.value = sortedCurrencies;
+      activeTab.value = sortedCurrencies[0] || '';
     });
 }
 async function loadShopOptions() {
@@ -182,6 +196,10 @@ async function loadShopOptions() {
     .catch(e => {
       console.error(e);
     });
+}
+
+function handleTabChange(tabKey: string) {
+  activeTab.value = tabKey;
 }
 
 /**
@@ -243,6 +261,44 @@ function handleEditModeChange(checked: boolean) {
   & > .ant-card-body {
     min-height: 50vh;
   }
+}
+.empty-state-panel {
+  margin: 14px 10px 10px 56px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(180deg, #fbfcff 0%, #f4f7ff 100%);
+  border: 1px solid #e3eaff;
+  max-width: 420px;
+}
+.empty-state-panel__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  color: @geekBlue;
+  box-shadow: inset 0 0 0 1px rgba(29,57,196,0.08);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.empty-state-panel__content {
+  min-width: 0;
+}
+.empty-state-panel__title {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0,0,0,0.85);
+}
+.empty-state-panel__text {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(0,0,0,0.55);
 }
 .main-card .ant-card.card-header {
   margin: 10px;

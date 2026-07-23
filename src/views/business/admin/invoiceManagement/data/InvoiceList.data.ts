@@ -56,6 +56,14 @@ export const columns: BasicColumn[] = [
     dataIndex: 'finalAmount'
   },
   {
+    title: t('data.transaction.paymentProof'),
+    align: 'center',
+    dataIndex: 'paymentDocumentString',
+    width: 120,
+    fixed: 'right',
+    slots: { customRender: 'paymentProof' },
+  },
+  {
     title: t('data.client.currency'),
     align: "center",
     dataIndex: 'currencyId_dictText',

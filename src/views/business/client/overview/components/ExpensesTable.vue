@@ -113,7 +113,7 @@
               :fileMax="1"
               listType="picture"
               bizPath="purchase_order/screenshots"
-              :disabled="record.paymentApproved === PaymentApproveStatus.APPROVED"
+              :disabled="isPaymentProofUploadDisabled(record)"
               @change="e => handleUploadChange(e, record)"
             />
           </div>
@@ -124,7 +124,7 @@
             :fileMax="1"
             listType="picture"
             bizPath="purchase_order/screenshots"
-            :disabled="record.paymentApproved === PaymentApproveStatus.APPROVED"
+            :disabled="isPaymentProofUploadDisabled(record)"
             @change="e => handleUploadChange(e, record)"
           />
         </template>
@@ -178,7 +178,7 @@ import {reactive, ref, watch, defineEmits, PropType, onUnmounted} from "vue";
 import {actionColumn, getColumns} from "/@/views/business/client/overview/data";
 import {Client, JSelectMultipleOptions, Transaction} from "@/views/business/dto";
 import {defHttp} from "@/utils/http/axios";
-import {Api} from "@/views/business/client/client.api";
+import {Api, uploadPaymentProofAndNotify} from "@/views/business/client/client.api";
 import {CurrencyEnum, CurrencyToken} from "@/views/business/enum";
 import dayjs from "dayjs";
 import {TransactionType} from "@/views/business/enum";
@@ -456,11 +456,7 @@ function handleUploadChange(imgPath, record) {
     invoiceNumber: record.invoiceNumber,
     paymentProofString: imgPath,
   };
-  defHttp.post({
-    url: Api.uploadPaymentProofAndNotify,
-    data: params,
-    headers: { 'Content-Type': 'application/json' },
-  })
+  uploadPaymentProofAndNotify(params)
     .then(() => {
       record.paymentProofString = imgPath;
       loadTransactions();
@@ -469,6 +465,11 @@ function handleUploadChange(imgPath, record) {
       const msg = error?.response?.data?.message || error?.message || 'Save failed';
       createMessage.error(msg);
     });
+}
+function isPaymentProofUploadDisabled(record: Transaction & Recordable) {
+  return record.paymentApproved === true
+    || record.paymentApproved === PaymentApproveStatus.APPROVED
+    || record.paymentStatus === 'approved';
 }
 function handleCopy(invoiceNumber: string) {
   if (!invoiceNumber) {

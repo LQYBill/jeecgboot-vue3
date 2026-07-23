@@ -63,12 +63,32 @@
           <Icon icon="ant-design:copy-outlined" @click="handleCopy(record.invoiceNumber)" class="cursor-pointer"></Icon>
         </div>
       </template>
+      <template #paymentProof="{ record, text }">
+        <div class="flex flex-col items-center justify-center gap-1 min-h-[40px]">
+          <TableImg v-if="text" :imgList="[uploadUrl + text]" :size="40" :simpleShow="true" />
+          <a-tooltip v-if="!isPaymentProofUploadDisabled(record)" :title="isPaymentProofUploading(record) ? 'Uploading...' : text ? 'Replace' : 'Upload'">
+            <a-upload :showUploadList="false" :customRequest="(options) => handlePaymentProofUpload(options, record)">
+              <a-button
+                size="small"
+                type="default"
+                shape="circle"
+                :loading="isPaymentProofUploading(record)"
+                :disabled="isPaymentProofUploadDisabled(record) || isPaymentProofUploading(record)"
+              >
+                <Icon v-if="!isPaymentProofUploading(record)" :icon="text ? 'ant-design:swap-outlined' : 'ant-design:upload-outlined'" />
+              </a-button>
+            </a-upload>
+          </a-tooltip>
+          <span v-else-if="!text">-</span>
+        </div>
+      </template>
+
     </BasicTable>
   </PageWrapper>
 </template>
 <script async setup lang="ts">
-import {BasicTable, TableAction, useTable} from "/@/components/Table";
-import {downloadFile} from '/@/api/common/api';
+import {BasicTable, TableAction, TableImg, useTable} from "/@/components/Table";
+import {downloadFile, uploadUrl as commonUploadUrl} from '/@/api/common/api';
 import {defHttp} from '/@/utils/http/axios';
 import {useMessage} from '/@/hooks/web/useMessage';
 import {useI18n} from "/@/hooks/web/useI18n";
@@ -90,7 +110,12 @@ import InvoiceListSearchForm
 import { useInvoiceStore } from '@/store/modules/invoice'
 import { storeToRefs } from 'pinia';
 import {getModifyingInvoice} from "@/utils/cache/modifyingInvoice";
+
+import { uploadPaymentProofAndNotify } from '@/views/business/client/client.api';
+import { useGlobSetting } from '@/hooks/setting';
 const invoiceStore = useInvoiceStore()
+const globSetting = useGlobSetting();
+const uploadUrl = `${globSetting.uploadUrl}/sys/common/static/`;
 const { modifyingInvoiceNumber } = storeToRefs(invoiceStore);
 
 const userStore = useUserStore();
@@ -148,6 +173,7 @@ const paidDisabled = ref(false);
 
 const deleteBatchLoading = ref<boolean>(false);
 const paidLoading = ref<boolean>(false);
+const paymentProofUploading = reactive<Record<string, boolean>>({});
 
 const searchState = reactive<Record<string, string | string[]>>({
   createBy: '',
@@ -358,6 +384,79 @@ async function handleDeleteBatch() {
 }
 function handleSetPaid() {
   reload();
+}
+function isPaymentProofUploading(record: Recordable) {
+  return !!paymentProofUploading[record.id];
+}
+function isPaymentProofUploadDisabled(record: Recordable) {
+  return record.status !== 1
+    || record.paymentApproved === true
+    || record.paymentApproved === 1
+    || record.paymentStatus === 'approved';
+}
+async function handleUploadChange(imgPath: string, record: Recordable) {
+  if (!imgPath) {
+    createMessage.error('Upload failed, no valid path returned');
+    return;
+  }
+  try {
+    await uploadPaymentProofAndNotify({
+      invoiceNumber: record.invoiceNumber,
+      paymentProofString: imgPath,
+    });
+    loadInvoices(ipagination.value.current);
+  } catch (error) {
+    const msg = error?.response?.data?.message || error?.message || 'Save failed';
+    createMessage.error(msg);
+    throw error;
+  }
+}
+async function handlePaymentProofUpload(options: Recordable, record: Recordable) {
+  const file = options?.file;
+  if (!file) {
+    createMessage.error('Upload failed, no file selected');
+    options?.onError?.(new Error('No file selected'));
+    return;
+  }
+  const fileType = file.type || '';
+  if (!fileType.includes('image')) {
+    createMessage.error('Please upload an image file');
+    options?.onError?.(new Error('Invalid file type'));
+    return;
+  }
+  paymentProofUploading[record.id] = true;
+  try {
+    await new Promise<void>((resolve, reject) => {
+      defHttp.uploadFile(
+        { url: commonUploadUrl },
+        { file, data: { biz: 'purchase_order/screenshots' } },
+        {
+          success: async (res) => {
+            try {
+              if (res?.success && res?.message) {
+                await handleUploadChange(res.message, record);
+                options?.onSuccess?.(res);
+                resolve();
+                return;
+              }
+              const msg = res?.message || 'Upload failed';
+              createMessage.error(msg);
+              options?.onError?.(new Error(msg));
+              reject(new Error(msg));
+            } catch (error) {
+              options?.onError?.(error);
+              reject(error);
+            }
+          },
+        },
+      ).catch((error) => {
+        options?.onError?.(error);
+        reject(error);
+      });
+    });
+  } finally {
+    paymentProofUploading[record.id] = false;
+  }
 }
 
 function openInvoice(record) {
