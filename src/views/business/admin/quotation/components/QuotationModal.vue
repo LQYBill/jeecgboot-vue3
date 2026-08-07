@@ -19,7 +19,11 @@
           <span class="txt">{{ sec.title }}</span>
           <span v-if="sec.readonly" class="readonly-tag">{{ readonlyText }}</span>
         </div>
-        <BasicForm class="q-form" @register="sec.register" />
+        <BasicForm class="q-form" @register="sec.register">
+          <template #inquiryLinks="{ model, field }">
+            <InquiryLinkListInput :value="model[field]" disabled />
+          </template>
+        </BasicForm>
       </div>
     </div>
   </BasicModal>
@@ -32,9 +36,12 @@ import { BasicForm, useForm } from '/@/components/Form';
 import { useUserStore } from '/@/store/modules/user';
 import { getClientOptions, getLogisticChannelOptionsByCountry, getMergedCountryOptions, getSalespersons, quoteAdd, quoteDirectAdd, quoteEdit, quoteEstimate } from '../Quotation.api';
 import { formSchema as rawSchemas } from '../Quotation.data';
+import InquiryLinkListInput from './InquiryLinkListInput.vue';
 import { useI18n } from '/@/hooks/web/useI18n';
+import { useMessage } from '/@/hooks/web/useMessage';
 const i18n = useI18n() as any;
 const { t } = i18n;
+const { createMessage } = useMessage();
 const emit = defineEmits(['register', 'success']);
 const editId = ref<string>('');
 const isDirectAdd = ref(false);
@@ -489,6 +496,10 @@ async function handleSubmit() {
     for (const s of getActiveSections()) await s.api.setFieldsValue(payload);
     closeModal();
     emit('success');
+  } catch (error: any) {
+    if (error?.errorFields) return;
+    const msg = error?.response?.data?.message || error?.message || t('component.form.saveError');
+    createMessage.error(msg);
   } finally {
     setModalProps({ confirmLoading: false });
   }

@@ -88,6 +88,81 @@ function renderImageSafe(text?: string) {
   return render.renderImage({ text: value } as any);
 }
 
+export interface InquiryLinkEntry {
+  title: string;
+  url: string;
+}
+
+function normalizeLinkArray(arr: any[]): InquiryLinkEntry[] {
+  return arr
+    .map((item) =>
+      typeof item === 'string' ? { title: '', url: item } : { title: String(item?.title || ''), url: String(item?.url || '') }
+    )
+    .filter((item) => item.url.trim());
+}
+
+export function parseInquiryLinks(raw: any): InquiryLinkEntry[] {
+  if (Array.isArray(raw)) return normalizeLinkArray(raw);
+  const value = String(raw ?? '').trim();
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return normalizeLinkArray(parsed);
+  } catch {
+    // not JSON, fall through to legacy plain-text handling
+  }
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((url) => ({ title: '', url }));
+}
+
+export function serializeInquiryLinks(rows: InquiryLinkEntry[]): string {
+  const cleaned = (rows || [])
+    .map((row) => ({ title: (row.title || '').trim(), url: (row.url || '').trim() }))
+    .filter((row) => row.url);
+  return cleaned.length ? JSON.stringify(cleaned) : '';
+}
+
+// Shared read-only renderer for a list of inquiry links, used by both the inquiry
+// and quotation tables so the two stay visually consistent.
+export function renderInquiryLinksCell(raw: any) {
+  const links = parseInquiryLinks(raw);
+  if (!links.length) return '';
+  const open = (url: string) => (e?: Event) => {
+    e?.stopPropagation?.();
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+  return h(
+    'div',
+    { style: { display: 'flex', flexDirection: 'column', gap: '4px' } },
+    links.map((link, index) =>
+      h(
+        Tooltip,
+        { key: index, title: link.url },
+        {
+          default: () =>
+            h(
+              'a',
+              {
+                onClick: open(link.url),
+                style: {
+                  display: 'block',
+                  maxWidth: '100%',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                },
+              },
+              link.title ? `${link.title}: ${link.url}` : link.url
+            ),
+        }
+      )
+    )
+  );
+}
+
 export const inquiryColumns = [
   {
     title: t('data.quotation.col.inquiryClient'),
@@ -109,36 +184,8 @@ export const inquiryColumns = [
         mapValueWithOptions(firstNonEmpty(record?.inquirySales, record?.salesId), 'salesperson')
       ),
   },
-  { title: t('data.quotation.col.inquiryLink'), dataIndex: 'inquiryLink', width: 260, ellipsis: true,
-    customRender: ({ record }) => {
-      const url = String(showRecordText(record, 'inquiryLink', 'inquiryUrl', 'link')).trim();
-      if (!url) return '';
-      const open = (e) => {
-        e?.stopPropagation?.();
-        window.open(url, '_blank', 'noopener,noreferrer');
-      };
-      return h(
-        Tooltip,
-        { title: url },
-        {
-          default: () =>
-            h(
-              'a',
-              {
-                onClick: open,
-                style: {
-                  display: 'inline-block',
-                  maxWidth: '100%',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                },
-              },
-              url
-            ),
-        }
-      );
-    },
+  { title: t('data.quotation.col.inquiryLink'), dataIndex: 'inquiryLink', width: 260,
+    customRender: ({ record }) => renderInquiryLinksCell(showRecordText(record, 'inquiryLink', 'inquiryUrl', 'link')),
   },
   {
     title: t('data.quotation.col.inquiryCountry'),
@@ -212,7 +259,7 @@ export const inquiryFormSchema: FormSchema[] = [
     field: 'inquiryLink',
     component: 'InputTextArea',
     required: true,
-    componentProps: { rows: 3 },
+    slot: 'inquiryLinks',
   },
   {
     label: t('data.quotation.col.expectedSales'),
