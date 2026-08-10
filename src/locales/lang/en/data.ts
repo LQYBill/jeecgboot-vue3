@@ -416,6 +416,7 @@ export default {
     col: {
       status: 'Status',
       inquiryClient: 'Client',
+      inquiryClientUnregistered: 'Unregistered client',
       inquirySales: 'Sales',
       priorityMode: 'Priority mode',
       inquiryCountry: 'Inquiry country',

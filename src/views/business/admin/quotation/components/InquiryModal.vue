@@ -28,6 +28,7 @@ const showFooter = ref(true);
 const isUpdate = ref(false);
 const currentId = ref<string | null>(null);
 const userStore = useUserStore();
+const clientOptionsRef = ref<any[]>([]);
 let clientSalespersonsRequestId = 0;
 
 const [registerForm, { resetFields, setFieldsValue, validate, updateSchema }] = useForm({
@@ -74,9 +75,18 @@ function firstNonEmpty(...values: any[]) {
   return undefined;
 }
 
+function isKnownOrEmptyClient(clientId?: string) {
+  if (!clientId) return true;
+  return clientOptionsRef.value.some((opt) => String(opt.value) === String(clientId));
+}
+
 function mapInquiryRecordToForm(record: Record<string, any>) {
   const mapped = { ...(record || {}) } as any;
-  mapped.inquiryClient = firstNonEmpty(mapped.inquiryClient, mapped.clientId);
+  const clientId = firstNonEmpty(mapped.inquiryClient, mapped.clientId);
+  const knownOrEmpty = isKnownOrEmptyClient(clientId);
+  mapped.inquiryClientUnregistered = !!clientId && !knownOrEmpty;
+  mapped.inquiryClient = knownOrEmpty ? clientId : '';
+  mapped.inquiryClientText = knownOrEmpty ? '' : clientId;
   mapped.inquirySales = normalizeMultiValue(firstNonEmpty(mapped.inquirySalesList, mapped.inquirySales, mapped.salesId));
   const inquiryCountry = firstNonEmpty(mapped.inquiryCountry, mapped.countryId);
   if (Array.isArray(inquiryCountry)) {
@@ -107,8 +117,12 @@ function mapFormValuesToInquiryPayload(values: Record<string, any>) {
     ? values.inquirySales.map(String).filter(Boolean)
     : normalizeMultiValue(values.inquirySales);
 
+  const clientId = values.inquiryClientUnregistered
+    ? firstNonEmpty(values.inquiryClientText, '')
+    : firstNonEmpty(values.inquiryClient, values.clientId);
+
   return {
-    clientId: firstNonEmpty(values.inquiryClient, values.clientId),
+    clientId,
     salesId: inquirySales.join(','),
     countryId: inquiryCountry.join(','),
     link: firstNonEmpty(values.inquiryLink, values.inquiryUrl, values.link),
@@ -179,6 +193,7 @@ async function applyInquiryClientDisplayScope(isAdd: boolean) {
   try {
     const [res, options] = await Promise.all([getCurrentClient(), getClientOptions()]);
     clientOptions = options;
+    clientOptionsRef.value = options;
     if (res?.internal) {
       isEmployee = true;
     } else if (res?.client?.id) {

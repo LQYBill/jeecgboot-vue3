@@ -419,6 +419,7 @@
     col: {
       status: '状态',
       inquiryClient: '询单客户',
+      inquiryClientUnregistered: '未注册客户',
       inquirySales: '询单销售',
       priorityMode: '优先级模式',
       inquiryCountry: '询单国家',
