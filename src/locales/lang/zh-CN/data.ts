@@ -231,7 +231,6 @@
     taskStarted: '采购单创建任务已开始，请查看下方进度',
     noData: '暂无创建记录',
     failed: '创建失败',
-    unknownFailureReason: '创建失败，原因未知，请联系技术人员查看日志',
   },
   refund: {
     notRefunded: '未退款',

@@ -113,10 +113,7 @@ function handleWs(raw: any) {
         invoiceGroupMap.value[item.invoice] =
           new Set(item.groupIds || []);
       } else if (item.finalStatus === 'FAILURE') {
-        invoiceFailureMap.value[item.invoice] =
-          item.failures && item.failures.length > 0
-            ? item.failures
-            : [t('data.purchase.unknownFailureReason')];
+        invoiceFailureMap.value[item.invoice] = item.failures || [];
       }
     });
     return;

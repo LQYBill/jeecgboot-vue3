@@ -230,7 +230,6 @@ export default {
     taskStarted: 'Purchase order creation has started. Please check the progress below.',
     noData: 'No records',
     failed: 'Creation failed',
-    unknownFailureReason: 'Creation failed for an unknown reason, please contact tech support to check the logs',
   },
   refund: {
     notRefunded: 'Not Settled',
