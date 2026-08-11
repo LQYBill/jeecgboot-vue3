@@ -75,15 +75,11 @@ function onMessage(e) {
  * @param callback
  */
 export function onWebSocket(callback: (data: object) => any) {
-  if (!listeners.has(callback) &&
-    typeof callback === 'function' &&
-    ![...listeners.keys()].some(cb => cb.name && cb.name === callback.name)
-  ) {
-    listeners.set(callback, null);
-  }else {
-  console.debug('[WebSocket] 添加 WebSocket 消息监听失败：传入的参数不是一个方法');
+  if (typeof callback !== 'function') {
+    console.debug('[WebSocket] 添加 WebSocket 消息监听失败：传入的参数不是一个方法');
+    return;
   }
-
+  listeners.set(callback, null);
 }
 
 /**
