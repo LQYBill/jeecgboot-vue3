@@ -4,6 +4,7 @@ import { render } from '/@/utils/common/renderUtils';
 import { h } from 'vue';
 import { Tooltip, Tag } from 'ant-design-vue';
 import { useI18n } from '/@/hooks/web/useI18n';
+import { renderInquiryLinksCell } from './Inquiry.data';
 const { t } = useI18n();
 const dash = () => t('data.quotation.placeholder.dash');
 const headerWrap = () => ({
@@ -152,8 +153,7 @@ export const columns: BasicColumn[] = [
         align: 'center',
         dataIndex: 'inquiryLink',
         width: 260,
-        ellipsis: true,
-        customRender: ({ text }) => renderLink(text),
+        customRender: ({ text }) => renderInquiryLinksCell(text),
       },
       { title: t('data.quotation.col.expectedSales'), align: 'center', dataIndex: 'expectedSales', width: 100,customHeaderCell: headerWrap, },
       {
@@ -461,7 +461,7 @@ export const formSchema: FormSchema[] = [
       field: 'inquiryLink',
       component: 'InputTextArea',
       colProps: { span: 12 },
-      componentProps: { rows: 2 },
+      slot: 'inquiryLinks',
       dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputInquiryLink') }],
     },
     { label: t('data.quotation.col.inquiryPhoto'), field: 'inquiryPhoto', component: 'JImageUpload', colProps: { span: 24 } ,

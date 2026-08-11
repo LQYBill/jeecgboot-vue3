@@ -8,7 +8,11 @@
     :showOkBtn="showFooter"
     @ok="handleSubmit"
   >
-    <BasicForm @register="registerForm" />
+    <BasicForm @register="registerForm">
+      <template #inquiryLinks="{ model, field }">
+        <InquiryLinkListInput v-model:value="model[field]" :disabled="!showFooter" />
+      </template>
+    </BasicForm>
   </BasicModal>
 </template>
 
@@ -17,10 +21,13 @@ import { computed, ref } from 'vue';
 import { BasicModal, useModalInner } from '/@/components/Modal';
 import { BasicForm, useForm } from '/@/components/Form';
 import { useUserStore } from '/@/store/modules/user';
+import InquiryLinkListInput from './InquiryLinkListInput.vue';
 import { inquiryFormSchema } from '../Inquiry.data';
 import { getClientOptions, getCurrentClient, getInquiryClientSalespersons, getMergedCountryOptions, getSalespersons, inquiryAdd, inquiryEdit } from '../Inquiry.api';
 import { useI18n } from '/@/hooks/web/useI18n';
+import { useMessage } from '/@/hooks/web/useMessage';
 const { t } = useI18n();
+const { createMessage } = useMessage();
 
 const emit = defineEmits(['success']);
 
@@ -259,6 +266,10 @@ async function handleSubmit() {
 
     closeModal();
     emit('success');
+  } catch (error: any) {
+    if (error?.errorFields) return;
+    const msg = error?.response?.data?.message || error?.message || t('component.form.saveError');
+    createMessage.error(msg);
   } finally {
     setModalProps({ confirmLoading: false });
   }
