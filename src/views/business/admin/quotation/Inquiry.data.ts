@@ -175,11 +175,26 @@ export const inquirySearchFormSchema: FormSchema[] = [
 
 export const inquiryFormSchema: FormSchema[] = [
   {
+    label: t('data.quotation.col.inquiryClientUnregistered'),
+    field: 'inquiryClientUnregistered',
+    component: 'Switch',
+    required: false,
+    defaultValue: false,
+  },
+  {
     label: t('data.quotation.col.inquiryClient'),
     field: 'inquiryClient',
     component: 'JDictSelectTag',
     required: false,
     componentProps: { options: [], showSearch: true, allowClear: true },
+    ifShow: ({ values }) => !values.inquiryClientUnregistered,
+  },
+  {
+    label: t('data.quotation.col.inquiryClient'),
+    field: 'inquiryClientText',
+    component: 'Input',
+    required: false,
+    ifShow: ({ values }) => !!values.inquiryClientUnregistered,
   },
   {
     label: t('data.quotation.col.inquirySales'),
