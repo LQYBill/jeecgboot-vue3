@@ -1,3 +1,5 @@
+import {defHttp} from '/@/utils/http/axios';
+
 export enum Api {
   getClient = '/userClient/getClient',
   getClientTransactionCurrencies = '/transaction/getAllCurrenciesByClient',
@@ -25,4 +27,16 @@ export enum Api {
   uploadPaymentProofAndNotify = '/transaction/uploadPaymentProofAndNotify',
   findEarliestInvoiceYear = '/invoice/findEarliestInvoiceYear',
   getOrderEstimations = '/shippingInvoice/completeFeesEstimationPerOrder',
+}
+
+
+export function uploadPaymentProofAndNotify(data: {
+  invoiceNumber: string;
+  paymentProofString: string;
+}) {
+  return defHttp.post({
+    url: Api.uploadPaymentProofAndNotify,
+    data,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }

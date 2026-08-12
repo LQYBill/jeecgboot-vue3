@@ -164,6 +164,7 @@ async function generateSkus() {
       shippingDiscount: row.shippingDiscount,
       serviceFee: row.serviceFee,
       warehouse: row.warehouse,
+      declareCode: row.declareCode,
       supplier: row.supplier,
       supplierLink: row.supplierLink,
       imageSource: row.imageSource,

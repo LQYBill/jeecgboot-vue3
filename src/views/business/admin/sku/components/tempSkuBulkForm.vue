@@ -128,7 +128,7 @@ function initializeForm() {
       else
         formState.value[i][key] = source.value[i][key];
 
-      if(key === 'id' || key === 'status' || key === 'imageSource' || key === 'supplierLink' || key === 'specifics') {
+      if(key === 'id' || key === 'status' || key === 'imageSource' || key === 'supplierLink' || key === 'specifics' || key === 'declareCode') {
         validatorRules.value[key + '_' + i] = [{ type: 'string', required: false, trigger: 'blur'}];
         continue;
       }
@@ -146,7 +146,7 @@ async function handleSubmit() {
   for(let index in formState.value) {
     for(let fieldName of fieldNames) {
       const fieldValue = formState.value[index][fieldName];
-      if(fieldName === 'id' || fieldName === 'status' || fieldName === 'imageSource' || fieldName === 'supplierLink' || fieldName === 'specifics') {
+      if(fieldName === 'id' || fieldName === 'status' || fieldName === 'imageSource' || fieldName === 'supplierLink' || fieldName === 'specifics' || fieldName === 'declareCode') {
         continue;
       }
       if(fieldValue !== null && fieldValue !== '') {

@@ -233,6 +233,7 @@
     completed: '采购单创建完成（共 {count} 单）',
     taskStarted: '采购单创建任务已开始，请查看下方进度',
     noData: '暂无创建记录',
+    failed: '创建失败',
   },
   refund: {
     notRefunded: '未退款',
@@ -346,7 +347,7 @@
     weight: '重量',
     weightEffectiveDate: '重量生效日期',
     zhName: '中文名称',
-
+    declareCode: "HS编码",
     codeBuilder: '代码生成器',
     individualInformation: "个人信息",
     commonInformation: "通用信息",
@@ -422,10 +423,15 @@
     col: {
       status: '状态',
       inquiryClient: '询单客户',
+      inquiryClientUnregistered: '未注册客户',
       inquirySales: '询单销售',
       priorityMode: '优先级模式',
       inquiryCountry: '询单国家',
       inquiryLink: '询单链接',
+      inquiryLinkTitle: '标题',
+      inquiryLinkUrl: '链接',
+      inquiryLinkAdd: '添加链接',
+      inquiryLinkTooLong: '链接内容较长（当前 {0} 字符），如保存失败可能是超出了系统字段长度限制，建议精简后再保存',
       expectedSales: '预计销量',
       inquiryPhoto: '询单图片',
       inquirySpec: '询单产品规格',

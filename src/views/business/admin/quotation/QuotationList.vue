@@ -21,7 +21,19 @@
         </div>
         <div class="route-inquiry-summary__item route-inquiry-summary__item--full">
           <span class="route-inquiry-summary__label">{{ t('data.quotation.col.inquiryLink') }}</span>
-          <span class="route-inquiry-summary__value">{{ routeInquiryDisplay.link }}</span>
+          <div class="route-inquiry-summary__value route-inquiry-summary__links">
+            <a
+              v-for="(link, index) in routeInquiryDisplay.links"
+              :key="index"
+              :href="link.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="route-inquiry-summary__link"
+            >
+              {{ link.title ? `${link.title}: ${link.url}` : link.url }}
+            </a>
+            <span v-if="!routeInquiryDisplay.links.length">-</span>
+          </div>
         </div>
       </div>
     </div>
@@ -123,6 +135,7 @@ import InquiryModal from './components/InquiryModal.vue';
 import { useI18n } from '/@/hooks/web/useI18n';
 import { columns, searchFormSchema, } from './Quotation.data';
 import { inquiryQueryById } from './Inquiry.api';
+import { parseInquiryLinks } from './Inquiry.data';
 import {
   getClientOptions,
   quoteList,
@@ -272,7 +285,7 @@ const routeInquiryDisplay = computed(() => {
       mapDisplayValue(firstNonEmpty(record.inquiryCountry, record.countryId), 'country')
     ),
     expectedSales: firstNonEmpty(record.expectedSales, '-'),
-    link: firstNonEmpty(record.inquiryLink, record.inquiryUrl, record.link),
+    links: parseInquiryLinks(firstNonEmpty(record.inquiryLink, record.inquiryUrl, record.link)),
   };
 });
 
@@ -831,6 +844,16 @@ async function handleExportCustomerQuotes() {
   min-width: 0;
   color: rgba(0, 0, 0, 0.88);
   word-break: break-word;
+}
+
+.route-inquiry-summary__links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.route-inquiry-summary__link {
+  word-break: break-all;
 }
 
 .route-inquiry-empty {

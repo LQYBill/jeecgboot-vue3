@@ -209,6 +209,7 @@ const validatorRules =  reactive<Record<string, Rule[]>> ({
   erpCode: [{required: true, message: 'Please select erpCode', trigger: 'blur',},],
   enName: [{required: true, message: t('component.searchForm.enNameInput'), trigger: 'blur',},],
   zhName: [{required: true, message: t('component.searchForm.zhNameInput'), trigger: 'blur',},],
+  declareCode: [{required: true, message: t('component.searchForm.declareCodeInput'), trigger: 'blur',},],
   weight: [{required: false,}],
   shippingDiscount: [{required: true, message: t('component.searchForm.shippingDiscountInput'), trigger: 'blur',}],
   serviceFee: [{required: true, message: t('component.searchForm.serviceFeeInput'), trigger: 'blur',},],

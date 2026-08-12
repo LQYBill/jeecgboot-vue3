@@ -7,6 +7,10 @@
       {{t('guide.purchaseInvoice.line3')}}<a-button type="warning" @click="" preIcon="ant-design:shopping-cart-outlined"></a-button>
     </template>
     <PurchaseOrderResult/>
+    <PurchaseOrderResultAsync
+      ref="purchaseResultRef"
+      @statusChange="handleStatusChange"
+    />
     <!--引用表格-->
     <BasicTable @register="registerTable" :rowSelection="rowSelection">
       <!--插槽:table标题-->
@@ -14,7 +18,7 @@
         <a-button type="primary" @click="handleAdd" preIcon="ant-design:plus-outlined">
           {{ t('common.operation.addNew') }}
         </a-button>
-        <a-button v-if="hasPurchasePermission()" type="warning" @click="handleCreateOrder" preIcon="ant-design:shopping-cart-outlined" :disabled="createOrderDisabled">
+        <a-button v-if="hasPurchasePermission()" type="warning" @click="handleCreateOrder" preIcon="ant-design:shopping-cart-outlined" :disabled="createOrderDisabled || isCreating">
         </a-button>
       </template>
       <!--操作栏-->
@@ -102,7 +106,7 @@
       </template>
     </BasicTable>
     <!-- 表单区域 -->
-    <PurchaseOrderModal @register="registerModal" @success="handleCreateSuccess" :can-approve="hasPurchasePermission()"></PurchaseOrderModal>
+    <PurchaseOrderModal @register="registerModal" @start-create="handleStartCreate" @success="handleCreateSuccess" :can-approve="hasPurchasePermission()"></PurchaseOrderModal>
   </PageWrapper>
 </template>
 
@@ -129,6 +133,8 @@ import {useCopyToClipboard} from "@/hooks/web/useCopyToClipboard";
 import {useMessage} from "@/hooks/web/useMessage";
 import PurchaseOrderResult
   from "@/views/business/admin/purchasing/components/PurchaseOrderResult.vue";
+import PurchaseOrderResultAsync
+  from "@/views/business/admin/purchasing/components/PurchaseOrderResultAsync.vue";
 import {getUserInfo} from "@/api/sys/user";
 
 const {t} = useI18n();
@@ -141,6 +147,8 @@ const baseUploadUrl = globSetting.uploadUrl;
 const imgPrefix = `${baseUploadUrl}/sys/common/static/`;
 
 const results = ref<Recordable>({});
+const purchaseResultRef = ref<any>(null);
+const isCreating = ref(false);
 
 let ipagination = ref({
   current: 1,
@@ -348,6 +356,18 @@ function handleCopy(numbers:string) {
 function handleCreateSuccess(data: Recordable) {
   results.value = data;
   handleSuccess();
+}
+function handleStatusChange(s: string) {
+  isCreating.value = s === 'running';
+  if (s === 'completed') {
+    reload();
+  }
+}
+function handleStartCreate() {
+  selectedRowKeys.value = [];
+  selectedRows.value = [];
+  createOrderDisabled.value = true;
+  purchaseResultRef.value?.start();
 }
 provide('apiResponse', results);
 </script>

@@ -296,6 +296,12 @@ export const reviewColumns: BasicColumn[] = [
     editRow: true,
   },
   {
+    title: t('data.sku.declareCode'),
+    dataIndex: 'declareCode',
+    width: 200,
+    editRow: true,
+  },
+  {
     title: t('data.sku.weight'),
     dataIndex: 'weight',
     editRow: true,
@@ -473,6 +479,10 @@ export const SkuColumns: BasicColumn[] = [
   {
     title: t('data.invoice.warehouse'),
     dataIndex: 'warehouse',
+  },
+  {
+    title: t('data.sku.declareCode'),
+    dataIndex: 'declareCode',
   }
 ];
 
@@ -510,6 +520,21 @@ export const tempSkuCommonSchema = (updateFieldsValue:Function): FormSchema[] =>
       },
       itemProps: {
         id: 'declareName',
+      },
+    },
+    {
+      field: 'declareCode',
+      label: t('data.sku.declareCode'),
+      component: 'Input',
+      componentProps: {
+        placeholder: t('data.sku.declareCode'),
+        style: {width: '100%'},
+        onBlur: (e: FocusEvent) => {
+          updateFieldsValue('declareCode', (e.target as HTMLInputElement).value);
+        },
+      },
+      itemProps: {
+        id: 'declareCode',
       },
     },
     {
