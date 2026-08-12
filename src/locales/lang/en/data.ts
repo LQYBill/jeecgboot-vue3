@@ -229,6 +229,7 @@ export default {
     completed: 'Purchase orders created (Total {count})',
     taskStarted: 'Purchase order creation has started. Please check the progress below.',
     noData: 'No records',
+    failed: 'Creation failed',
   },
   refund: {
     notRefunded: 'Not Settled',

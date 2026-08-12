@@ -230,6 +230,7 @@
     completed: '采购单创建完成（共 {count} 单）',
     taskStarted: '采购单创建任务已开始，请查看下方进度',
     noData: '暂无创建记录',
+    failed: '创建失败',
   },
   refund: {
     notRefunded: '未退款',
