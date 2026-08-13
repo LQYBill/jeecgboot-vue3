@@ -34,6 +34,7 @@ export default {
     iossNumber: "IOSS Number",
     vatPercentage: "VAT Percentage",
     active: "Active Status",
+    isDefault: "Default Entity",
     salesperson: "Salesperson",
     isCompleteInvoice: "Is Complete Invoice",
     balanceThreshold: "Balance Threshold",
@@ -42,6 +43,8 @@ export default {
     useBalance: "Use Balance",
     displayBalance: "Display Balance",
     receiveInvoiceByEmail: "Receive Invoice By Email",
+    invoiceEntityCount: "Invoice Entity Count",
+    viewInvoiceEntities: "View Invoice Entities",
   },
   erpStatus: {
     completed: "Completed",

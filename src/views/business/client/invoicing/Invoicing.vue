@@ -67,8 +67,27 @@
               />
             </a-form-item>
           </a-col>
+          <a-col :span="5" v-if="invoiceEntityOptions.length > 1">
+            <a-form-item
+              :labelCol="labelCol"
+              :wrapperCol="wrapperCol"
+              name="invoiceEntity"
+              style="margin-left: 1em;"
+            >
+              <template #label>
+                <span title="Invoice Entity">{{ t('data.InvoiceEntity') }}</span>
+              </template>
+              <JSearchSelect
+                :placeholder="t('common.chooseText')"
+                :dictOptions="invoiceEntityOptions"
+                @change="handleInvoiceEntityChange"
+                v-model:value="formState.invoiceEntityId"
+                allowClear
+              />
+            </a-form-item>
+          </a-col>
           <a-col :span="5">
-            <a-button type="primary" preIcon="ant-design:search-outlined" @click="loadOrders(1)" :disabled="searchDisabled || !isSkuCompareReady" :loading="!isSkuCompareReady">{{ t('common.operation.search') }}</a-button>
+            <a-button type="primary" preIcon="ant-design:search-outlined" @click="loadOrders(1)" :disabled="searchDisabled || !isSkuCompareReady || !isInvoiceEntitySelected" :loading="!isSkuCompareReady">{{ t('common.operation.search') }}</a-button>
           </a-col>
         </a-row>
         <a-row>
@@ -240,6 +259,7 @@ import {
   Estimation,
   ShopOptions,
   Client,
+  InvoiceEntity,
   JSelectMultipleOptions,
   InvoiceMetaData,
   Response
@@ -283,6 +303,7 @@ const validatorRules = ref({
 const formState = reactive<Record<string, any>>({
   shop: '',
   date: '',
+  invoiceEntityId: '',
   shippingAvailable: [],
   purchaseAvailable: [],
   productAvailable: [],
@@ -301,6 +322,9 @@ const customerSelectList = ref<any[]>([]);
 const customerListDisabled = ref<boolean>(false);
 
 const client: Ref<Client | null> = ref(null);
+const invoiceEntityOptions = ref<any[]>([]);
+const selectedInvoiceEntity: Ref<InvoiceEntity | null> = ref(null);
+const isInvoiceEntitySelected = computed(() => invoiceEntityOptions.value.length === 0 || !!formState.invoiceEntityId);
 
 const orderList = ref<Recordable[]>([]);
 const shopList = ref<JSelectMultipleOptions[]>([]);
@@ -405,6 +429,7 @@ function checkUser() {
       }
       else {
         client.value = res.client;
+        loadInvoiceEntityOptions();
         loadShopList(client.value!.id);
         loadShopOptions(client.value!.id);
         syncSkus();
@@ -422,6 +447,7 @@ async function handleClientChange(id: any) {
   if (id) {
     let index = customerList.value.map(i => i.id).indexOf(id);
     client.value = customerList.value[index];
+    loadInvoiceEntityOptions();
     await new Promise(resolve => {
       setTimeout(resolve, 100)
     });
@@ -429,6 +455,24 @@ async function handleClientChange(id: any) {
     loadShopOptions(id);
     await syncSkus();
   }
+}
+function loadInvoiceEntityOptions() {
+  formState.invoiceEntityId = '';
+  selectedInvoiceEntity.value = null;
+  const entities = client.value?.invoiceEntityList || [];
+  invoiceEntityOptions.value = entities.map((entity: InvoiceEntity) => ({
+    text: [entity.invoiceEntity, entity.country, entity.currency].filter(Boolean).join(' / '),
+    value: entity.id,
+    raw: entity,
+  }));
+  if (invoiceEntityOptions.value.length >= 1) {
+    formState.invoiceEntityId = invoiceEntityOptions.value[0].value;
+    selectedInvoiceEntity.value = invoiceEntityOptions.value[0].raw;
+  }
+}
+function handleInvoiceEntityChange(id?: string) {
+  const matched = invoiceEntityOptions.value.find((item) => item.value === id);
+  selectedInvoiceEntity.value = matched?.raw || null;
 }
 function loadShopList(clientID: string) {
   if (clientInfoReady.value)
@@ -840,6 +884,7 @@ function makeManualShippingInvoice() {
   const period = getPeriod();
   const params: ManualInvoiceParam = {
     clientID: client.value!.id,
+    invoiceEntityId: formState.invoiceEntityId,
     orderIds: getSelectRowKeys(),
     type: InvoicingMethod.PRESHIPPING,
     start: period.start,
@@ -877,6 +922,7 @@ function makeManualPurchaseInvoice() {
   const period = getPeriod();
   const params: ManualInvoiceParam = {
     clientID: client.value!.id,
+    invoiceEntityId: formState.invoiceEntityId,
     orderIds: getSelectRowKeys(),
     type: InvoicingMethod.PRESHIPPING,
     start: period.start,
@@ -913,6 +959,7 @@ function makeCompleteManualInvoice() {
   const period = getPeriod();
   let params: ManualInvoiceParam = {
     clientID: client.value!.id,
+    invoiceEntityId: formState.invoiceEntityId,
     orderIds: getSelectRowKeys(),
     type: InvoicingMethod.PRESHIPPING,
     start: period.start,
@@ -958,14 +1005,16 @@ function downloadInvoice(invoiceNumber: string, invoiceFilename: string) {
   });
 }
 function downloadDetailFile(invoiceNumber: string) {
+  const invoiceEntityName = selectedInvoiceEntity.value?.invoiceEntity || '';
   const param =
     {
       invoiceNumber: invoiceNumber,
-      invoiceEntity: client.value!.invoiceEntity,
+      invoiceEntityId: formState.invoiceEntityId,
+      invoiceEntity: invoiceEntityName,
       internalCode: client.value!.internalCode
     }
   let now = dayjs().format("YYYYMMDD");
-  let detailFilename = client.value?.internalCode + "_(" + client.value!.invoiceEntity + ")_" + invoiceNumber + '_Invoice_calculation_details_' + now + '.xlsx';
+  let detailFilename = client.value?.internalCode + "_(" + invoiceEntityName + ")_" + invoiceNumber + '_Invoice_calculation_details_' + now + '.xlsx';
   downloadFile(Api.downloadInvoiceDetail, detailFilename, param).then(() => {
     createMessage.info("Download successful.")
   }).catch(e => {

@@ -9,7 +9,7 @@
     import {BasicModal, useModalInner} from '/@/components/Modal';
     import {BasicForm, useForm} from '/@/components/Form/index';
     import {formSchema} from '../Credit.data';
-    import {saveOrUpdate} from '../Credit.api';
+    import {saveOrUpdate, fetchInvoiceEntitiesByClientId} from '../Credit.api';
     import {useI18n} from "/@/hooks/web/useI18n";
     import {useMessage} from "@/hooks/web/useMessage";
     import {InvoiceMetaData} from "@/views/business/dto";
@@ -17,20 +17,67 @@
     const { createMessage } = useMessage();
     const emit = defineEmits(['register','success']);
     const isUpdate = ref(true);
-    const [registerForm, {setProps,resetFields, setFieldsValue, validate}] = useForm({
+    const [registerForm, {setProps,resetFields, setFieldsValue, validate, updateSchema}] = useForm({
         //labelWidth: 150,
         schemas: formSchema,
         showActionButtonGroup: false,
         baseColProps: {span: 24}
     });
+
+    function extractInvoiceEntityRows(payload: any): any[] {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.result)) return payload.result;
+      if (Array.isArray(payload?.records)) return payload.records;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.result?.records)) return payload.result.records;
+      if (Array.isArray(payload?.result?.data)) return payload.result.data;
+      return [];
+    }
+    async function loadInvoiceEntityOptions(clientId?: string) {
+      // updateSchema deep-merges componentProps.options by array index rather than replacing it,
+      // so the old list must be cleared first or a shorter new list would leave stale trailing entries.
+      await updateSchema([{ field: 'invoiceEntityId', componentProps: { options: [] } }]);
+      if (!clientId) return;
+      try {
+        const res = await fetchInvoiceEntitiesByClientId({ id: clientId });
+        const entities = extractInvoiceEntityRows(res);
+        const options = entities.map((entity: Recordable) => ({
+          label: [entity.invoiceEntity, entity.country, entity.currency].filter(Boolean).join(' / '),
+          value: entity.id,
+        }));
+        await updateSchema([{ field: 'invoiceEntityId', componentProps: { options } }]);
+        const defaultEntity = entities.find((entity: Recordable) => entity.isDefault === '1');
+        if (defaultEntity && !unref(isUpdate)) {
+          await setFieldsValue({ invoiceEntityId: defaultEntity.id });
+        }
+      } catch (error) {
+        console.error('failed to load invoice entities', error);
+      }
+    }
+
     const [registerModal, {setModalProps, closeModal}] = useModalInner(async (data) => {
         await resetFields();
         setModalProps({confirmLoading: false,showCancelBtn:!!data?.showFooter,showOkBtn:!!data?.showFooter});
         isUpdate.value = !!data?.isUpdate;
+        await updateSchema([
+          {
+            field: 'clientId',
+            componentProps: {
+              onChange: async (clientId: string) => {
+                await setFieldsValue({ invoiceEntityId: undefined });
+                await loadInvoiceEntityOptions(clientId);
+              },
+            },
+          },
+        ]);
         if (unref(isUpdate)) {
             await setFieldsValue({
                 ...data.record,
             });
+            if (data.record?.clientId) {
+              await loadInvoiceEntityOptions(data.record.clientId);
+              await setFieldsValue({ invoiceEntityId: data.record.invoiceEntityId });
+            }
         }
        await setProps({disabled: !data?.showFooter})
     });

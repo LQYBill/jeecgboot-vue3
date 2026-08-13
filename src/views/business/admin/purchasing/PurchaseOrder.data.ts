@@ -140,6 +140,18 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
+    label: t('data.InvoiceEntity'),
+    field: 'invoiceEntityId',
+    component: 'Select',
+    componentProps: {
+      options: [],
+      placeholder: t('common.chooseText'),
+      showSearch: true,
+      optionFilterProp: 'label',
+      allowClear: true,
+    },
+  },
+  {
     label: t('data.client.currency'),
     field: 'currencyId',
     component: 'JSearchSelect',

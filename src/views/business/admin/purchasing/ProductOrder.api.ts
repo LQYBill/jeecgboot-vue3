@@ -5,6 +5,7 @@ import {InvoiceMetaData} from "@/views/business/dto/invoiceMetaData.dto";
 enum Api {
   createOrder='/shippingInvoice/makeManualSkuPurchaseInvoice',
   getClientList = '/client/client/all',
+  getInvoiceEntitiesByClientId = '/client/client/queryInvoiceEntityByMainId',
   listClientSkus = '/sku/listWithFilters',
   listAllSelectableSkuIds = '/sku/listAllSelectableSkuIds',
   downloadInvoice = '/shippingInvoice/download',
@@ -53,6 +54,9 @@ export const listCustomers = async (handleSuccess:Function) => {
     .catch(e => {
       console.error(e);
     })
+}
+export const fetchInvoiceEntitiesByClientId = async (params: Record<string, any>) => {
+  return defHttp.get({url: Api.getInvoiceEntitiesByClientId, params});
 }
 export const listClientSkus = async (params:any, handleSuccess:Function) => {
   return defHttp.get({url: Api.listClientSkus, params})

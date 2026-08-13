@@ -34,6 +34,7 @@
     iossNumber : "IOSS号码",
     vatPercentage: "VAT代缴比例",
     active: "是否活跃",
+    isDefault: "默认实体",
     salesperson: "跟单销售",
     isCompleteInvoice:"物流发票是否包含采购",
     balanceThreshold: "欠款额度",
@@ -42,6 +43,8 @@
     useBalance: "是否使用余额",
     displayBalance: "是否显示余额",
     receiveInvoiceByEmail: "是否通过邮件接收发票",
+    invoiceEntityCount: "发票实体数",
+    viewInvoiceEntities: "查看发票实体",
   },
   erpStatus: {
     pending: "待处理",

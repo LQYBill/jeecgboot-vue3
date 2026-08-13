@@ -11,6 +11,7 @@ enum Api {
   exportXls = '/credit/exportXls',
   downloadInvoice = '/credit/downloadInvoice',
   getClient = "/credit/getClient",
+  getInvoiceEntitiesByClientId = '/client/client/queryInvoiceEntityByMainId',
 }
 /**
  * 导出api
@@ -55,4 +56,8 @@ export const downloadInvoice = (filename: string, invoiceNumber: string, handleS
 }
 export const getInvoiceClient = (invoiceNumber: string) => {
   return defHttp.get({url: Api.getClient, params: {invoiceNumber}});
+}
+
+export const fetchInvoiceEntitiesByClientId = (params: { id: any }) => {
+  return defHttp.get({url: Api.getInvoiceEntitiesByClientId, params});
 }

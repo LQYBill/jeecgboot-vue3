@@ -231,3 +231,21 @@ export const formSchema: FormSchema[] = [
   },
 ];
 
+export const invoiceEntityFormSchema: FormSchema[] = [
+  {
+    field: 'invoiceEntityId',
+    component: 'Select',
+    label: t('data.InvoiceEntity'),
+    labelWidth: 100,
+    colProps: { span: 10 },
+    componentProps: {
+      options: [],
+      placeholder: t('common.chooseText'),
+      showSearch: true,
+      optionFilterProp: 'label',
+      allowClear: true,
+    },
+    required: true,
+  },
+];
+

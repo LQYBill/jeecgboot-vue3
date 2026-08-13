@@ -1,6 +1,7 @@
 <template>
   <BasicModal v-bind="$attrs" @register="registerModal" destroyOnClose :title="title" :width="800"
               @ok="handleSubmit" >
+    <div class="product-order-modal-scope">
     <slot>
       <div class="flex flex-row items-center flex-nowrap text-center min-h-8 mb-4">
         <div class="flex flex-row flex-1 border-b" v-for="n in 2" :class="n==2 ? 'border-l' : '' ">
@@ -55,7 +56,7 @@
         </div>
       </template>
     </BasicForm>
-    <BasicForm @register="registerForm1" @change="calculateTotal" id="picker-form" style="padding: 6rem 6rem 0 6rem">
+    <BasicForm @register="registerForm1" @change="calculateTotal" id="picker-form" style="padding: 1.5rem 2rem 0 2rem">
       <template #autoPicker="{ model, field }">
         <div class="flex w-full justify-start gap-4 flex-wrap">
           <div class="flex items-center justify-center gap-2 flex-wrap">
@@ -74,13 +75,17 @@
         </div>
       </template>
       <template #setQtyToAll="{ model, field }">
-        <div class="flex w-full">
-          <div class="flex basis-full flex-1 items-center justify-center">
+        <div class="flex w-full justify-start">
+          <div class="flex items-center gap-2">
             <InputNumber class="autoPickerInput" style="width: 6rem" v-model:value="model[field]" :min="0" :placeholder="t('component.searchForm.qtyAutoPicker')" @change="handleSetQtyToAll" />
+            <span>{{ t('component.searchForm.qtyAutoPicker') }}</span>
           </div>
         </div>
       </template>
     </BasicForm>
+    <div id="invoice-entity-form" class="my-4">
+      <BasicForm @register="registerInvoiceEntityForm" />
+    </div>
     <div class="total flex text-center basis-full flex-1 items-center text-lg w-1/2 max-w-2xl m-[auto]">
       <div class="block basis-full flex-1 w-full py-4 border border-r-0 rounded-l-full bg-blue-100">
         <span>Total</span>
@@ -92,6 +97,7 @@
         </div>
       </div>
     </div>
+    </div>
   </BasicModal>
 </template>
 
@@ -99,7 +105,7 @@
 import { ref, h } from 'vue';
 import { BasicModal, useModalInner } from '/@/components/Modal';
 import { BasicForm, useForm } from '/@/components/Form/index';
-import { formSchema } from '../ProductOrder.data';
+import { formSchema, invoiceEntityFormSchema } from '../ProductOrder.data';
 import { createPurchaseInvoice } from '../ProductOrder.api';
 import { useI18n } from '/@/hooks/web/useI18n';
 import { Modal, InputNumber } from 'ant-design-vue';
@@ -126,13 +132,24 @@ const [registerForm, { appendSchemaByField, setProps, resetFields, setFieldsValu
   showSubmitButton: false,
 });
 
+const [registerInvoiceEntityForm, { updateSchema: updateInvoiceEntitySchema, resetFields: resetInvoiceEntityFields, setFieldsValue: setInvoiceEntityFieldsValue, validate: validateInvoiceEntity }] = useForm({
+  schemas: invoiceEntityFormSchema,
+  showActionButtonGroup: false,
+  baseColProps: { span: 24 },
+  rowProps: { justify: 'center' },
+  showAdvancedButton: false,
+  showResetButton: false,
+  showSubmitButton: false,
+});
+
 const [registerForm1] = useForm({
   schemas: [
     { field: '', component: 'Divider', label: 'Auto-picker' },
     {
       field: 'days',
       component: 'InputNumber',
-      label: ' ',
+      label: '',
+      itemProps: { colon: false },
       colProps: { span: 24 },
       defaultValue: 0,
       dynamicRules: () => [
@@ -148,7 +165,8 @@ const [registerForm1] = useForm({
     {
       field: 'allQty',
       component: 'InputNumber',
-      label: ' ',
+      label: '',
+      itemProps: { colon: false },
       colProps: { span: 24 },
       defaultValue: 0,
       dynamicRules: () => [
@@ -170,6 +188,7 @@ const [registerForm1] = useForm({
 
 const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data) => {
   await resetFields();
+  await resetInvoiceEntityFields();
   selectedSku.value = [];
   selectedSkuMap.value = new Map();
   orderTotal.value = 0;
@@ -189,6 +208,22 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
   });
   internalUse.value = data?.internalUse || false;
   selectedSku.value = data?.selectedRows || [];
+  // updateSchema deep-merges componentProps.options by array index rather than replacing it,
+  // so the previous modal open's list must be cleared first or a shorter new list would leave stale trailing entries.
+  await updateInvoiceEntitySchema({ field: 'invoiceEntityId', componentProps: { options: [] } });
+  await updateInvoiceEntitySchema({
+    field: 'invoiceEntityId',
+    componentProps: {
+      options: data?.invoiceEntityOptions || [],
+      placeholder: t('common.chooseText'),
+      showSearch: true,
+      optionFilterProp: 'label',
+      allowClear: true,
+    },
+  });
+  await setInvoiceEntityFieldsValue({
+    invoiceEntityId: data?.invoiceEntityId || undefined,
+  });
   if (selectedSku.value.length > 0) {
     for (let i = 0; i < selectedSku.value.length; i++) {
       selectedSkuMap.value.set(selectedSku.value[i].erpCode, selectedSku.value[i]);
@@ -243,6 +278,7 @@ function resetModalData() {
   skuQtyToOrderBeforeAdjust.value = {};
   isAdjusted.value = false;
   resetFields();
+  resetInvoiceEntityFields();
 }
 
 async function handleSubmit(_v) {
@@ -264,13 +300,15 @@ async function handleSubmit(_v) {
     centered: true,
     onOk: async () => {
       try {
+        const invoiceEntityValues = await validateInvoiceEntity();
         const values = await validate();
-        const params = {};
+        const params: Record<string, any> = {};
         let result = {};
         setModalProps({ confirmLoading: true });
         for (const i in values) {
           if (values[i] > 0) params[i] = values[i];
         }
+        params['invoiceEntityId'] = invoiceEntityValues.invoiceEntityId;
         await createPurchaseInvoice(params).then((res) => {
           result = res;
         });
@@ -434,80 +472,97 @@ async function handleFillNegativeStocks() {
 </style>
 
 <style lang="less">
-.qtyPerPeriod {
-  color: #9CA3AF;
-  text-align: center;
-  @apply grid h-full py-0.5 grid-cols-3;
-}
-
-form {
-  .ant-row.ant-form-item {
-    align-items: center;
-    line-height: normal;
+.product-order-modal-scope {
+  .qtyPerPeriod {
+    color: #9CA3AF;
+    text-align: center;
+    @apply grid h-full py-0.5 grid-cols-3;
   }
 
-  div .ant-col-12 {
-    &:nth-child(odd) {
-      border-left: 1px solid @light-gray-color;
+  form {
+    .ant-row.ant-form-item {
+      align-items: center;
+      line-height: normal;
+    }
+
+    div .ant-col-12 {
+      &:nth-child(odd) {
+        border-left: 1px solid @light-gray-color;
+      }
     }
   }
-}
 
-.jeecg-basic-form .ant-form-item-label > label[for="form_item_days"] {
-  font-size: 14px;
-}
-
-span.jeecg-basic-help,
-.jeecg-basic-table-header-cell__help {
-  color: #4ad088 !important;
-}
-
-#picker-form {
-  .ant-row .ant-row.ant-form-item {
-    justify-content: center;
+  .jeecg-basic-form .ant-form-item-label > label[for="form_item_days"] {
+    font-size: 14px;
   }
-}
 
-.pricePerSku {
-  color: @primary-color;
-  font-weight: 600;
-  min-height: 20px;
-}
+  span.jeecg-basic-help,
+  .jeecg-basic-table-header-cell__help {
+    color: #4ad088 !important;
+  }
 
-.qtyEditor {
-  gap: 2px;
-}
+  #picker-form {
+    .ant-row .ant-row.ant-form-item {
+      justify-content: flex-start;
+    }
 
-.priceCurrent {
-  color: #9CA3AF;
-  font-size: 12px;
-  line-height: 16px;
-  text-align: center;
-}
+    .ant-form-item {
+      margin-bottom: 12px;
+    }
+  }
 
-.priceOriginal {
-  color: #9CA3AF;
-  font-size: 12px;
-  line-height: 16px;
-  text-decoration: line-through;
-  text-align: center;
-  min-height: 16px;
-}
+  .pricePerSku {
+    color: @primary-color;
+    font-weight: 600;
+    min-height: 20px;
+  }
 
-.subtotalCell {
-  min-width: 72px;
-  gap: 2px;
-}
+  .qtyEditor {
+    gap: 2px;
+  }
 
-.subtotalOriginal {
-  min-height: 16px;
-}
+  .priceCurrent {
+    color: #9CA3AF;
+    font-size: 12px;
+    line-height: 16px;
+    text-align: center;
+  }
 
-.priceHidden {
-  visibility: hidden;
-}
+  .priceOriginal {
+    color: #9CA3AF;
+    font-size: 12px;
+    line-height: 16px;
+    text-decoration: line-through;
+    text-align: center;
+    min-height: 16px;
+  }
 
-.jeecg-basic-form .ant-form-item-label > label {
-  height: 64px;
+  .subtotalCell {
+    min-width: 72px;
+    gap: 2px;
+  }
+
+  .subtotalOriginal {
+    min-height: 16px;
+  }
+
+  .priceHidden {
+    visibility: hidden;
+  }
+
+  .jeecg-basic-form .ant-form-item-label > label {
+    height: 64px;
+  }
+
+  #invoice-entity-form {
+    .ant-form-item-label > label {
+      height: 32px;
+    }
+
+    .ant-row.ant-form-item {
+      align-items: center;
+      margin-bottom: 0;
+    }
+  }
 }
 </style>

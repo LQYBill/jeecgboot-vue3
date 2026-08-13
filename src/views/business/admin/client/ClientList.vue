@@ -41,12 +41,22 @@
   import { useModal } from '/@/components/Modal';
   import ClientModal from './components/ClientModal.vue';
   import { columns, superQuerySchema } from './Client.data';
-  import { list, deleteOne, batchDelete, getImportUrl, getExportUrl } from './Client.api';
+  import { list, deleteOne, batchDelete, getImportUrl, getExportUrl, queryInvoiceEntityByMainId } from './Client.api';
   import { useUserStore } from '/@/store/modules/user';
   import { useI18n } from '@/hooks/web/useI18n';
   import { PageWrapper } from '@/components/Page';
   import {Icon} from "@/components/Icon";
   const { t } = useI18n();
+
+  function extractInvoiceEntityRows(payload: any): any[] {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.result)) return payload.result;
+    if (Array.isArray(payload?.records)) return payload.records;
+    if (Array.isArray(payload?.data)) return payload.data;
+    if (Array.isArray(payload?.result?.records)) return payload.result.records;
+    if (Array.isArray(payload?.result?.data)) return payload.result.data;
+    return [];
+  }
 
   const queryParam = reactive<any>({});
   const userStore = useUserStore();
@@ -58,6 +68,26 @@
       columns,
       canResize: false,
       useSearchForm: false,
+      afterFetch: async (items: any[]) => {
+        const records = Array.isArray(items) ? items : [];
+        return await Promise.all(
+          records.map(async (item) => {
+            try {
+              const entities = extractInvoiceEntityRows(await queryInvoiceEntityByMainId({ id: item.id }));
+              return {
+                ...item,
+                invoiceEntityCount: entities.length,
+              };
+            } catch (error) {
+              console.warn('[client-list] failed to load invoice entities for client', item.id, error);
+              return {
+                ...item,
+                invoiceEntityCount: 0,
+              };
+            }
+          })
+        );
+      },
       actionColumn: {
         width: 120,
         fixed: 'right',
@@ -129,6 +159,15 @@
     });
   }
 
+  function handleViewInvoiceEntities(record: Recordable) {
+    openModal(true, {
+      record,
+      isUpdate: true,
+      showFooter: false,
+      initialTabKey: 'invoiceEntity',
+    });
+  }
+
   /**
    * 删除事件
    */
@@ -171,6 +210,10 @@
       {
         label: t('common.operation.details'),
         onClick: handleDetail.bind(null, record),
+      },
+      {
+        label: t('data.client.viewInvoiceEntities'),
+        onClick: handleViewInvoiceEntities.bind(null, record),
       },
       {
         label: t('common.operation.delete'),

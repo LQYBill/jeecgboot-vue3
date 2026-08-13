@@ -1,4 +1,4 @@
-export { Client } from './client.dto';
+export { Client, InvoiceEntity } from './client.dto';
 export { Credit } from './credit.dto';
 export { Currency } from './currency.dto';
 export { Estimation } from './estimation.dto';
