@@ -26,17 +26,22 @@
         </a-row>
       </a-form>
       <a-card class="card-header" v-if="client">
-        <h1>{{ fullName }} <span style="font-weight: 200">( {{ invoiceEntity }} )</span></h1>
-        <p>{{ t("data.client.preferredCurrency") }} : {{ currency }} / {{ CurrencyToken[currency] }}</p>
-        <div v-if="invoiceEntityOptions.length > 1" class="mt-2" style="max-width: 360px;">
-          <span class="mr-2">{{ t('data.InvoiceEntity') }}</span>
-          <JSearchSelect
-            :placeholder="t('common.chooseText')"
-            :dictOptions="invoiceEntityOptions"
-            @change="handleInvoiceEntityChange"
-            v-model:value="selectedInvoiceEntityId"
-            allowClear
-          />
+        <h1>{{ fullName }}</h1>
+        <div class="info-grid">
+          <div class="info-tile">
+            <label>{{ t("data.client.preferredCurrency") }}</label>
+            <div class="info-tile__value">{{ currency }} / {{ CurrencyToken[currency] }}</div>
+          </div>
+          <div v-if="invoiceEntityOptions.length > 0" class="info-tile">
+            <label>{{ t('data.InvoiceEntity') }}</label>
+            <JSearchSelect
+              :placeholder="t('common.chooseText')"
+              :dictOptions="invoiceEntityOptions"
+              @change="handleInvoiceEntityChange"
+              v-model:value="selectedInvoiceEntityId"
+              allowClear
+            />
+          </div>
         </div>
       </a-card>
       <a-tabs v-if="client && currencyList.length > 0"
@@ -129,7 +134,6 @@ const client = ref<Client>();
 
 const currency = ref<string>();
 const fullName = ref<string>();
-const invoiceEntity = ref<string>();
 const shopOptions = ref<Record<string, ShopOptions>>({});
 const currencyList = ref<CurrencyEnum[]>([]);
 const invoiceEntityOptions = ref<any[]>([]);
@@ -166,7 +170,6 @@ function handleClientChange(id?: string) {
   currencyList.value = [];
   currency.value = '';
   fullName.value = '';
-  invoiceEntity.value = '';
   invoiceEntityOptions.value = [];
   selectedInvoiceEntityId.value = undefined;
   activeTab.value = 1;
@@ -186,7 +189,10 @@ async function loadClient(clientParam: Client) {
 }
 function loadInvoiceEntityOptions() {
   const entities = client.value?.invoiceEntityList || [];
-  invoiceEntityOptions.value = entities.map((entity: InvoiceEntity) => ({
+  const sortedEntities = [...entities].sort((a, b) =>
+    (a.isDefault === '1' ? 0 : 1) - (b.isDefault === '1' ? 0 : 1)
+  );
+  invoiceEntityOptions.value = sortedEntities.map((entity: InvoiceEntity) => ({
     text: [entity.invoiceEntity, entity.country, entity.currency].filter(Boolean).join(' / '),
     value: entity.id,
     raw: entity,
@@ -201,7 +207,6 @@ function applySelectedInvoiceEntity() {
   const matched = invoiceEntityOptions.value.find((item) => item.value === selectedInvoiceEntityId.value);
   const entity: InvoiceEntity | undefined = matched?.raw;
   currency.value = entity?.currency as string || '';
-  invoiceEntity.value = entity?.invoiceEntity || '';
 }
 async function loadAllTransactionCurrencies() {
   const params = {
@@ -337,6 +342,37 @@ function handleEditModeChange(checked: boolean) {
   border-radius: 1em;
   h1 {
     font-size: 2em;
+    margin-bottom: 0.8em;
+  }
+  .info-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .info-tile {
+    flex: 1 1 240px;
+    min-width: 220px;
+    padding: 14px 18px;
+    border: 1px solid #eef0f5;
+    border-radius: 12px;
+    background: #fafbfd;
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.8em;
+      font-weight: 600;
+      color: rgba(0,0,0,0.45);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    &__value {
+      font-size: 1.15em;
+      font-weight: 600;
+      color: rgba(0,0,0,0.85);
+    }
+    .ant-select {
+      width: 100%;
+    }
   }
 }
 .main-card .ant-tabs-top > .ant-tabs-nav{
