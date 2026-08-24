@@ -72,6 +72,12 @@ const [registerTable, {getSelectRows, reload}] = useTable({
   tableSetting: {fullScreen: true},
   canResize: false,
   rowKey: 'id',
+  sortFn: (sorter) => ({
+    column: sorter.field === 'shopId_dictText'
+      ? 'shopId'
+      : sorter.field,
+    order: sorter.order === 'ascend' ? 'asc' : 'desc',
+  }),
 });
 
 const innerData = ref<any[]>([]);
