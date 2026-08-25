@@ -555,8 +555,9 @@ export const formSchema: FormSchema[] = [
     { label: t('data.quotation.col.livraison'), field: 'livraison', component: 'Input', colProps: { span: 12 } },
     { label: t('data.quotation.col.prixAchat'), field: 'prixAchat', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, precision: 2, disabled: true } },
     { label: t('data.quotation.col.logisticsFee'), field: 'logisticsFee', component: 'InputNumber', dynamicDisabled: true, colProps: { span: 12 }, componentProps: { style: { width: '100%' } } },
+    { label: t('data.quotation.col.smallParcelTaxFee'), field: 'smallParcelTaxFee', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, precision: 2, disabled: true } },
     { label: t('data.quotation.col.totalFee'), field: 'totalFee', component: 'InputNumber', dynamicDisabled: true, colProps: { span: 12 }, componentProps: { style: { width: '100%' } } },
-    { label: t('data.quotation.col.grossWeightG'), field: 'grossWeightG', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' } }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputGrossWeight') }] },
+    { label: t('data.quotation.col.grossWeightG'), field: 'grossWeightG', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, precision: 0 }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputGrossWeight') }] },
     { label: t('data.quotation.col.packWeightG'), field: 'packWeightG', component: 'Input', colProps: { span: 12 }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputPackWeight') }] },
     { label: t('data.quotation.col.expressWeightG'), field: 'expressWeightG', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, customHeaderCell: headerWrap,precision: 0, disabled: true } },
     {
@@ -578,7 +579,6 @@ export const formSchema: FormSchema[] = [
       colProps: { span: 12 },
       defaultValue: 1,
       componentProps: { style: { width: '100%' }, precision: 2, min: 0 },
-      dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputDeclaredValue') }],
     },
     {
       label: t('data.quotation.col.iossRate'),
@@ -587,14 +587,12 @@ export const formSchema: FormSchema[] = [
       colProps: { span: 12 },
       defaultValue: 0.22,
       componentProps: { style: { width: '100%' }, precision: 2, min: 0 },
-      dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputIossRate') }],
     },
     {
       label: t('data.quotation.col.iossFee'),
       field: 'iossFee',
       component: 'InputNumber',
       colProps: { span: 12 },
-      defaultValue: 0.22,
       dynamicDisabled: true,
       componentProps: { style: { width: '100%' }, precision: 2, min: 0, disabled: true },
     },
@@ -613,10 +611,11 @@ export const formSchema: FormSchema[] = [
     { label: t('data.quotation.col.costEur'), field: 'costEur', component: 'InputNumber', colProps: { span: 12 }, dynamicDisabled: true, componentProps: { style: { width: '100%' } } },
     { label: t('data.quotation.col.salePriceRmb'), field: 'salePriceRmb', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' } }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputSalePriceRmb') }] },
     { label: t('data.quotation.col.salePriceEur'), field: 'salePriceEur', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, disabled: true } },
-    { label: t('data.quotation.col.partnerSalePrice'), field: 'partnerSalePrice', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' } }, dynamicRules: () => [{ required: true, message: t('data.quotation.validate.inputPartnerSalePrice') }] },
-    { label: t('data.quotation.col.margin'), field: 'margin', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, precision: 4 } },
     { label: t('data.quotation.col.profitRmb'), field: 'profitRmb', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, disabled: true } },
     { label: t('data.quotation.col.profitEur'), field: 'profitEur', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, disabled: true } },
+    { label: t('data.quotation.col.margin'), field: 'margin', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, precision: 4 } },
+    { label: t('data.quotation.col.partnerSalePrice'), field: 'partnerSalePrice', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, precision: 2 } },
+    { label: t('data.quotation.col.partnerMargin'), field: 'partnerMargin', component: 'InputNumber', colProps: { span: 12 }, componentProps: { style: { width: '100%' }, precision: 4 } },
     // zone 5 supplier and packaging
     {
       field: 'd5',

@@ -115,7 +115,7 @@
         </template>
       </template>
     </BasicTable>
-    <QuotationModal @register="registerModal" @success="handleSuccess" />
+    <QuotationModal @register="registerModal" @success="handleSuccess" @duplicate="handleDuplicate" />
     <InquiryModal @register="registerInquiryModal" @success="handleSuccess" />
   </PageWrapper>
 </template>
@@ -661,6 +661,22 @@ async function handleDetail(record: any) {
   const normalizedRecord = normalizeQuoteDetailRecord(fullRecordResp, record);
   const fullRecord = await hydrateQuoteRecord({ ...normalizedRecord, id: normalizedRecord?.id ?? record.id });
   openModal(true, { record: fullRecord, isUpdate: true, showFooter: false });
+}
+async function handleDuplicate(record: any) {
+  if (!record?.id) {
+    createMessage.error(t('common.queryFailed'));
+    return;
+  }
+  const fullRecordResp = await quoteQueryById({ id: record.id });
+  const normalizedRecord = normalizeQuoteDetailRecord(fullRecordResp, record);
+  const fullRecord = await hydrateQuoteRecord({ ...normalizedRecord, id: normalizedRecord?.id ?? record.id });
+  const inquiryId = getRecordInquiryId(fullRecord);
+  openModal(true, {
+    record: { ...fullRecord, id: '', status: '0', country: '', country_dictText: '', logisticChannel: '', logisticChannel_dictText: '' },
+    isUpdate: false,
+    fromInquiry: !!inquiryId,
+    showFooter: true,
+  });
 }
 async function handleInquiryDetail(record: any) {
   const inquiryId = getRecordInquiryId(record);

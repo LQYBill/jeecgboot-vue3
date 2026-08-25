@@ -401,6 +401,7 @@ export default {
   quotation: {
     quote: 'Quotation',
     inquiry: 'Inquiry',
+    reopenNotice: 'This quote is completed. Set it back to incomplete and save before editing anything else.',
 
     page: {
       quoteList: 'Quotation',
@@ -449,10 +450,11 @@ export default {
       livraison: 'Delivery time',
       prixAchat: "Purchase price",
       logisticsFee: 'Shipping fee (€)',
+      smallParcelTaxFee: 'Small Parcel Tax',
       totalFee: 'Total fee (€)',
-      declaredValue: 'Declared value',
+      declaredValue: 'Declared value (€)',
       iossRate: 'IOSS rate',
-      iossFee: 'IOSS fee',
+      iossFee: 'IOSS fee (€)',
       expressWeightG: 'Express weight (g)',
       salesRemark: 'Sales remark',
 
@@ -462,10 +464,11 @@ export default {
       costEur: 'Cost EUR',
       salePriceRmb: 'Sale price RMB',
       salePriceEur: 'Sale price EUR',
-      partnerSalePrice: 'Partner sale price',
+      partnerSalePrice: 'Partner sale price EUR',
       profitRmb: 'Profit RMB',
       profitEur: 'Profit EUR',
       margin: 'Margin',
+      partnerMargin: 'Partner commission',
       grossWeightG: 'Gross weight (g)',
       packWeightG: 'Packaging weight (g)',
 
@@ -525,6 +528,7 @@ export default {
     action: {
       addDirectQuote: 'Add direct quotation',
       quoteFromInquiry: 'Quote From This Inquiry',
+      addCountry: 'Add country',
     },
 
     confirm: {
@@ -542,6 +546,7 @@ export default {
 
     tips: {
       referencePriceRoute: '(ref) means this route uses a reference channel price. The final price is calculated from the reference route.',
+      importSingleCountryOnly: 'Each row supports only one country. For inquiries covering several countries, add the rest by editing the record after import.',
     },
 
     validate: {

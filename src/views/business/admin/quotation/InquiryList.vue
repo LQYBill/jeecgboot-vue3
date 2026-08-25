@@ -5,6 +5,14 @@
         <a-button type="primary" preIcon="ant-design:plus-outlined" @click="handleAdd">
           {{ t('common.operation.addNew') }}
         </a-button>
+        <a-button type="primary" preIcon="ant-design:export-outlined" @click="onExportXlsx">
+          {{ t('common.operation.export') }}
+        </a-button>
+        <a-tooltip :title="t('data.quotation.tips.importSingleCountryOnly')">
+          <j-upload-button type="primary" preIcon="ant-design:import-outlined" @click="onImportXls">
+            {{ t('common.operation.import') }}
+          </j-upload-button>
+        </a-tooltip>
         <a-button
           v-if="selectedRowKeys.length > 0"
           danger
@@ -53,15 +61,19 @@ import { PageWrapper } from '/@/components/Page';
 import { BasicTable, TableAction, TableImg } from '/@/components/Table';
 import { useModal } from '/@/components/Modal';
 import { useListPage } from '/@/hooks/system/useListPage';
+import { useMethods } from '/@/hooks/system/useMethods';
 import { useI18n } from '/@/hooks/web/useI18n';
 import { downloadFile } from '/@/utils/common/renderUtils';
 import { useGlobSetting } from '/@/hooks/setting';
 import { useUserStore } from '/@/store/modules/user';
+import { filterObj } from '/@/utils/common/compUtils';
 
 import InquiryModal from './components/InquiryModal.vue';
 import { inquiryColumns, inquirySearchFormSchema, setInquiryDisplayOptions } from './Inquiry.data';
 import {
   getClientOptions,
+  getExportUrl,
+  getImportUrl,
   inquiryBatchDelete,
   inquiryDeleteOne,
   inquiryList,
@@ -72,6 +84,7 @@ import {
 import { buildInquiryQuoteRouteQuery, resolveQuoteRoutePath } from './quotation.route';
 
 const { t } = useI18n();
+const { handleExportXlsx } = useMethods();
 const userStore = useUserStore();
 const globSetting = useGlobSetting();
 const baseUploadUrl = globSetting.uploadUrl;
@@ -82,7 +95,7 @@ const route = useRoute();
 const searchSchemas = userStore.getIsEmployee
   ? inquirySearchFormSchema
   : inquirySearchFormSchema.filter((schema) => schema.field !== 'clientId');
-const { tableContext} = useListPage({
+const { tableContext, onImportXls } = useListPage({
   tableProps: {
     title: t('data.quotation.page.inquiryList'),
     api: inquiryList,
@@ -103,9 +116,26 @@ const { tableContext} = useListPage({
       title: t('common.operation.action'),
     },
   },
+  importConfig: {
+    url: getImportUrl,
+    success: handleSuccess,
+  },
 });
 
 const [registerTable, { reload, getForm }, { rowSelection, selectedRowKeys }] = tableContext;
+
+async function onExportXlsx() {
+  let paramsForm = {};
+  try {
+    paramsForm = await getForm().validate();
+  } catch (e) {
+    console.error(e);
+  }
+  if (selectedRowKeys.value && selectedRowKeys.value.length > 0) {
+    paramsForm['selections'] = selectedRowKeys.value.join(',');
+  }
+  return handleExportXlsx(t('data.quotation.inquiry'), getExportUrl, filterObj(paramsForm));
+}
 
 onMounted(async () => {
   const [clientOptions, countryOptions, salespersonOptions] = await Promise.all([
