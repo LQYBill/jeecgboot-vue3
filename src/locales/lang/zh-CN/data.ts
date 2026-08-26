@@ -402,6 +402,7 @@
   quotation: {
     quote: '报价',
     inquiry: '询单',
+    reopenNotice: '已完成报价需先改为未完成，才可编辑',
 
     page: {
       quoteList: '报价',
@@ -452,10 +453,11 @@
       livraison: '时效',
       prixAchat: "Prix d’achat",
       logisticsFee: '物流费(€)',
+      smallParcelTaxFee: '小包税',
       totalFee: '总费用(€)',
-      declaredValue: '申报价格',
+      declaredValue: '申报价格(€)',
       iossRate: 'IOSS费率',
-      iossFee: 'IOSS金额',
+      iossFee: 'IOSS金额(€)',
       expressWeightG: '快递重量(g)',
       salesRemark: '销售备注',
 
@@ -465,10 +467,11 @@
       costEur: '成本 EUR',
       salePriceRmb: '售价 RMB',
       salePriceEur: '售价 EUR',
-      partnerSalePrice: '合作伙伴售价',
+      partnerSalePrice: '合作伙伴售价 EUR',
       profitRmb: '利润 RMB',
       profitEur: '利润 EUR',
       margin: '利润率',
+      partnerMargin: '合作伙伴commission',
       grossWeightG: '毛重(g)',
       packWeightG: '包材重(g)',
 
@@ -531,6 +534,7 @@
     action: {
       addDirectQuote: '新增独立报价',
       quoteFromInquiry: '基于当前询单报价',
+      addCountry: '新增国家',
     },
 
     // confirm / tips
@@ -548,6 +552,7 @@
 
     tips: {
       referencePriceRoute: '(ref) 表示该路线使用对标渠道价格，实际价格按对标渠道计算。',
+      importSingleCountryOnly: '每行只支持填一个国家，多国家的询单导入后需手动编辑补充其余国家。',
     },
 
     // form validation messages

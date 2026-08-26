@@ -13,6 +13,8 @@ enum Api {
   clientQueryById = '/client/client/queryById',
   inquiryDeleteOne = '/inquiry/delete',
   inquiryDeleteBatch = '/inquiry/deleteBatch',
+  importExcel = '/inquiry/importExcel',
+  exportXls = '/inquiry/exportXls',
 
   salespersons = '/sys/user/salespersons',
   clientList = '/client/client/all',
@@ -201,6 +203,9 @@ export const inquiryBatchDelete = (params, handleSuccess) => {
     },
   });
 };
+
+export const getImportUrl = Api.importExcel;
+export const getExportUrl = Api.exportXls;
 
 export const getCurrentClient = () => defHttp.get({ url: Api.getCurrentClient });
 export const getSalespersons = async () => {

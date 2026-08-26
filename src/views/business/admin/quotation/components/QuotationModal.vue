@@ -8,7 +8,19 @@
     :bodyStyle="{ maxHeight: '72vh', overflow: 'auto' }"
     @ok="handleSubmit"
   >
+    <template #insertFooter>
+      <a-button v-if="isEmployee && editId" @click="handleAddCountry">
+        {{ t('data.quotation.action.addCountry') }}
+      </a-button>
+    </template>
     <div class="q-wrap">
+      <a-alert
+        v-if="needsReopenFirst"
+        class="q-reopen-notice"
+        type="warning"
+        show-icon
+        :message="t('data.quotation.reopenNotice')"
+      />
       <div class="q-top">
         <BasicForm class="q-form q-form-top" @register="registerTopForm" />
       </div>
@@ -42,20 +54,21 @@ import { useMessage } from '/@/hooks/web/useMessage';
 const i18n = useI18n() as any;
 const { t } = i18n;
 const { createMessage } = useMessage();
-const emit = defineEmits(['register', 'success']);
+const emit = defineEmits(['register', 'success', 'duplicate']);
 const editId = ref<string>('');
 const isDirectAdd = ref(false);
 const fromInquiry = ref(false);
 const sourceInquiryId = ref<string>('');
-type PricingDriver = 'salePriceRmb' | 'margin';
+type PricingDriver = 'salePriceRmb' | 'margin' | 'partnerSalePrice' | 'partnerMargin';
 const userStore = useUserStore();
 const isEmployee = userStore.getIsEmployee;
+const needsReopenFirst = ref(false);
 type Section = { key: string; title: string; schemas: any[]; readonly?: boolean };
 const formLabelWidth = 160;
 const { top, sections: sectionDefs } = splitByDivider(rawSchemas);
 const topSchemas = top.filter((x: any) => x?.field === 'status');
 const customerHiddenSections = new Set(['sec-4', 'sec-5']);
-const customerHiddenFields = new Set(['logisticChannel', 'expressWeightG']);
+const customerHiddenFields = new Set(['logisticChannel', 'expressWeightG', 'declaredValue', 'iossRate']);
 const inquirySectionKey = 'sec-1';
 const readonlyText = computed(() => {
   const locale = String(i18n.locale?.value || i18n.locale || '');
@@ -173,6 +186,12 @@ function applyPricingDriver(payload: Record<string, any>, driver?: PricingDriver
     if (driver === 'margin') {
       delete payload.salePriceRmb;
     }
+    if (driver === 'partnerSalePrice') {
+      delete payload.partnerMargin;
+    }
+    if (driver === 'partnerMargin') {
+      delete payload.partnerSalePrice;
+    }
     return;
   }
   delete payload.pricingDriver;
@@ -205,12 +224,17 @@ function pickComputed(est: any) {
 
     costRmb: est?.costRmb,
     costEur: est?.costEur,
-    prixAchat: salePriceEur ?? est?.prixAchat,
+    prixAchat: est?.partnerSalePriceEur ?? salePriceEur ?? est?.prixAchat,
 
     salePriceRmb: est?.salePriceRmb,
     salePriceEur,
 
+    partnerSalePrice: est?.partnerSalePrice,
+    partnerSalePriceEur: est?.partnerSalePriceEur,
+    partnerMargin: est?.partnerMargin,
+
     logisticsFee: est?.logisticsFee,
+    smallParcelTaxFee: est?.smallParcelTaxFee,
     totalFee: est?.totalFee,
     iossFee: est?.iossFee,
 
@@ -409,6 +433,8 @@ function bindEstimateHooks(formApi: any) {
     })),
     { field: 'salePriceRmb', componentProps: { onChange: () => triggerEstimateFrom('salePriceRmb') } },
     { field: 'margin', componentProps: { onChange: () => triggerEstimateFrom('margin') } },
+    { field: 'partnerSalePrice', componentProps: { onChange: () => triggerEstimateFrom('partnerSalePrice') } },
+    { field: 'partnerMargin', componentProps: { onChange: () => triggerEstimateFrom('partnerMargin') } },
   ];
   formApi.updateSchema?.(schemaUpdates);
 }
@@ -442,7 +468,14 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
   await applyLogisticChannelOptions(r.country, true);
   const disabled = !isEmployee || !data?.showFooter;
   topFormApi.setProps({ disabled });
-  for (const s of getActiveSections()) s.api.setProps({ disabled: disabled || !!s.readonly });
+  needsReopenFirst.value = !disabled && String(r?.status ?? '') === '1';
+  for (const s of getActiveSections()) s.api.setProps({ disabled: disabled || !!s.readonly || needsReopenFirst.value });
+  const iossGroupIfShow = ({ values }: any) => !disabled || hasValue(values?.iossFee);
+  await updateSchemaEverywhere([
+    { field: 'declaredValue', ifShow: iossGroupIfShow },
+    { field: 'iossRate', ifShow: iossGroupIfShow },
+    { field: 'iossFee', ifShow: iossGroupIfShow },
+  ]);
   if (isEmployee) {
     bindEstimateHooks(topFormApi);
     for (const s of getActiveSections()) bindEstimateHooks(s.api);
@@ -454,6 +487,12 @@ const title = computed(() => {
   if (!editId.value) return t('data.quotation.modalTitle.quoteAdd');
   return t('data.quotation.quote');
 });
+
+function handleAddCountry() {
+  if (!editId.value) return;
+  closeModal();
+  emit('duplicate', { id: editId.value });
+}
 
 async function handleSubmit() {
   if (!isEmployee) return;
@@ -512,6 +551,9 @@ async function handleSubmit() {
 }
 .q-top {
   padding: 2px 6px 10px;
+}
+.q-reopen-notice {
+  margin: 4px 6px 0;
 }
 .q-section {
   background: #fff;
