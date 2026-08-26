@@ -72,12 +72,21 @@ const [registerTable, {getSelectRows, reload}] = useTable({
   tableSetting: {fullScreen: true},
   canResize: false,
   rowKey: 'id',
-  sortFn: (sorter) => ({
-    column: sorter.field === 'shopId_dictText'
-      ? 'shopId'
-      : sorter.field,
-    order: sorter.order === 'ascend' ? 'asc' : 'desc',
-  }),
+  sortFn: (sorter) => {
+    // 没有选择排序字段时，使用默认排序
+    if (!sorter?.field || !sorter?.order) {
+      return {
+        column: 'createTime',
+        order: 'desc',
+      };
+    }
+    return {
+      column: sorter.field === 'shopId_dictText'
+        ? 'shopId'
+        : sorter.field,
+      order: sorter.order === 'ascend' ? 'asc' : 'desc',
+    };
+  },
 });
 
 const innerData = ref<any[]>([]);
