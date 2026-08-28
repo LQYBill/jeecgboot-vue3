@@ -92,9 +92,10 @@ const imgPrefix = `${baseUploadUrl}/sys/common/static/`;
 const [registerModal, { openModal }] = useModal();
 const router = useRouter();
 const route = useRoute();
+const customerHiddenSearchFields = new Set(['clientId', 'salesId']);
 const searchSchemas = userStore.getIsEmployee
   ? inquirySearchFormSchema
-  : inquirySearchFormSchema.filter((schema) => schema.field !== 'clientId');
+  : inquirySearchFormSchema.filter((schema) => !customerHiddenSearchFields.has(String(schema.field || '')));
 const { tableContext, onImportXls } = useListPage({
   tableProps: {
     title: t('data.quotation.page.inquiryList'),
@@ -111,7 +112,7 @@ const { tableContext, onImportXls } = useListPage({
       fieldMapToTime: [],
     },
     actionColumn: {
-      width: 220,
+      width: 280,
       fixed: 'right',
       title: t('common.operation.action'),
     },
