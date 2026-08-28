@@ -45,16 +45,19 @@ const [registerForm, { resetFields, setFieldsValue, validate, updateSchema }] = 
   autoSetPlaceHolder: false,
 });
 
+const clientLockedFields = new Set(['inquiryClient', 'inquirySales']);
 async function applyReadOnlyMode(readonly: boolean) {
   await updateSchema(
-    inquiryFormSchema.map((schema) => ({
-      field: schema.field,
-      dynamicDisabled: () => readonly,
-      componentProps: {
-        ...(schema.componentProps || {}),
-        disabled: readonly,
-      },
-    }))
+    inquiryFormSchema
+      .filter((schema) => !clientLockedFields.has(String(schema.field || '')))
+      .map((schema) => ({
+        field: schema.field,
+        dynamicDisabled: () => readonly,
+        componentProps: {
+          ...(schema.componentProps || {}),
+          disabled: readonly,
+        },
+      }))
   );
 }
 
@@ -175,17 +178,20 @@ async function applyCountryOptions() {
   }
 }
 
-async function applySalespersonOptions() {
+async function applySalespersonOptions(isEmployee: boolean, readonly: boolean) {
+  const disabled = readonly || !isEmployee;
   try {
     const options = await getSalespersons();
     await updateSchema({
       field: 'inquirySales',
+      dynamicDisabled: () => disabled,
       componentProps: {
         options,
         showSearch: true,
         mode: 'multiple',
         maxTagCount: 'responsive',
-        allowClear: true,
+        allowClear: !disabled,
+        disabled,
       },
     });
   } catch (error) {
@@ -193,14 +199,11 @@ async function applySalespersonOptions() {
   }
 }
 
-async function applyInquiryClientDisplayScope(isAdd: boolean) {
+async function resolveCurrentClientContext() {
   let isEmployee = userStore.getIsEmployee;
   let currentClientId = '';
-  let clientOptions: any[] = [];
   try {
-    const [res, options] = await Promise.all([getCurrentClient(), getClientOptions()]);
-    clientOptions = options;
-    clientOptionsRef.value = options;
+    const res = await getCurrentClient();
     if (res?.internal) {
       isEmployee = true;
     } else if (res?.client?.id) {
@@ -210,14 +213,27 @@ async function applyInquiryClientDisplayScope(isAdd: boolean) {
   } catch (error) {
     console.warn('[inquiry-modal] failed to load current client', error);
   }
+  return { isEmployee, currentClientId };
+}
+
+async function applyInquiryClientDisplayScope(isAdd: boolean, isEmployee: boolean, currentClientId: string, readonly: boolean) {
+  const disabled = readonly || !isEmployee;
+  let clientOptions: any[] = [];
+  try {
+    clientOptions = await getClientOptions();
+    clientOptionsRef.value = clientOptions;
+  } catch (error) {
+    console.warn('[inquiry-modal] failed to load client options', error);
+  }
 
   await updateSchema({
     field: 'inquiryClient',
+    dynamicDisabled: () => disabled,
     componentProps: {
       options: clientOptions,
       showSearch: true,
-      disabled: !isEmployee,
-      allowClear: isEmployee,
+      disabled,
+      allowClear: !disabled,
       onChange: onInquiryClientChange,
     },
   });
@@ -235,9 +251,14 @@ const [registerModal, { closeModal, setModalProps }] = useModalInner(async (data
 
   isUpdate.value = !!data?.isUpdate;
   showFooter.value = data?.showFooter !== false;
-  await Promise.all([applyCountryOptions(), applySalespersonOptions()]);
-  await applyInquiryClientDisplayScope(!data?.record);
-  await applyReadOnlyMode(!showFooter.value);
+  const readonly = !showFooter.value;
+  const { isEmployee, currentClientId } = await resolveCurrentClientContext();
+  await Promise.all([
+    applyReadOnlyMode(readonly),
+    applyCountryOptions(),
+    applySalespersonOptions(isEmployee, readonly),
+    applyInquiryClientDisplayScope(!data?.record, isEmployee, currentClientId, readonly),
+  ]);
 
   if (data?.record) {
     currentId.value = data.record.id ?? null;

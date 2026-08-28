@@ -210,7 +210,7 @@ export const inquiryColumns = [
   { title: t('data.quotation.col.inquirySpec'), dataIndex: 'inquirySpec', width: 160, customRender: ({ record }) => showRecordText(record, 'inquirySpec', 'specification') },
   { title: t('data.quotation.col.inquiryColor'), dataIndex: 'inquiryColor', width: 120, customRender: ({ record }) => showRecordText(record, 'inquiryColor', 'color') },
   { title: t('data.quotation.col.priorityMode'), dataIndex: 'priorityMode', width: 120, customRender: ({ text }) => renderPriorityMode(text) },
-  { title: t('data.quotation.col.attachments'), dataIndex: 'attachments', width: 140,customHeaderCell: headerWrap, },
+  { title: t('data.quotation.col.attachments'), dataIndex: 'attachments', width: 160,customHeaderCell: headerWrap, },
   { title: t('data.quotation.col.inquiryRemark'), dataIndex: 'inquiryRemark', width: 180, ellipsis: true, customRender: ({ record }) => showRecordText(record, 'inquiryRemark', 'remark') },
 ];
 
@@ -298,7 +298,7 @@ export const inquiryFormSchema: FormSchema[] = [
     label: t('data.quotation.col.priorityMode'),
     field: 'priorityMode',
     component: 'Select',
-    required: false,
+    required: true,
     componentProps: {
       allowClear: true,
       options: priorityModeOptions,
