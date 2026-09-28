@@ -38,7 +38,13 @@
               :accept="'.xlsx,.xls'"
             >
             </a-upload>
-            <a-button type="primary" @click="handlePlaceOrderByExcel" preIcon="ant-design:shopping-cart-outlined">
+            <a-button
+              type="primary"
+              @click="handlePlaceOrderByExcel"
+              preIcon="ant-design:shopping-cart-outlined"
+              :loading="excelImportLoading"
+              :disabled="excelImportLoading"
+            >
               {{ t('data.order.placeOrderByExcel') }}
             </a-button>
             <a-button  type="default" preIcon="ant-design:export-outlined" @click="handleSkuOrderExport"> {{ t("common.operation.export") }}</a-button>
@@ -219,6 +225,7 @@ const defaultInvoiceEntityId = ref<string | undefined>(undefined);
 const skuList = ref<any>([]);
 
 const tableLoading = ref<boolean>(false);
+const excelImportLoading = ref<boolean>(false);
 const orderDisabled = ref<boolean>(true);
 const syncLoading = ref<boolean>(false);
 const syncDisabled = ref<boolean>(true);
@@ -590,6 +597,7 @@ async function handlePlaceOrderByExcel() {
   input.onchange = async () => {
     const file = input.files?.[0];
     if (!file) return;
+    excelImportLoading.value = true;
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -612,6 +620,7 @@ async function handlePlaceOrderByExcel() {
       }
       // get the excel data and open the modal
       const mappedSkuList = validSkuList.map((sku) => ({
+        id: sku.id ?? sku.skuId,
         erpCode: sku.erpCode,
         enName: sku.enName,
         zhName: sku.zhName,
@@ -636,6 +645,8 @@ async function handlePlaceOrderByExcel() {
     } catch (e) {
       console.error('Failed to parse Excel', e);
       createMessage.error('Failed to parse Excel: ' + e);
+    } finally {
+      excelImportLoading.value = false;
     }
   };
 }
