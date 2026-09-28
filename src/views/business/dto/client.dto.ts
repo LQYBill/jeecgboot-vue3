@@ -31,5 +31,6 @@ export interface Client {
   isChronologicalOrder: "0" | "1";
   displayBalance: boolean;
   receiveInvoiceByEmail: boolean;
+  smallPurchaseShippingFeeEnabled?: boolean;
   invoiceEntityList?: InvoiceEntity[];
 }

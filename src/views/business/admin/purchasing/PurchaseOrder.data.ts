@@ -49,6 +49,14 @@ export const columns: BasicColumn[] = [
     ellipsis: false,
   },
   {
+    title: t('data.purchase.domesticShippingFee'),
+    align: 'center',
+    dataIndex: 'domesticShippingFee',
+    width: 120,
+    ellipsis: false,
+    customRender: ({ value }) => value ?? 0,
+  },
+  {
     title: t('data.invoice.finalAmount'),
     align: "center",
     dataIndex: 'finalAmount',

@@ -38,7 +38,13 @@
               :accept="'.xlsx,.xls'"
             >
             </a-upload>
-            <a-button type="primary" @click="handlePlaceOrderByExcel" preIcon="ant-design:shopping-cart-outlined">
+            <a-button
+              type="primary"
+              @click="handlePlaceOrderByExcel"
+              preIcon="ant-design:shopping-cart-outlined"
+              :loading="excelImportLoading"
+              :disabled="excelImportLoading"
+            >
               {{ t('data.order.placeOrderByExcel') }}
             </a-button>
             <a-button  type="default" preIcon="ant-design:export-outlined" @click="handleSkuOrderExport"> {{ t("common.operation.export") }}</a-button>
@@ -140,7 +146,7 @@
         </template>
       </BasicTable>
     </a-card>
-    <ProductOrderModal @register="registerModal" @success="handleModalSuccess"></ProductOrderModal>
+    <ProductOrderModal @register="registerModal" @success="handleModalSuccess" @quote-used="handleQuoteUsed"></ProductOrderModal>
   </PageWrapper>
   <Result v-else-if="!hasMabangUsername" :status="ExceptionEnum.PAGE_NOT_ACCESS" :title="t('sys.invoice.missingMabangUsername')">
     <template #extra>
@@ -219,6 +225,7 @@ const defaultInvoiceEntityId = ref<string | undefined>(undefined);
 const skuList = ref<any>([]);
 
 const tableLoading = ref<boolean>(false);
+const excelImportLoading = ref<boolean>(false);
 const orderDisabled = ref<boolean>(true);
 const syncLoading = ref<boolean>(false);
 const syncDisabled = ref<boolean>(true);
@@ -432,6 +439,11 @@ function handleModalSuccess (result:InvoiceMetaData) {
   clearSelectedRowKeys();
   reload();
 }
+function handleQuoteUsed() {
+  createMessage.warning(t('data.purchase.shippingQuoteUsed'));
+  clearSelectedRowKeys();
+  reload();
+}
 function handleDownloadSuccess() {
   createMessage.info("Download successful.");
 }
@@ -590,6 +602,7 @@ async function handlePlaceOrderByExcel() {
   input.onchange = async () => {
     const file = input.files?.[0];
     if (!file) return;
+    excelImportLoading.value = true;
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -612,6 +625,7 @@ async function handlePlaceOrderByExcel() {
       }
       // get the excel data and open the modal
       const mappedSkuList = validSkuList.map((sku) => ({
+        id: sku.id ?? sku.skuId,
         erpCode: sku.erpCode,
         enName: sku.enName,
         zhName: sku.zhName,
@@ -636,6 +650,8 @@ async function handlePlaceOrderByExcel() {
     } catch (e) {
       console.error('Failed to parse Excel', e);
       createMessage.error('Failed to parse Excel: ' + e);
+    } finally {
+      excelImportLoading.value = false;
     }
   };
 }

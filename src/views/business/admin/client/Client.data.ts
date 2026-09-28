@@ -182,6 +182,17 @@ export const formSchema: FormSchema[] = [
     },
     colProps: { span: 12 },
   },
+  {
+    label: t('data.client.smallPurchaseShippingFeeEnabled'),
+    field: 'smallPurchaseShippingFeeEnabled',
+    component: 'Switch',
+    defaultValue: false,
+    componentProps: {
+      checkedChildren: t('common.yes'),
+      unCheckedChildren: t('common.no'),
+    },
+    colProps: { span: 12 },
+  },
   // TODO 主键隐藏字段，目前写死为ID
   {
     label: '',

@@ -4,6 +4,7 @@ import {InvoiceMetaData} from "@/views/business/dto/invoiceMetaData.dto";
 
 enum Api {
   createOrder='/shippingInvoice/makeManualSkuPurchaseInvoice',
+  previewShippingQuote='/business/purchaseOrder/client/quote',
   getClientList = '/client/client/all',
   getInvoiceEntitiesByClientId = '/client/client/queryInvoiceEntityByMainId',
   listClientSkus = '/sku/listWithFilters',
@@ -17,6 +18,28 @@ enum Api {
   syncSkuQty = '/sku/syncSkuQty',
   skuOrderExport = '/sku/skuOrderExport',
   placeOrderByExcel = '/shippingInvoice/createOrderByExcel',
+}
+
+export interface PurchaseShippingQuoteGroup {
+  supplier: string;
+  quantity: number;
+  threshold: number;
+  standardFee: number;
+  fee: number;
+}
+
+export interface PurchaseShippingQuote {
+  quoteId: string;
+  expiresAt: number;
+  enabled: boolean;
+  currency: string;
+  exchangeRate: number;
+  merchandiseAmount: number;
+  discountAmount: number;
+  domesticShippingFee: number;
+  finalAmount: number;
+  payableAmount: number;
+  groups: PurchaseShippingQuoteGroup[];
 }
 export const getClient = async () => {
   return await defHttp.get({url: Api.getClient});
@@ -74,6 +97,10 @@ export const getAllSelectableSkus = async (params: Record<string, any>, handleSu
 }
 export const createPurchaseInvoice = (params:any) => {
   return defHttp.post({url: Api.createOrder, params});
+}
+
+export const previewPurchaseShippingQuote = (params: Array<{ id: string; quantity: number }>) => {
+  return defHttp.post<PurchaseShippingQuote>({ url: Api.previewShippingQuote, params });
 }
 
 export const downloadInvoice = (invoiceFilename:string, handleSuccess:Function) => {

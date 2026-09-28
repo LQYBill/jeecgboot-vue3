@@ -12,15 +12,42 @@
             <h1 class="text-md mt-2">{{item.shop}}</h1>
             <div class="flex justify-between w-full">
               <span class="text-md mt-2">{{ t('data.invoice.shippingFee')}} : </span>
-              <span class="text-md mt-2">{{item?.shippingFeesEstimation}} {{item?.currency}}</span>
+              <div class="fee-amount mt-2">
+                <span>{{ formatAmount(item?.shippingFeesEstimation) }} {{item?.currency}}</span>
+                <span v-if="item?.currency !== 'EUR'" class="original-eur">
+                  ({{ formatAmount(item?.shippingFeesEstimationEur) }} EUR)
+                </span>
+              </div>
             </div>
             <div class="flex justify-between w-full">
               <span class="text-md mt-2">{{ t('data.invoice.purchaseFee')}} : </span>
-              <span class="text-md mt-2">{{item?.purchaseEstimation}} {{item?.currency}}</span>
+              <div class="fee-amount mt-2">
+                <span>{{ formatAmount(item?.purchaseEstimation) }} {{item?.currency}}</span>
+                <span v-if="item?.currency !== 'EUR'" class="original-eur">
+                  ({{ formatAmount(item?.purchaseEstimationEur) }} EUR)
+                </span>
+              </div>
+            </div>
+            <div
+              v-if="item?.domesticShippingFee !== undefined && item?.domesticShippingFee !== null"
+              class="flex justify-between w-full"
+            >
+              <span class="text-md mt-2">{{ t('data.purchase.domesticShippingFeeTotal')}} : </span>
+              <div class="fee-amount mt-2">
+                <span>{{ formatAmount(item.domesticShippingFee) }} {{item?.currency}}</span>
+                <span v-if="item?.currency !== 'EUR'" class="original-eur">
+                  ({{ formatAmount(item?.domesticShippingFeeEur) }} EUR)
+                </span>
+              </div>
             </div>
             <div class="flex justify-between w-full">
               <span class="text-md mt-2">{{ t('data.invoice.total')}} : </span>
-              <span class="text-md mt-2">{{item?.totalEstimation}} {{item?.currency}}</span>
+              <div class="fee-amount mt-2">
+                <span>{{ formatAmount(item?.totalEstimation) }} {{item?.currency}}</span>
+                <span v-if="item?.currency !== 'EUR'" class="original-eur">
+                  ({{ formatAmount(item?.totalEstimationEur) }} EUR)
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -43,4 +70,25 @@ const props = defineProps({
   }
 })
 const { t } = useI18n()
+const formatAmount = (amount?: number) => Number(amount || 0).toFixed(2)
 </script>
+
+<style scoped>
+.fee-amount {
+  display: flex;
+  flex-direction: column;
+  min-width: 100px;
+  margin-left: 12px;
+  align-items: flex-end;
+  text-align: right;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.original-eur {
+  color: #8c8c8c;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: right;
+}
+</style>
