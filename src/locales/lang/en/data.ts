@@ -43,6 +43,7 @@ export default {
     useBalance: "Use Balance",
     displayBalance: "Display Balance",
     receiveInvoiceByEmail: "Receive Invoice By Email",
+    smallPurchaseShippingFeeEnabled: "Small-purchase domestic shipping",
     invoiceEntityCount: "Invoice Entity Count",
     viewInvoiceEntities: "View Invoice Entities",
   },

@@ -43,6 +43,7 @@
     useBalance: "是否使用余额",
     displayBalance: "是否显示余额",
     receiveInvoiceByEmail: "是否通过邮件接收发票",
+    smallPurchaseShippingFeeEnabled: "小额采购境内运费",
     invoiceEntityCount: "发票实体数",
     viewInvoiceEntities: "查看发票实体",
   },
