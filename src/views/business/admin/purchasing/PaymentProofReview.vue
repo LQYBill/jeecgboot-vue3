@@ -226,7 +226,7 @@ const {tableContext} = useListPage({
         }
         for(let i = 0; i < selectedRows.length; i++) {
           let row = selectedRows[i];
-          if(!row.paymentApproved || !row.paymentDocumentString || row.ordered) {
+          if(!row.paymentApproved || row.ordered) {
             createOrderDisabled.value = true;
             return;
           }
