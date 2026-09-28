@@ -192,6 +192,7 @@ const typeOptionList = ref<JSearchSelectOption[]>([]);
 const currentClient = ref<string>('');
 
 const otherEnName = "Autres";
+const returnZhName = "退货费";
 
 const isOther = ref<boolean>(false);
 const isFeeOptionDisabled = ref<boolean>(true);
@@ -247,13 +248,13 @@ function handleTypeChange(typeId: string) {
   setIsOtherType(typeId);
 }
 function setIsOtherType(typeId: string) {
-  if(typeId === typeList.value.find((type) => type.enName === otherEnName)?.id){
-    isDescriptionDisabled.value = false;
-    isOther.value = true;
-  } else {
-    isDescriptionDisabled.value = true;
-    isOther.value = false;
-  }
+  const selectedType = typeList.value.find((type) => type.id === typeId);
+  const showDescription =
+    !!selectedType &&
+    (selectedType.enName === otherEnName || selectedType.zhName === returnZhName);
+
+  isOther.value = showDescription;
+  isDescriptionDisabled.value = !showDescription;
 }
 function handleDescriptionChange(event: Event) {
   formState.description = (event.target as HTMLInputElement).value;
