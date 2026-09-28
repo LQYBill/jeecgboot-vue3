@@ -939,7 +939,7 @@ async function makeManualInvoice() {
   manualCompleteInvoiceDisabled.value = true;
   await makeManualInvoiceRequest(params).then(
       res => {
-        checkedKeys.value = [];
+        clearSelectedOrderEstimation();
         let filename = res.filename;
         let code = res.invoiceCode;
         downloadInvoice(filename);
@@ -1013,7 +1013,7 @@ async function makeManualCompleteInvoice() {
   await makeManualCompleteInvoiceRequest(params)
     .then(
       (res: Response<InvoiceMetaData, Response<string, string>[]>) => {
-        checkedKeys.value = [];
+        clearSelectedOrderEstimation();
         const filename = res.data.filename;
         const code = res.data.invoiceCode;
         if(res.error !== null) {
@@ -1057,6 +1057,16 @@ async function makeManualCompleteInvoice() {
       loadOrders();
     });
 }// end of makeManualCompleteInvoice
+function clearSelectedOrderEstimation() {
+  controller.abort();
+  checkedKeys.value = [];
+  estimation.value = [];
+  estimatesReady.value = true;
+  purchasePricesAvailable.value = false;
+  copyDisabled.value = true;
+  makeManualInvoiceDisabled.value = true;
+  manualCompleteInvoiceDisabled.value = true;
+}
 async function makeInvoice() {
   if (!customerId.value) {
     createMessage.warning(t('component.searchForm.clientInputSearch'));
