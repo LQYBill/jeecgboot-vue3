@@ -36,6 +36,7 @@
               class="qtyPicker"
               v-model:value="model[field]"
               :min="0"
+              :precision="0"
               :controls="false"
               placeholder="Please enter the quantity"
               @change="calculateTotal"
@@ -86,14 +87,43 @@
     <div id="invoice-entity-form" class="my-4">
       <BasicForm @register="registerInvoiceEntityForm" />
     </div>
+    <div class="shipping-quote max-w-2xl mx-auto mb-4">
+      <a-alert v-if="quoteError" type="error" show-icon :message="quoteError" />
+      <a-spin :spinning="quoteLoading" :tip="t('data.purchase.shippingQuoteLoading')">
+        <div v-if="shippingQuote" class="rounded-lg border bg-gray-50 p-4">
+          <div class="grid grid-cols-2 gap-x-8 gap-y-2">
+            <span>{{ t('data.purchase.merchandiseAmount') }}</span>
+            <strong class="text-right">{{ formatMoney(shippingQuote.merchandiseAmount) }} €</strong>
+            <span>{{ t('data.purchase.discountAmount') }}</span>
+            <strong class="text-right">-{{ formatMoney(shippingQuote.discountAmount) }} €</strong>
+            <span>{{ t('data.purchase.domesticShippingFee') }}</span>
+            <strong class="text-right">{{ formatMoney(shippingQuote.domesticShippingFee) }} €</strong>
+          </div>
+          <div v-if="shippingQuote.groups?.length" class="mt-3 border-t pt-3">
+            <div v-for="(group, index) in shippingQuote.groups" :key="`${group.supplier}-${index}`" class="flex justify-between text-sm py-1">
+              <span>
+                {{ t('data.purchase.supplierGroup') }} {{ index + 1 }} · {{ group.quantity }} pcs
+                <span class="text-gray-400">({{ t('data.purchase.freeAboveQuantity', { quantity: group.threshold }) }})</span>
+              </span>
+              <span>{{ formatMoney(group.fee) }} €</span>
+            </div>
+          </div>
+          <div class="flex justify-between mt-3 border-t pt-3 text-base">
+            <strong>{{ t('data.purchase.payableAmount') }}</strong>
+            <strong>{{ formatMoney(shippingQuote.payableAmount) }} {{ shippingQuote.currency }}</strong>
+          </div>
+        </div>
+        <div v-else-if="quoteLoading" class="h-24"></div>
+      </a-spin>
+    </div>
     <div class="total flex text-center basis-full flex-1 items-center text-lg w-1/2 max-w-2xl m-[auto]">
       <div class="block basis-full flex-1 w-full py-4 border border-r-0 rounded-l-full bg-blue-100">
         <span>Total</span>
       </div>
       <div class="block basis-full flex-1 price w-full py-4 border border-l-0 rounded-r-full">
         <div>
-          <span>{{ !!orderTotal ? orderTotal : 0 }}</span>
-          <span> €</span>
+          <span>{{ shippingQuote ? formatMoney(shippingQuote.payableAmount) : orderTotal || 0 }}</span>
+          <span> {{ shippingQuote ? shippingQuote.currency : '€' }}</span>
         </div>
       </div>
     </div>
@@ -102,17 +132,23 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, h } from 'vue';
+import { ref, h, onBeforeUnmount } from 'vue';
 import { BasicModal, useModalInner } from '/@/components/Modal';
 import { BasicForm, useForm } from '/@/components/Form/index';
 import { formSchema, invoiceEntityFormSchema } from '../ProductOrder.data';
-import { createPurchaseInvoice } from '../ProductOrder.api';
+import {
+  createPurchaseInvoice,
+  previewPurchaseShippingQuote,
+  type PurchaseShippingQuote,
+} from '../ProductOrder.api';
 import { useI18n } from '/@/hooks/web/useI18n';
 import { Modal, InputNumber } from 'ant-design-vue';
 import BasicHelp from '/@/components/Basic/src/BasicHelp.vue';
+import { useMessage } from '/@/hooks/web/useMessage';
 
 const { t } = useI18n();
-const emit = defineEmits(['register', 'success']);
+const { createMessage } = useMessage();
+const emit = defineEmits(['register', 'success', 'quote-used']);
 const internalUse = ref(false);
 const selectedSku = ref<any[]>([]);
 const selectedSkuMap = ref(new Map());
@@ -121,6 +157,13 @@ const orderQty = ref<number>(0);
 const isAdjusted = ref<boolean>(false);
 const skuQtyToOrder = ref<any>({});
 const skuQtyToOrderBeforeAdjust = ref<any>({});
+const shippingQuote = ref<PurchaseShippingQuote | null>(null);
+const quoteLoading = ref(false);
+const quoteError = ref('');
+let quoteRequestTimer: ReturnType<typeof setTimeout> | undefined;
+let quoteClock: ReturnType<typeof setInterval> | undefined;
+let quoteRequestSequence = 0;
+let lastQuoteQuantitiesKey = '';
 
 const [registerForm, { appendSchemaByField, setProps, resetFields, setFieldsValue, validate, getFieldsValue }] = useForm({
   schemas: formSchema,
@@ -193,6 +236,7 @@ const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data
   selectedSkuMap.value = new Map();
   orderTotal.value = 0;
   orderQty.value = 0;
+  startQuoteClock();
   setModalProps({
     defaultFullscreen: true,
     confirmLoading: false,
@@ -277,11 +321,111 @@ function resetModalData() {
   skuQtyToOrder.value = {};
   skuQtyToOrderBeforeAdjust.value = {};
   isAdjusted.value = false;
+  clearQuoteState();
   resetFields();
   resetInvoiceEntityFields();
 }
 
+onBeforeUnmount(clearQuoteState);
+
+function clearQuoteState() {
+  quoteRequestSequence += 1;
+  if (quoteRequestTimer) clearTimeout(quoteRequestTimer);
+  if (quoteClock) clearInterval(quoteClock);
+  quoteRequestTimer = undefined;
+  quoteClock = undefined;
+  lastQuoteQuantitiesKey = '';
+  shippingQuote.value = null;
+  quoteLoading.value = false;
+  quoteError.value = '';
+}
+
+function startQuoteClock() {
+  if (quoteClock) clearInterval(quoteClock);
+  quoteClock = setInterval(() => {
+    if (!shippingQuote.value) return;
+    const quoteExpired = shippingQuote.value.expiresAt <= Date.now();
+    if (quoteExpired && !quoteLoading.value) {
+      quoteError.value = t('data.purchase.shippingQuoteExpired');
+      shippingQuote.value = null;
+      updateSubmitAvailability();
+      scheduleShippingQuote(0, true);
+    }
+  }, 1000);
+}
+
+function formatMoney(value: number | string | null | undefined) {
+  return Number(value || 0).toFixed(2);
+}
+
+function updateSubmitAvailability() {
+  const quoteReady = !!shippingQuote.value &&
+    shippingQuote.value.expiresAt > Date.now() &&
+    !quoteLoading.value &&
+    !quoteError.value;
+  setModalProps({ okButtonProps: { disabled: orderTotal.value <= 0 || !quoteReady } });
+}
+
+function buildQuoteQuantities() {
+  const values = getFieldsValue();
+  return selectedSku.value
+    .map((sku) => ({ id: sku.id, quantity: Number(values[sku.erpCode] || 0) }))
+    .filter((item) => item.id && Number.isInteger(item.quantity) && item.quantity > 0);
+}
+
+function scheduleShippingQuote(delay = 700, force = false) {
+  const quantitiesKey = JSON.stringify(buildQuoteQuantities());
+  if (!force && quantitiesKey === lastQuoteQuantitiesKey) {
+    updateSubmitAvailability();
+    return;
+  }
+  lastQuoteQuantitiesKey = quantitiesKey;
+  quoteRequestSequence += 1;
+  if (quoteRequestTimer) clearTimeout(quoteRequestTimer);
+  shippingQuote.value = null;
+  quoteError.value = '';
+  quoteLoading.value = orderTotal.value > 0;
+  updateSubmitAvailability();
+  if (orderTotal.value <= 0) return;
+  quoteRequestTimer = setTimeout(() => void refreshShippingQuote(), delay);
+}
+
+async function refreshShippingQuote() {
+  const quantities = buildQuoteQuantities();
+  if (quantities.length === 0) {
+    quoteLoading.value = false;
+    updateSubmitAvailability();
+    return;
+  }
+  const sequence = ++quoteRequestSequence;
+  quoteLoading.value = true;
+  quoteError.value = '';
+  updateSubmitAvailability();
+  try {
+    const result = await previewPurchaseShippingQuote(quantities);
+    if (sequence !== quoteRequestSequence) return;
+    shippingQuote.value = result;
+  } catch (error) {
+    if (sequence !== quoteRequestSequence) return;
+    shippingQuote.value = null;
+    quoteError.value = (error as any)?.message || t('data.purchase.shippingQuoteFailed');
+  } finally {
+    if (sequence === quoteRequestSequence) {
+      quoteLoading.value = false;
+      updateSubmitAvailability();
+    }
+  }
+}
+
 async function handleSubmit(_v) {
+  if (!shippingQuote.value || shippingQuote.value.expiresAt <= Date.now()) {
+    quoteError.value = t('data.purchase.shippingQuoteExpired');
+    scheduleShippingQuote(0, true);
+    return;
+  }
+  const confirmationAmount = shippingQuote.value
+    ? `${formatMoney(shippingQuote.value.payableAmount)} ${shippingQuote.value.currency}`
+    : `${orderTotal.value} €`;
   Modal.confirm({
     title: t('data.order.createOrderConfirmation'),
     content: h('span', {
@@ -292,8 +436,8 @@ async function handleSubmit(_v) {
         '</b> skus' +
         t('data.order.createSkuOrderConfirmationContent2') +
         ' <b>' +
-        orderTotal.value +
-        '</b> €',
+        confirmationAmount +
+        '</b>',
     }),
     okText: t('component.drawer.okText'),
     cancelText: t('component.drawer.cancelText'),
@@ -309,11 +453,25 @@ async function handleSubmit(_v) {
           if (values[i] > 0) params[i] = values[i];
         }
         params['invoiceEntityId'] = invoiceEntityValues.invoiceEntityId;
+        if (shippingQuote.value) params['quoteId'] = shippingQuote.value.quoteId;
         await createPurchaseInvoice(params).then((res) => {
           result = res;
         });
         closeModal();
         emit('success', result);
+      } catch (error) {
+        const message = String((error as any)?.message || error || '');
+        if (message.includes('SHIPPING_QUOTE_USED')) {
+          closeModal();
+          emit('quote-used');
+          return;
+        }
+        if (message.includes('SHIPPING_QUOTE_') && !message.includes('SHIPPING_QUOTE_USED')) {
+          shippingQuote.value = null;
+          quoteError.value = message;
+          scheduleShippingQuote(0, true);
+        }
+        createMessage.error(message || t('data.purchase.shippingQuoteFailed'));
       } finally {
         setModalProps({ confirmLoading: false });
       }
@@ -401,12 +559,8 @@ function calculateTotal() {
       });
       orderTotal.value = Number(sum.toFixed(2));
       orderQty.value = qty;
-      if (orderTotal.value > 0) {
-        setModalProps({ okButtonProps: { disabled: false } });
-      } else {
-        setModalProps({ okButtonProps: { disabled: true } });
-      }
       skuQtyToOrder.value = skuQtyObj;
+      scheduleShippingQuote();
       resolve(true);
     }, 100);
   });

@@ -146,7 +146,7 @@
         </template>
       </BasicTable>
     </a-card>
-    <ProductOrderModal @register="registerModal" @success="handleModalSuccess"></ProductOrderModal>
+    <ProductOrderModal @register="registerModal" @success="handleModalSuccess" @quote-used="handleQuoteUsed"></ProductOrderModal>
   </PageWrapper>
   <Result v-else-if="!hasMabangUsername" :status="ExceptionEnum.PAGE_NOT_ACCESS" :title="t('sys.invoice.missingMabangUsername')">
     <template #extra>
@@ -436,6 +436,11 @@ function handleModalSuccess (result:InvoiceMetaData) {
   else
     downloadInvoicePdf(result, handleDownloadSuccess);
   downloadInventory(result, handleDownloadSuccess);
+  clearSelectedRowKeys();
+  reload();
+}
+function handleQuoteUsed() {
+  createMessage.warning(t('data.purchase.shippingQuoteUsed'));
   clearSelectedRowKeys();
   reload();
 }
